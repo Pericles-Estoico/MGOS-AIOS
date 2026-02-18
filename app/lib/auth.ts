@@ -14,7 +14,7 @@ export const authOptions: NextAuthOptions = {
           email: credentials?.email as string,
           name: 'Demo User',
           image: null,
-          role: 'user',
+          role: 'admin',
         };
       },
     }),
