@@ -9,17 +9,37 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Senha' },
       },
       async authorize(credentials) {
-        return {
-          id: '1',
-          email: credentials?.email as string,
-          name: 'Demo User',
-          image: null,
-          role: 'admin',
-        };
+        // Demo credentials - replace with real auth when using Supabase
+        if (
+          credentials?.email === 'admin@example.com' &&
+          credentials?.password === 'password'
+        ) {
+          return {
+            id: '1',
+            email: 'admin@example.com',
+            name: 'Demo User',
+            role: 'admin',
+          };
+        }
+        return null;
       },
     }),
   ],
   pages: {
     signIn: '/login',
+  },
+  callbacks: {
+    jwt({ token, user }) {
+      if (user) {
+        token.role = user.role;
+      }
+      return token;
+    },
+    session({ session, token }) {
+      if (session.user) {
+        session.user.role = token.role;
+      }
+      return session;
+    },
   },
 };

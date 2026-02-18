@@ -46,7 +46,7 @@ export default function AnalyticsDashboard() {
         return;
       }
 
-      if (!['admin', 'head'].includes(session.user.role)) {
+      if (!session.user.role || !['admin', 'head'].includes(session.user.role)) {
         router.push('/dashboard');
         return;
       }

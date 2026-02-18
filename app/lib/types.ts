@@ -1,13 +1,15 @@
 import 'next-auth';
 import 'next-auth/jwt';
 
+export type UserRole = 'admin' | 'head' | 'executor' | 'qa';
+
 declare module 'next-auth' {
   interface User {
     id: string;
-    email: string;
-    role: 'admin' | 'head' | 'executor' | 'qa';
-    name?: string;
-    image?: string;
+    email?: string | null;
+    role?: UserRole;
+    name?: string | null;
+    image?: string | null;
     accessToken?: string;
     refreshToken?: string;
   }
@@ -15,7 +17,7 @@ declare module 'next-auth' {
   interface Session {
     user: User & {
       id: string;
-      role: string;
+      role?: UserRole;
       accessToken?: string;
     };
     accessToken?: string;
@@ -25,8 +27,8 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
-    email: string;
-    role: string;
+    email?: string | null;
+    role?: UserRole;
     accessToken?: string;
     refreshToken?: string;
   }
@@ -41,6 +43,3 @@ export interface ApiResponse<T = unknown> {
     details?: Record<string, unknown>;
   };
 }
-
-// User role type
-export type UserRole = 'admin' | 'head' | 'executor' | 'qa';
