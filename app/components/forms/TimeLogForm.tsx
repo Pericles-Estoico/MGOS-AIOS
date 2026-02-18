@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import { isValidDuration } from '@/utils/time-utils';
 
 interface TimeLogFormProps {
   taskId: string;
@@ -21,8 +22,8 @@ export default function TimeLogForm({ taskId, durationMinutes, onSubmit }: TimeL
     const formData = new FormData(e.currentTarget);
     const duration = durationMinutes || parseInt(formData.get('duration_minutes') as string, 10);
 
-    if (!duration || duration <= 0 || duration > 1440) {
-      setError('Duration must be between 0 and 1440 minutes');
+    if (!duration || !isValidDuration(duration)) {
+      setError('Duration must be between 1 and 1440 minutes');
       setLoading(false);
       return;
     }
@@ -77,7 +78,7 @@ export default function TimeLogForm({ taskId, durationMinutes, onSubmit }: TimeL
       {!durationMinutes && (
         <div>
           <label htmlFor="duration_minutes" className="block text-sm font-medium text-gray-700 mb-2">
-            Duration (minutes) <span>*</span>
+            Duration (minutes) <span className="text-red-500">*</span>
           </label>
           <input
             id="duration_minutes"
@@ -90,12 +91,20 @@ export default function TimeLogForm({ taskId, durationMinutes, onSubmit }: TimeL
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             placeholder="e.g., 90"
           />
+          <p className="text-xs text-gray-500 mt-1">Enter time spent working on this task (1-1440 minutes)</p>
         </div>
       )}
 
       {durationMinutes && (
-        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-          <p className="text-sm font-medium text-blue-900">Duration: {durationMinutes} minutes</p>
+        <div className="bg-green-50 border border-green-300 p-4 rounded-lg">
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="text-xs text-green-600 uppercase font-semibold">Time from Timer</p>
+              <p className="text-2xl font-bold text-green-900 mt-1">{durationMinutes} min</p>
+            </div>
+            <div className="text-4xl">⏱️</div>
+          </div>
+          <p className="text-xs text-green-700 mt-2">Calculated from: {Math.floor(durationMinutes * 60)} seconds</p>
         </div>
       )}
 
