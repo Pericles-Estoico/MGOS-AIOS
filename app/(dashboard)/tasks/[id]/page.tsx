@@ -10,6 +10,9 @@ import Timer from '@/components/tasks/Timer';
 import TaskStatusTimeline from '@/components/tasks/TaskStatusTimeline';
 import TaskReassignForm from '@/components/tasks/TaskReassignForm';
 import ExtendDueDateForm from '@/components/tasks/ExtendDueDateForm';
+import { TaskComments } from '@/components/task-comments';
+import { ActivityTimeline } from '@/components/activity-timeline';
+import { TaskPresence } from '@/components/task-presence';
 
 interface Task {
   id: string;
@@ -207,7 +210,9 @@ export default function TaskDetailPage({ params }: Props) {
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">{task.title}</h1>
 
-            <div className="flex gap-2 mb-6">
+            {taskId && <TaskPresence taskId={taskId} />}
+
+            <div className="flex gap-2 mb-6 mt-4">
               <span className={`px-3 py-1 text-sm font-medium rounded ${statusColors[task.status as keyof typeof statusColors] || 'bg-gray-100'}`}>
                 {task.status}
               </span>
@@ -446,7 +451,7 @@ export default function TaskDetailPage({ params }: Props) {
           )}
 
           {/* Details */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Details</h3>
 
             <div className="space-y-3 text-sm">
@@ -469,6 +474,16 @@ export default function TaskDetailPage({ params }: Props) {
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Real-time Collaboration */}
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            {taskId && <TaskComments taskId={taskId} />}
+          </div>
+
+          {/* Activity Timeline */}
+          <div className="bg-white rounded-lg shadow p-6">
+            {taskId && <ActivityTimeline taskId={taskId} />}
           </div>
         </div>
       </div>
