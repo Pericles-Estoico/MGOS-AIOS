@@ -29,3 +29,23 @@ Thumbs.db
 # artefatos soltos
 aios-core-main/
 aios-core-main.zip
+
+# Environment & Secrets (AIOS)
+*.key
+*.pem
+
+# Dependencies (AIOS)
+node_modules
+
+# Build & Logs (AIOS)
+build/
+logs/
+
+# IDE & OS (AIOS)
+.idea/
+*.swp
+
+# AIOS Local (AIOS)
+.aios-core/local/
+.claude/settings.local.json
+.aios/install-log.txt
