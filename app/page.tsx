@@ -1,8 +1,5 @@
+import { redirect } from 'next/navigation';
+
 export default function Home() {
-  return (
-    <main style={{ padding: 24, fontFamily: "system-ui" }}>
-      <h1>MGOS-AIOS ✅</h1>
-      <p>Next.js está rodando.</p>
-    </main>
-  );
+  redirect('/login');
 }
