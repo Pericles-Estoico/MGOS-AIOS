@@ -32,6 +32,12 @@ export function UserManagementList() {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('created_at');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editRole, setEditRole] = useState<string>('');
+  const [editStatus, setEditStatus] = useState<string>('');
+  const [editLoading, setEditLoading] = useState(false);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -83,6 +89,77 @@ export function UserManagementList() {
   const handleStatusFilter = (status: string) => {
     setFilterStatus(status);
     setPage(1);
+  };
+
+  const startEdit = (user: User) => {
+    setEditName(user.name);
+    setEditEmail(user.email);
+    setEditRole(user.role);
+    setEditStatus(user.status);
+    setEditMode(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedUser) return;
+
+    try {
+      setEditLoading(true);
+
+      const response = await fetch(`/api/users/${selectedUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editName,
+          email: editEmail,
+          role: editRole,
+          status: editStatus,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update user');
+      }
+
+      const updated = await response.json();
+      setSelectedUser(updated);
+      setEditMode(false);
+      setUsers(users.map((u) => (u.id === updated.id ? updated : u)));
+      toast.success('User updated successfully');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      toast.error(message);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedUser) return;
+
+    if (!confirm('Are you sure you want to delete this user?')) return;
+
+    try {
+      setEditLoading(true);
+
+      const response = await fetch(`/api/users/${selectedUser.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete user');
+      }
+
+      setUsers(users.filter((u) => u.id !== selectedUser.id));
+      setSelectedUser(null);
+      toast.success('User deleted successfully');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      toast.error(message);
+    } finally {
+      setEditLoading(false);
+    }
   };
 
   const getRoleBadgeColor = (role: string) => {
@@ -301,49 +378,132 @@ export function UserManagementList() {
       {selectedUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white max-w-md w-full mx-4 p-6 space-y-4 rounded-lg border">
-            <div>
-              <h2 className="text-xl font-bold">{selectedUser.name}</h2>
-              <p className="text-sm text-gray-600">{selectedUser.email}</p>
-            </div>
+            {!editMode ? (
+              <>
+                <div>
+                  <h2 className="text-xl font-bold">{selectedUser.name}</h2>
+                  <p className="text-sm text-gray-600">{selectedUser.email}</p>
+                </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm font-semibold">Role:</span>
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${getRoleBadgeColor(selectedUser.role)}`}>
-                  {selectedUser.role}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm font-semibold">Status:</span>
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${getStatusBadgeColor(selectedUser.status)}`}>
-                  {selectedUser.status}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm font-semibold">Created:</span>
-                <span className="text-sm text-gray-600">
-                  {new Date(selectedUser.created_at).toLocaleDateString('pt-BR')}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm font-semibold">Updated:</span>
-                <span className="text-sm text-gray-600">
-                  {new Date(selectedUser.updated_at).toLocaleDateString('pt-BR')}
-                </span>
-              </div>
-            </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-semibold">Role:</span>
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${getRoleBadgeColor(selectedUser.role)}`}>
+                      {selectedUser.role}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-semibold">Status:</span>
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${getStatusBadgeColor(selectedUser.status)}`}>
+                      {selectedUser.status}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-semibold">Created:</span>
+                    <span className="text-sm text-gray-600">
+                      {new Date(selectedUser.created_at).toLocaleDateString('pt-BR')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-semibold">Updated:</span>
+                    <span className="text-sm text-gray-600">
+                      {new Date(selectedUser.updated_at).toLocaleDateString('pt-BR')}
+                    </span>
+                  </div>
+                </div>
 
-            <div className="flex gap-2 justify-end pt-4 border-t">
-              <button
-                className="px-4 py-2 text-sm border rounded hover:bg-gray-50"
-                onClick={() => setSelectedUser(null)}
-              >
-                Close
-              </button>
-              <button className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
-                Edit
-              </button>
-            </div>
+                <div className="flex gap-2 justify-end pt-4 border-t">
+                  <button
+                    className="px-4 py-2 text-sm border rounded hover:bg-gray-50"
+                    onClick={() => setSelectedUser(null)}
+                  >
+                    Close
+                  </button>
+                  <button
+                    className="px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                    onClick={handleDelete}
+                    disabled={editLoading}
+                  >
+                    Delete
+                  </button>
+                  <button
+                    className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                    onClick={() => startEdit(selectedUser)}
+                  >
+                    Edit
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 className="text-xl font-bold">Edit User</h2>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-semibold block mb-1">Name</label>
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-semibold block mb-1">Email</label>
+                    <input
+                      type="email"
+                      value={editEmail}
+                      onChange={(e) => setEditEmail(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-semibold block mb-1">Role</label>
+                    <select
+                      value={editRole}
+                      onChange={(e) => setEditRole(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    >
+                      <option value="executor">Executor</option>
+                      <option value="head">Head</option>
+                      <option value="qa">QA</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-semibold block mb-1">Status</label>
+                    <select
+                      value={editStatus}
+                      onChange={(e) => setEditStatus(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 justify-end pt-4 border-t">
+                  <button
+                    className="px-4 py-2 text-sm border rounded hover:bg-gray-50"
+                    onClick={() => setEditMode(false)}
+                    disabled={editLoading}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                    onClick={handleSaveEdit}
+                    disabled={editLoading}
+                  >
+                    {editLoading ? 'Saving...' : 'Save'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
