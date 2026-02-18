@@ -5,24 +5,18 @@ export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       credentials: {
-        email: { label: 'Email', type: 'text' },
-        password: { label: 'Password', type: 'password' },
+        email: { label: 'Email' },
+        password: { label: 'Senha' },
       },
-      authorize: async (credentials) => {
-        // DEMO - ACEITA TUDO
+      async authorize(credentials) {
         return {
           id: '1',
-          email: credentials?.email || 'user@example.com',
-          name: 'User Demo',
-          role: 'admin',
-        } as any;
+          email: credentials?.email as string,
+          name: 'Demo User',
+        };
       },
     }),
   ],
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60,
-  },
   pages: {
     signIn: '/login',
   },
