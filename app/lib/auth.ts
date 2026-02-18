@@ -25,6 +25,20 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
+          // DEMO MODE - Allow testing without real Supabase
+          if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('your-project')) {
+            // Demo mode - any email with password works
+            if (credentials.password.length < 1) {
+              throw new Error('Invalid credentials');
+            }
+            return {
+              id: `demo-${credentials.email}`,
+              email: credentials.email,
+              name: credentials.email.split('@')[0],
+              role: credentials.email.includes('admin') ? 'admin' : credentials.email.includes('qa') ? 'qa' : 'executor',
+            };
+          }
+
           // 1. Authenticate with Supabase Auth
           if (!supabaseAdmin) {
             throw new Error('Supabase admin client not initialized');
