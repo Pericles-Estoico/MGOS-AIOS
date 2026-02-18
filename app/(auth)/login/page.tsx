@@ -19,26 +19,37 @@ function LoginForm() {
     setError('');
 
     try {
+      console.log('🔑 Iniciando login com:', { email });
       const result = await signIn('credentials', {
         email,
         password,
         redirect: false,
       });
 
+      console.log('📊 SignIn result:', { ok: result?.ok, error: result?.error, status: result?.status });
+
       if (result?.error) {
+        console.error('❌ SignIn error:', result.error);
         setError('Credenciais inválidas');
         setLoading(false);
       } else if (result?.ok) {
+        console.log('✅ Login bem-sucedido, redirecionando...');
         setLoading(false);
+
+        // Wait a moment for session to be established
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+        console.log('🔗 Redirecionando para:', callbackUrl);
         router.push(callbackUrl);
       } else {
+        console.error('⚠️  Resultado inesperado:', result);
         setError('Erro ao fazer login');
         setLoading(false);
       }
     } catch (error) {
-      console.error('Login error:', error);
-      setError('Erro ao fazer login');
+      console.error('❌ Login exception:', error);
+      setError('Erro ao fazer login: ' + (error instanceof Error ? error.message : 'Unknown error'));
       setLoading(false);
     }
   };

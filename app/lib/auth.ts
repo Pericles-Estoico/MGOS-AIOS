@@ -1,6 +1,10 @@
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
+if (!process.env.NEXTAUTH_SECRET) {
+  console.warn('⚠️  NEXTAUTH_SECRET is not set. Using default for development.');
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -9,11 +13,14 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Senha' },
       },
       async authorize(credentials) {
+        console.log('🔐 authorize() called with:', { email: credentials?.email });
+
         // Demo credentials - replace with real auth when using Supabase
         if (
           credentials?.email === 'admin@example.com' &&
           credentials?.password === 'password'
         ) {
+          console.log('✅ Credentials valid, returning user');
           return {
             id: '1',
             email: 'admin@example.com',
@@ -21,6 +28,8 @@ export const authOptions: NextAuthOptions = {
             role: 'admin',
           };
         }
+
+        console.log('❌ Credentials invalid');
         return null;
       },
     }),
@@ -28,15 +37,27 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/login',
   },
+  secret: process.env.NEXTAUTH_SECRET || 'fallback-secret-key-development-only',
+  session: {
+    strategy: 'jwt',
+    maxAge: 24 * 60 * 60, // 24 hours
+  },
+  jwt: {
+    maxAge: 24 * 60 * 60, // 24 hours
+  },
   callbacks: {
     jwt({ token, user }) {
+      console.log('📝 jwt() callback:', { tokenId: token.sub, userId: user?.id });
       if (user) {
         token.role = user.role;
+        token.id = user.id;
       }
       return token;
     },
     session({ session, token }) {
+      console.log('📋 session() callback:', { email: session.user?.email, role: token.role });
       if (session.user) {
+        session.user.id = token.id as string;
         session.user.role = token.role;
       }
       return session;
