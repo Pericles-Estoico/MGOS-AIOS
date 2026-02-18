@@ -1,4 +1,4 @@
-import type { NextAuthOptions } from 'next-auth';
+import type { NextAuthOptions, User } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 if (!process.env.NEXTAUTH_SECRET) {
@@ -12,7 +12,7 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email' },
         password: { label: 'Senha' },
       },
-      async authorize(credentials) {
+      async authorize(credentials): Promise<User | null> {
         console.log('🔐 authorize() called with:', { email: credentials?.email });
 
         // Demo credentials - replace with real auth when using Supabase
@@ -21,12 +21,13 @@ export const authOptions: NextAuthOptions = {
           credentials?.password === 'password'
         ) {
           console.log('✅ Credentials valid, returning user');
-          return {
+          const user: User & { role?: string } = {
             id: '1',
             email: 'admin@example.com',
             name: 'Demo User',
             role: 'admin',
           };
+          return user;
         }
 
         console.log('❌ Credentials invalid');
@@ -49,8 +50,8 @@ export const authOptions: NextAuthOptions = {
     jwt({ token, user }) {
       console.log('📝 jwt() callback:', { tokenId: token.sub, userId: user?.id });
       if (user) {
-        token.role = user.role;
         token.id = user.id;
+        token.role = (user as any).role;
       }
       return token;
     },
@@ -58,7 +59,7 @@ export const authOptions: NextAuthOptions = {
       console.log('📋 session() callback:', { email: session.user?.email, role: token.role });
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role;
+        (session.user as any).role = token.role;
       }
       return session;
     },
