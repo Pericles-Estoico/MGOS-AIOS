@@ -13,6 +13,8 @@ export const authOptions: NextAuthOptions = {
           id: '1',
           email: credentials?.email as string,
           name: 'Demo User',
+          image: null,
+          role: 'user',
         };
       },
     }),
