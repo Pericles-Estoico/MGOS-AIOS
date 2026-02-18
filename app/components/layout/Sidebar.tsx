@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import type { Session } from 'next-auth';
+import GlobalSearch from '../global-search';
 
 interface SidebarProps {
   user: Session['user'];
@@ -37,6 +38,11 @@ export default function Sidebar({ user }: SidebarProps) {
         <span className="inline-block mt-2 px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded">
           {user?.role}
         </span>
+      </div>
+
+      {/* Global Search */}
+      <div className="px-4 py-3 border-b border-gray-200">
+        <GlobalSearch />
       </div>
 
       {/* Navigation */}
