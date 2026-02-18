@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
+import { notifyQAReview } from '@/lib/notification-triggers';
 
 export async function POST(request: Request) {
   try {
@@ -36,6 +37,18 @@ export async function POST(request: Request) {
 
     const supabase = createSupabaseServerClient(session.accessToken);
 
+    // Get task details (title and executor)
+    const { data: taskData, error: taskError } = await supabase
+      .from('tasks')
+      .select('id, title, assigned_to')
+      .eq('id', task_id)
+      .single();
+
+    if (taskError || !taskData) {
+      return Response.json({ error: 'Task not found' }, { status: 404 });
+    }
+
+    // Insert QA review
     const { data, error } = await supabase
       .from('qa_reviews')
       .insert({
@@ -52,6 +65,18 @@ export async function POST(request: Request) {
       return Response.json(
         { error: 'Failed to submit QA review' },
         { status: 500 }
+      );
+    }
+
+    // Send notification to task executor
+    if (taskData.assigned_to) {
+      const reviewStatus = status === 'approved' ? 'approved' : 'rejected';
+      await notifyQAReview(
+        task_id,
+        taskData.title,
+        taskData.assigned_to,
+        reviewStatus,
+        feedback
       );
     }
 
