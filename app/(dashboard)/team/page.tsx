@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import BurndownChart from '@/components/tasks/BurndownChart';
 
 interface Task {
   id: string;
@@ -13,6 +14,7 @@ interface Task {
   assigned_to?: string;
   due_date?: string;
   created_at: string;
+  status_history?: any[];
 }
 
 interface TaskStats {
@@ -44,6 +46,7 @@ export default function TeamPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [allTasks, setAllTasks] = useState<Task[]>([]); // For burndown chart
   const [stats, setStats] = useState<TaskStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +68,7 @@ export default function TeamPage() {
       try {
         setLoading(true);
 
-        // Fetch all tasks
+        // Fetch paginated tasks for table
         const statusQuery = statusFilter === 'all' ? '' : `&status=${statusFilter}`;
         const res = await fetch(
           `/api/tasks?offset=${page * 20}&limit=20${statusQuery}`
@@ -79,6 +82,13 @@ export default function TeamPage() {
         const data = await res.json();
         setTasks(data.data || []);
         setTotal(data.total || 0);
+
+        // Fetch ALL tasks for burndown chart (no pagination)
+        const allRes = await fetch('/api/tasks?limit=1000');
+        if (allRes.ok) {
+          const allData = await allRes.json();
+          setAllTasks(allData.data || []);
+        }
 
         // Calculate stats
         if (data.data) {
@@ -155,6 +165,13 @@ export default function TeamPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Burndown Chart */}
+      {allTasks.length > 0 && (
+        <div className="mb-8">
+          <BurndownChart tasks={allTasks} />
         </div>
       )}
 
