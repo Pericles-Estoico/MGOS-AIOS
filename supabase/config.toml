@@ -1,0 +1,63 @@
+# Supabase Configuration for Digital TaskOps
+# Reference: https://supabase.com/docs/guides/local-development
+
+[project]
+project_id = "digital-taskops"
+# Set this to your actual Supabase project ID when initialized
+
+[api]
+# Port to use for Supabase API locally
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+max_rows = 1000
+
+[db]
+# PostgreSQL settings
+port = 5432
+major_version = 14
+
+[db.seed]
+# Seed script - runs after migrations
+sql_paths = ["./seed.sql"]
+
+[studio]
+# Supabase Studio UI port
+port = 54323
+enabled = true
+
+[inbucket]
+# Email testing service
+enabled = true
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[storage]
+# File storage settings
+file_size_limit = 52428800 # 50MB
+allowed_mime_types = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "application/pdf",
+  "text/plain",
+  "application/zip"
+]
+
+[auth]
+# Authentication settings
+enable_signup = true
+enable_anonymous_signups = false
+jwt_expiry = 3600
+external_url = "http://localhost:3000"
+enable_confirmable = false
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmable = true
+
+[functions]
+# Edge Functions
+import_map = "./functions/import_map.json"
