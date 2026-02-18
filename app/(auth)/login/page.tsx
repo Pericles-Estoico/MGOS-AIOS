@@ -29,10 +29,15 @@ function LoginForm() {
         setError('Credenciais inválidas');
         setLoading(false);
       } else if (result?.ok) {
+        setLoading(false);
         const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
         router.push(callbackUrl);
+      } else {
+        setError('Erro ao fazer login');
+        setLoading(false);
       }
-    } catch {
+    } catch (error) {
+      console.error('Login error:', error);
       setError('Erro ao fazer login');
       setLoading(false);
     }
