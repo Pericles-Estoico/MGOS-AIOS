@@ -1,166 +1,261 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import QAReviewModal from '@/components/qa-review-modal';
+import ReviewHistoryModal from '@/components/review-history-modal';
 
 interface Task {
   id: string;
   title: string;
+  description: string;
+  assigned_to: string;
   priority: string;
-  status: string;
-  assigned_to?: string;
   created_at: string;
-  evidence?: Array<{
-    created_at: string;
-  }>;
+  submitted_at: string;
+  users: { name: string; email: string };
 }
 
-const priorityColors = {
-  low: 'text-green-600',
-  medium: 'text-yellow-600',
-  high: 'text-orange-600',
-  critical: 'text-red-600',
-};
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+}
 
 export default function QAReviewsPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
+
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    page: 1,
+    limit: 10,
+    total: 0,
+    pages: 0,
+  });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(0);
-  const [total, setTotal] = useState(0);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
 
-  // Redirect if not QA role
+  // Filters
+  const [search, setSearch] = useState('');
+  const [priority, setPriority] = useState('all');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search
   useEffect(() => {
-    if (session && session.user.role !== 'qa') {
+    const timer = setTimeout(() => setDebouncedSearch(search), 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const fetchTasks = useCallback(async (page = 1) => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      params.append('page', page.toString());
+      params.append('status', 'submitted');
+      if (debouncedSearch) params.append('search', debouncedSearch);
+      if (priority !== 'all') params.append('priority', priority);
+
+      const res = await fetch(`/api/qa-reviews?${params.toString()}`);
+      if (!res.ok) throw new Error('Failed to fetch tasks');
+
+      const data = await res.json();
+      setTasks(data.data || []);
+      setPagination(data.pagination);
+    } catch (err) {
+      console.error('Error fetching tasks:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [debouncedSearch, priority]);
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session) {
+      router.push('/login');
+      return;
+    }
+
+    // Check role
+    if (!['qa', 'admin', 'head'].includes(session.user.role)) {
       router.push('/dashboard');
-    }
-  }, [session, router]);
-
-  useEffect(() => {
-    if (!session) return;
-
-    async function fetchTasks() {
-      try {
-        setLoading(true);
-        const res = await fetch(
-          `/api/tasks?status=submitted&offset=${page * 20}&limit=20`
-        );
-
-        if (!res.ok) {
-          setError('Failed to load tasks');
-          return;
-        }
-
-        const data = await res.json();
-        setTasks(data.data || []);
-        setTotal(data.total || 0);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setLoading(false);
-      }
+      return;
     }
 
-    fetchTasks();
-  }, [session, page]);
+    fetchTasks(1);
+  }, [status, session, fetchTasks, router]);
 
-  if (loading) {
-    return <div className="text-center py-12">Loading tasks...</div>;
+  if (status === 'loading' || loading) {
+    return (
+      <div className="flex justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+      </div>
+    );
   }
 
   return (
-    <div>
-      <Link href="/dashboard" className="text-blue-600 hover:underline mb-6 block">
-        ← Back to Dashboard
-      </Link>
-
+    <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">QA Reviews</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">QA Review</h1>
         <p className="text-gray-600">
-          {total} task{total !== 1 ? 's' : ''} waiting for review
+          Review submitted tasks and provide feedback
         </p>
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-          {error}
-        </div>
-      )}
+      {/* Filters */}
+      <div className="bg-white rounded-lg shadow p-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <input
+            type="text"
+            placeholder="Search tasks..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
 
-      {tasks.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-          <p className="text-gray-500">No tasks pending review</p>
-          <p className="text-sm text-gray-400 mt-2">
-            Check back when executors submit evidence
-          </p>
+          <select
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">All Priorities</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+          </select>
+
+          <button
+            onClick={() => fetchTasks(1)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Search
+          </button>
         </div>
-      ) : (
-        <div className="space-y-4">
-          {tasks.map((task) => (
-            <Link
+
+        <div className="mt-4 text-sm text-gray-600">
+          Showing {tasks.length} of {pagination.total} submitted tasks
+        </div>
+      </div>
+
+      {/* Tasks List */}
+      <div className="space-y-4">
+        {tasks.length === 0 ? (
+          <div className="text-center py-12 bg-gray-50 rounded-lg">
+            <p className="text-gray-600">No submitted tasks to review</p>
+          </div>
+        ) : (
+          tasks.map((task) => (
+            <div
               key={task.id}
-              href={`/tasks/${task.id}`}
-              className="block p-6 bg-white rounded-lg border border-gray-200 hover:shadow-lg hover:border-blue-300 transition"
+              className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
             >
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600">
-                  {task.title}
-                </h3>
-                <span
-                  className={`text-sm font-medium ${
-                    priorityColors[task.priority as keyof typeof priorityColors]
-                  }`}
-                >
-                  {task.priority} priority
-                </span>
-              </div>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {task.title}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                    {task.description}
+                  </p>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span>
+                      Assigned to: <strong>{task.users.name}</strong>
+                    </span>
+                    <span>
+                      Priority:{' '}
+                      <span
+                        className={`font-semibold ${
+                          task.priority === 'critical'
+                            ? 'text-red-600'
+                            : task.priority === 'high'
+                              ? 'text-orange-600'
+                              : task.priority === 'medium'
+                                ? 'text-yellow-600'
+                                : 'text-green-600'
+                        }`}
+                      >
+                        {task.priority}
+                      </span>
+                    </span>
+                    <span>
+                      Submitted:{' '}
+                      {new Date(task.submitted_at).toLocaleDateString('pt-BR')}
+                    </span>
+                  </div>
+                </div>
 
-              <div className="flex items-center gap-4 text-sm text-gray-600">
-                <span>
-                  📎 Evidence submitted:{' '}
-                  {task.evidence?.length ? `${task.evidence.length} file(s)` : 'None yet'}
-                </span>
-                <span>
-                  📅{' '}
-                  {new Date(task.evidence?.[0]?.created_at || task.created_at).toLocaleDateString(
-                    'pt-BR'
-                  )}
-                </span>
+                <div className="ml-4 flex gap-2">
+                  <button
+                    onClick={() => {
+                      setSelectedTask(task);
+                      setShowHistoryModal(true);
+                    }}
+                    className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  >
+                    History
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedTask(task);
+                      setShowReviewModal(true);
+                    }}
+                    className="px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    Review
+                  </button>
+                </div>
               </div>
-
-              <div className="mt-2 inline-block px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded">
-                Pending Review
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+            </div>
+          ))
+        )}
+      </div>
 
       {/* Pagination */}
-      {total > 20 && (
-        <div className="mt-8 flex justify-center gap-2">
-          <button
-            onClick={() => setPage(Math.max(0, page - 1))}
-            disabled={page === 0}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded disabled:opacity-50"
-          >
-            ← Previous
-          </button>
-          <span className="px-4 py-2">
-            Page {page + 1} of {Math.ceil(total / 20)}
-          </span>
-          <button
-            onClick={() => setPage(page + 1)}
-            disabled={(page + 1) * 20 >= total}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded disabled:opacity-50"
-          >
-            Next →
-          </button>
+      {pagination.pages > 1 && (
+        <div className="flex justify-center gap-2 mt-8">
+          {Array.from({ length: pagination.pages }, (_, i) => i + 1).map(
+            (page) => (
+              <button
+                key={page}
+                onClick={() => fetchTasks(page)}
+                className={`px-3 py-2 rounded-md transition-colors ${
+                  page === pagination.page
+                    ? 'bg-blue-600 text-white'
+                    : 'border border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                {page}
+              </button>
+            )
+          )}
         </div>
+      )}
+
+      {/* Modals */}
+      {selectedTask && showReviewModal && (
+        <QAReviewModal
+          task={selectedTask}
+          onClose={() => {
+            setShowReviewModal(false);
+            setSelectedTask(null);
+            fetchTasks(pagination.page);
+          }}
+        />
+      )}
+
+      {selectedTask && showHistoryModal && (
+        <ReviewHistoryModal
+          taskId={selectedTask.id}
+          onClose={() => {
+            setShowHistoryModal(false);
+            setSelectedTask(null);
+          }}
+        />
       )}
     </div>
   );

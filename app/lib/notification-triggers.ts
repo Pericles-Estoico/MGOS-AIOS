@@ -178,3 +178,47 @@ export async function createUserNotificationPreferences(userId: string) {
     return false;
   }
 }
+
+/**
+ * Send QA review action notification (approve, reject, request changes)
+ */
+export async function notifyQAReviewAction(
+  taskId: string,
+  action: 'approved' | 'rejected' | 'requested_changes',
+  feedback: string | null | undefined,
+  executorUserId: string
+) {
+  try {
+    // Map action to readable text
+    const actionMap = {
+      approved: 'approved',
+      rejected: 'rejected',
+      requested_changes: 'needs changes',
+    };
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/notifications/send`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': process.env.NOTIFICATIONS_API_KEY || '',
+      },
+      body: JSON.stringify({
+        type: 'qa_review_action',
+        userId: executorUserId,
+        taskId,
+        action: actionMap[action],
+        feedback,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to send QA review action notification:', await response.text());
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error sending QA review action notification:', error);
+    return false;
+  }
+}

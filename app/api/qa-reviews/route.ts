@@ -1,86 +1,77 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
-import { notifyQAReview } from '@/lib/notification-triggers';
+import { notifyQAReviewAction } from '@/lib/notification-triggers';
 
-export async function POST(request: Request) {
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Only QA role can submit reviews
-    if (session.user.role !== 'qa') {
-      return Response.json(
-        { error: 'Forbidden - only QA can submit reviews' },
-        { status: 403 }
-      );
+    // Only QA role can access
+    if (!['qa', 'admin', 'head'].includes(session.user.role)) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const body = await request.json();
-    const { task_id, status, feedback } = body;
-
-    if (!task_id || !status) {
-      return Response.json(
-        { error: 'Bad Request - task_id and status are required' },
-        { status: 400 }
-      );
-    }
-
-    if (!['approved', 'rejected', 'changes_requested'].includes(status)) {
-      return Response.json(
-        { error: 'Bad Request - invalid status' },
-        { status: 400 }
-      );
-    }
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = 10;
+    const offset = (page - 1) * limit;
+    const priorityFilter = searchParams.get('priority');
+    const executorFilter = searchParams.get('executor');
+    const search = searchParams.get('search');
 
     const supabase = createSupabaseServerClient(session.accessToken);
 
-    // Get task details (title and executor)
-    const { data: taskData, error: taskError } = await supabase
+    // Build query for submitted tasks
+    let query = supabase
       .from('tasks')
-      .select('id, title, assigned_to')
-      .eq('id', task_id)
-      .single();
+      .select(
+        `
+        id,
+        title,
+        description,
+        assigned_to,
+        priority,
+        created_at,
+        submitted_at,
+        users:assigned_to(name, email)
+        `,
+        { count: 'exact' }
+      )
+      .eq('status', 'submitted');
 
-    if (taskError || !taskData) {
-      return Response.json({ error: 'Task not found' }, { status: 404 });
+    if (priorityFilter && priorityFilter !== 'all') {
+      query = query.eq('priority', priorityFilter);
     }
 
-    // Insert QA review
-    const { data, error } = await supabase
-      .from('qa_reviews')
-      .insert({
-        task_id,
-        status,
-        feedback,
-        reviewed_by: session.user.id,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Supabase error:', error);
-      return Response.json(
-        { error: 'Failed to submit QA review' },
-        { status: 500 }
-      );
+    if (executorFilter) {
+      query = query.eq('assigned_to', executorFilter);
     }
 
-    // Send notification to task executor
-    if (taskData.assigned_to) {
-      const reviewStatus = status === 'approved' ? 'approved' : 'rejected';
-      await notifyQAReview(
-        task_id,
-        taskData.title,
-        taskData.assigned_to,
-        reviewStatus,
-        feedback
-      );
+    if (search) {
+      query = query.ilike('title', `%${search}%`);
     }
 
-    return Response.json(data, { status: 201 });
+    const { data: tasks, error: tasksError, count } = await query
+      .order('submitted_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (tasksError) {
+      throw tasksError;
+    }
+
+    return Response.json({
+      data: tasks,
+      pagination: {
+        page,
+        limit,
+        total: count,
+        pages: Math.ceil((count || 0) / limit),
+      },
+    });
   } catch (err) {
     console.error('API error:', err);
     return Response.json(
@@ -90,38 +81,106 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const url = new URL(request.url);
-    const taskId = url.searchParams.get('task_id');
-
-    const supabase = createSupabaseServerClient(session.accessToken);
-
-    let query = supabase
-      .from('qa_reviews')
-      .select('id, task_id, status, feedback, reviewed_by, created_at')
-      .order('created_at', { ascending: false });
-
-    if (taskId) {
-      query = query.eq('task_id', taskId);
+    // Only QA role can create reviews
+    if (!['qa', 'admin', 'head'].includes(session.user.role)) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { data, error } = await query;
+    const body = await request.json();
+    const { task_id, action, feedback } = body;
 
-    if (error) {
-      console.error('Supabase error:', error);
+    if (!task_id || !action) {
       return Response.json(
-        { error: 'Failed to fetch QA reviews' },
-        { status: 500 }
+        { error: 'task_id and action are required' },
+        { status: 400 }
       );
     }
 
-    return Response.json({ data: data || [] });
+    const validActions = ['approved', 'rejected', 'requested_changes'];
+    if (!validActions.includes(action)) {
+      return Response.json(
+        { error: 'Invalid action' },
+        { status: 400 }
+      );
+    }
+
+    const supabase = createSupabaseServerClient(session.accessToken);
+
+    // Get task details
+    const { data: task, error: taskError } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('id', task_id)
+      .single();
+
+    if (taskError || !task) {
+      return Response.json({ error: 'Task not found' }, { status: 404 });
+    }
+
+    // Create review entry
+    const { data: review, error: reviewError } = await supabase
+      .from('qa_reviews')
+      .insert({
+        task_id,
+        reviewer_id: session.user.id,
+        action,
+        feedback: feedback || null,
+      })
+      .select()
+      .single();
+
+    if (reviewError) {
+      throw reviewError;
+    }
+
+    // Update task status based on action
+    let newStatus = task.status;
+    if (action === 'approved') {
+      newStatus = 'approved';
+    } else if (action === 'rejected') {
+      newStatus = 'rejected';
+    } else if (action === 'requested_changes') {
+      newStatus = 'in_progress';
+    }
+
+    const { error: updateError } = await supabase
+      .from('tasks')
+      .update({
+        status: newStatus,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', task_id);
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    // Create audit log
+    await supabase.from('audit_logs').insert({
+      table_name: 'tasks',
+      record_id: task_id,
+      action: `qa_${action}`,
+      changes: {
+        status: {
+          old: task.status,
+          new: newStatus,
+        },
+        feedback,
+      },
+      user_id: session.user.id,
+    });
+
+    // Send notification email
+    await notifyQAReviewAction(task_id, action, feedback, task.assigned_to);
+
+    return Response.json(review, { status: 201 });
   } catch (err) {
     console.error('API error:', err);
     return Response.json(
