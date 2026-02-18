@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import EvidenceForm from '@/components/forms/EvidenceForm';
 import QAReviewForm from '@/components/forms/QAReviewForm';
 import TimeLogForm from '@/components/forms/TimeLogForm';
 import Timer from '@/components/tasks/Timer';
+import TaskStatusTimeline from '@/components/tasks/TaskStatusTimeline';
 
 interface Task {
   id: string;
@@ -31,13 +32,25 @@ interface Task {
     feedback?: string;
     created_at: string;
   }>;
+  status_history?: Array<{
+    id: string;
+    operation: string;
+    old_value?: { status?: string };
+    new_value?: { status?: string };
+    created_by?: string;
+    created_at: string;
+  }>;
 }
 
 const statusColors = {
   pending: 'bg-gray-100 text-gray-700',
   in_progress: 'bg-blue-100 text-blue-700',
-  completed: 'bg-green-100 text-green-700',
-  blocked: 'bg-red-100 text-red-700',
+  submitted: 'bg-yellow-100 text-yellow-700',
+  qa_review: 'bg-purple-100 text-purple-700',
+  approved: 'bg-green-100 text-green-700',
+  rejected: 'bg-red-100 text-red-700',
+  completed: 'bg-green-100 text-green-700', // Legacy alias
+  blocked: 'bg-red-100 text-red-700', // Legacy alias
 };
 
 const priorityColors = {
@@ -62,6 +75,8 @@ export default function TaskDetailPage({ params }: Props) {
   const [showTimer, setShowTimer] = useState(false);
   const [showTimeLogForm, setShowTimeLogForm] = useState(false);
   const [startingTask, setStartingTask] = useState(false);
+  const [statusHistoryLoading, setStatusHistoryLoading] = useState(false);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get ID from params
   useEffect(() => {
@@ -95,6 +110,33 @@ export default function TaskDetailPage({ params }: Props) {
 
     fetchTask();
   }, [taskId]);
+
+  // Polling: Refresh status every 5 seconds
+  useEffect(() => {
+    if (!taskId || !task) return;
+
+    const pollStatus = async () => {
+      try {
+        const res = await fetch(`/api/tasks/${taskId}`);
+        if (res.ok) {
+          const newTask = await res.json();
+          if (newTask.status !== task.status) {
+            setTask(newTask);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to poll task status:', err);
+      }
+    };
+
+    pollIntervalRef.current = setInterval(pollStatus, 5000);
+
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
+  }, [taskId, task?.status]);
 
   const handleStartWork = async () => {
     if (!taskId || !task) return;
@@ -181,6 +223,15 @@ export default function TaskDetailPage({ params }: Props) {
                 </p>
               </div>
             )}
+
+            {/* Status Timeline */}
+            <div className="mt-8 pt-8 border-t border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Status History</h3>
+              <TaskStatusTimeline
+                statusHistory={task.status_history}
+                loading={statusHistoryLoading}
+              />
+            </div>
 
             {/* Start Work Button */}
             {session?.user?.role === 'executor' && task.status === 'pending' && (
