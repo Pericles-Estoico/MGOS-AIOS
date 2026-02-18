@@ -8,6 +8,8 @@ import QAReviewForm from '@/components/forms/QAReviewForm';
 import TimeLogForm from '@/components/forms/TimeLogForm';
 import Timer from '@/components/tasks/Timer';
 import TaskStatusTimeline from '@/components/tasks/TaskStatusTimeline';
+import TaskReassignForm from '@/components/tasks/TaskReassignForm';
+import ExtendDueDateForm from '@/components/tasks/ExtendDueDateForm';
 
 interface Task {
   id: string;
@@ -74,6 +76,8 @@ export default function TaskDetailPage({ params }: Props) {
   const [showQAForm, setShowQAForm] = useState(false);
   const [showTimer, setShowTimer] = useState(false);
   const [showTimeLogForm, setShowTimeLogForm] = useState(false);
+  const [showReassignForm, setShowReassignForm] = useState(false);
+  const [showExtendDueForm, setShowExtendDueForm] = useState(false);
   const [startingTask, setStartingTask] = useState(false);
   const [statusHistoryLoading, setStatusHistoryLoading] = useState(false);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -386,11 +390,72 @@ export default function TaskDetailPage({ params }: Props) {
             )}
           </div>
 
+          {/* Task Management (Admin/Head) */}
+          {['admin', 'head'].includes(session?.user?.role || '') && (
+            <>
+              {/* Reassign Task */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Reassign Task</h3>
+
+                <button
+                  onClick={() => setShowReassignForm(!showReassignForm)}
+                  className="w-full px-3 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+                >
+                  {showReassignForm ? '✕ Cancel' : '👤 Reassign'}
+                </button>
+
+                {showReassignForm && (
+                  <div className="mt-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                    <TaskReassignForm
+                      taskId={taskId || task.id}
+                      currentAssignee={task.assigned_to}
+                      onSubmit={(data) => {
+                        setShowReassignForm(false);
+                        setTask({ ...task, assigned_to: data.assigned_to });
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Extend Due Date */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Extend Due Date</h3>
+
+                <button
+                  onClick={() => setShowExtendDueForm(!showExtendDueForm)}
+                  className="w-full px-3 py-2 text-sm bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
+                >
+                  {showExtendDueForm ? '✕ Cancel' : '📅 Extend'}
+                </button>
+
+                {showExtendDueForm && (
+                  <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                    <ExtendDueDateForm
+                      taskId={taskId || task.id}
+                      currentDueDate={task.due_date}
+                      onSubmit={(data) => {
+                        setShowExtendDueForm(false);
+                        setTask({ ...task, due_date: data.due_date });
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
           {/* Details */}
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Details</h3>
 
             <div className="space-y-3 text-sm">
+              <div>
+                <p className="text-gray-600">Assigned to</p>
+                <p className="font-medium text-gray-900">
+                  {task.assigned_to || 'Unassigned'}
+                </p>
+              </div>
               <div>
                 <p className="text-gray-600">Created</p>
                 <p className="font-medium text-gray-900">
