@@ -1,6 +1,4 @@
 {
-  "name": "MGOS-AIOS",
-  "description": "Gerenciamento Inteligente de Tarefas - Intelligent Task Management",
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
