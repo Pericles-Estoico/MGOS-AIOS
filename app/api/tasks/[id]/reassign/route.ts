@@ -19,11 +19,13 @@ export async function POST(
     }
 
     const { id } = await params;
-    const { assigned_to } = await request.json();
+    const body = await request.json();
+    const new_assignee_id = body.new_assignee_id || body.assigned_to;
+    const reason = body.reason || null;
 
-    if (!assigned_to) {
+    if (!new_assignee_id) {
       return Response.json(
-        { error: 'assigned_to is required' },
+        { error: 'new_assignee_id is required' },
         { status: 400 }
       );
     }
@@ -41,11 +43,30 @@ export async function POST(
       return Response.json({ error: 'Task not found' }, { status: 404 });
     }
 
+    // Validation: cannot reassign completed tasks
+    if (task.status === 'approved') {
+      return Response.json(
+        { error: 'Cannot reassign completed task' },
+        { status: 400 }
+      );
+    }
+
+    // Validation: cannot reassign to self
+    if (new_assignee_id === task.assigned_to) {
+      return Response.json(
+        { error: 'Select a different user' },
+        { status: 400 }
+      );
+    }
+
+    // Store old assignee for history
+    const old_assignee_id = task.assigned_to;
+
     // Update task with new assignee
     const { data: updated, error: updateError } = await supabase
       .from('tasks')
       .update({
-        assigned_to,
+        assigned_to: new_assignee_id,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
@@ -59,18 +80,32 @@ export async function POST(
       );
     }
 
+    // Create reassignment history entry
+    await supabase.from('reassignment_history').insert({
+      task_id: id,
+      old_assignee_id,
+      new_assignee_id,
+      reason,
+      reassigned_by: session.user.id,
+    });
+
     // Create audit log
     await supabase.from('audit_logs').insert({
       table_name: 'tasks',
       record_id: id,
-      operation: 'reassign_task',
-      old_value: { assigned_to: task.assigned_to },
-      new_value: { assigned_to },
-      created_by: session.user.id,
+      action: 'reassign_task',
+      changes: {
+        assigned_to: {
+          old: old_assignee_id,
+          new: new_assignee_id,
+        },
+        reason,
+      },
+      user_id: session.user.id,
     });
 
     // Send notification to newly assigned user
-    await notifyTaskAssigned(id, task.title, assigned_to);
+    await notifyTaskAssigned(id, task.title, new_assignee_id);
 
     return Response.json(updated, { status: 200 });
   } catch (err) {
