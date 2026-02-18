@@ -45,6 +45,15 @@ export default function Sidebar({ user }: SidebarProps) {
         {navLink('/tasks', 'All Tasks', '✓')}
         {navLink('/tasks/my-tasks', 'My Tasks', '📋')}
 
+        {/* QA only routes */}
+        {user?.role === 'qa' && (
+          <>
+            <div className="h-px bg-gray-200 my-4" />
+            <p className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">QA</p>
+            {navLink('/qa-reviews', 'QA Reviews', '🔍')}
+          </>
+        )}
+
         {/* Admin/Head only routes */}
         {user?.role && ['admin', 'head'].includes(user.role) && (
           <>
