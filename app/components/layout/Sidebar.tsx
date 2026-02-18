@@ -42,7 +42,8 @@ export default function Sidebar({ user }: SidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 space-y-2 p-4 overflow-y-auto">
         {navLink('/dashboard', 'Dashboard', '📊')}
-        {navLink('/tasks', 'Tasks', '✓')}
+        {navLink('/tasks', 'All Tasks', '✓')}
+        {navLink('/tasks/my-tasks', 'My Tasks', '📋')}
 
         {/* Admin/Head only routes */}
         {user?.role && ['admin', 'head'].includes(user.role) && (

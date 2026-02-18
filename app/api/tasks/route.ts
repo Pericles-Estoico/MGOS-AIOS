@@ -17,18 +17,26 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const offset = parseInt(url.searchParams.get('offset') || '0', 10);
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '20', 10), 100); // Max 100
+    const assignedTo = url.searchParams.get('assigned_to');
 
     // 3. Create Supabase client with user's JWT (RLS will apply automatically)
     const supabase = createSupabaseServerClient(session.accessToken);
 
     // 4. Query tasks (RLS policies filter by role)
-    const { data, error, count } = await supabase
+    let query = supabase
       .from('tasks')
-      .select('id, title, description, status, priority, due_date, assigned_to, created_by, created_at', {
+      .select('id, title, description, status, priority, due_date, assigned_to, created_by, created_at, updated_at', {
         count: 'exact',
       })
-      .order('created_at', { ascending: false })
+      .order('due_date', { ascending: true, nullsFirst: true }) // Sort by due date
       .range(offset, offset + limit - 1);
+
+    // Filter by assigned_to if provided
+    if (assignedTo) {
+      query = query.eq('assigned_to', assignedTo);
+    }
+
+    const { data, error, count } = await query;
 
     if (error) {
       console.error('Supabase error:', error);

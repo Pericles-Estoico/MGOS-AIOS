@@ -61,6 +61,7 @@ export default function TaskDetailPage({ params }: Props) {
   const [showQAForm, setShowQAForm] = useState(false);
   const [showTimer, setShowTimer] = useState(false);
   const [showTimeLogForm, setShowTimeLogForm] = useState(false);
+  const [startingTask, setStartingTask] = useState(false);
 
   // Get ID from params
   useEffect(() => {
@@ -94,6 +95,33 @@ export default function TaskDetailPage({ params }: Props) {
 
     fetchTask();
   }, [taskId]);
+
+  const handleStartWork = async () => {
+    if (!taskId || !task) return;
+
+    setStartingTask(true);
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || 'Failed to start task');
+        setStartingTask(false);
+        return;
+      }
+
+      const updatedTask = await res.json();
+      setTask(updatedTask);
+      setShowTimer(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setStartingTask(false);
+    }
+  };
 
   if (loading) {
     return <div className="text-center py-12">Loading...</div>;
@@ -139,6 +167,27 @@ export default function TaskDetailPage({ params }: Props) {
                 </p>
               </div>
             )}
+
+            {/* Start Work Button */}
+            {session?.user?.role === 'executor' && task.status === 'pending' && (
+              <button
+                onClick={handleStartWork}
+                disabled={startingTask}
+                className="mt-6 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-400 transition"
+              >
+                {startingTask ? 'Starting...' : '▶ Start Work'}
+              </button>
+            )}
+
+            {/* Task Metadata */}
+            <div className="mt-6 space-y-2 text-sm text-gray-600">
+              <p>
+                Created: <strong>{new Date(task.created_at).toLocaleDateString('pt-BR')}</strong>
+              </p>
+              <p>
+                Last Updated: <strong>{new Date(task.updated_at).toLocaleDateString('pt-BR')}</strong>
+              </p>
+            </div>
           </div>
 
           {/* Evidence Section */}
