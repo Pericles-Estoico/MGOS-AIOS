@@ -1,0 +1,26 @@
+{
+  "name": "MGOS-AIOS",
+  "description": "Gerenciamento Inteligente de Tarefas - Intelligent Task Management",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "environmentVariables": {
+    "NEXTAUTH_SECRET": {
+      "type": "secret"
+    },
+    "NEXTAUTH_URL": {
+      "type": "plaintext"
+    },
+    "DATABASE_URL": {
+      "type": "secret"
+    }
+  },
+  "functions": {
+    "api/**/*.ts": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
+  "regions": ["sao1"],
+  "public": false
+}
