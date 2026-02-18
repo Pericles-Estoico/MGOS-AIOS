@@ -39,34 +39,41 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col">
-      {/* Header com Logo */}
-      <div className="pt-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md mx-auto">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-              <CheckCircle2 className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gray-900">MGOS-AIOS</span>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-cyan-400 via-cyan-300 to-teal-400 flex flex-col justify-center items-center p-4">
+      {/* Animated Background Shapes */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md">
+      <div className="relative z-10 w-full max-w-md">
+        {/* Card Container */}
+        <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-10">
+          {/* Logo & Branding */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <CheckCircle2 className="w-10 h-10 text-white" />
+              </div>
+            </div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent mb-2">
+              MGOS-AIOS
+            </h1>
+            <p className="text-gray-600 text-lg">Gerenciamento Inteligente de Tarefas</p>
+          </div>
+
           {/* Welcome Section */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Bem-vindo de volta</h1>
-            <p className="text-gray-600">Acesse sua conta para gerenciar tarefas</p>
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">Bem-vindo de volta</h2>
+            <p className="text-gray-500">Acesse sua conta para continuar</p>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Error Message */}
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex gap-3">
+              <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 flex gap-3">
                 <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                   </svg>
                 </div>
@@ -76,7 +83,7 @@ function LoginForm() {
 
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-800 mb-2">
                 Email
               </label>
               <input
@@ -85,14 +92,14 @@ function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu@email.com"
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-gray-900 placeholder-gray-500"
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-cyan-500 focus:bg-white transition-all text-gray-900 placeholder-gray-400"
                 disabled={loading}
               />
             </div>
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-800 mb-2">
                 Senha
               </label>
               <input
@@ -101,7 +108,7 @@ function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-gray-900 placeholder-gray-500"
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-cyan-500 focus:bg-white transition-all text-gray-900 placeholder-gray-400"
                 disabled={loading}
               />
             </div>
@@ -110,34 +117,78 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 rounded-lg transition duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white font-bold py-3.5 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
             >
               {loading ? (
                 <>
-                  <Loader className="w-4 h-4 animate-spin" />
+                  <Loader className="w-5 h-5 animate-spin" />
                   <span>Entrando...</span>
                 </>
               ) : (
-                <span>Entrar na conta</span>
+                <span>Entrar na Conta</span>
               )}
             </button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-xs font-semibold text-blue-900 mb-2">🧪 CREDENCIAIS DE TESTE</p>
-            <div className="space-y-1 text-xs text-blue-800">
-              <p>Email: <code className="bg-white px-2 py-1 rounded font-mono text-blue-600">admin@example.com</code></p>
-              <p>Senha: <code className="bg-white px-2 py-1 rounded font-mono text-blue-600">password</code></p>
+          {/* Divider */}
+          <div className="relative my-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">ou</span>
+            </div>
+          </div>
+
+          {/* Demo Info */}
+          <div className="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-2xl p-5 border-2 border-cyan-200">
+            <p className="text-xs font-bold text-cyan-900 mb-3">🧪 CREDENCIAIS DE TESTE</p>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-cyan-700">Email:</span>
+                <code className="text-xs bg-white px-3 py-1 rounded-lg font-mono text-cyan-600 border border-cyan-200">
+                  admin@example.com
+                </code>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-cyan-700">Senha:</span>
+                <code className="text-xs bg-white px-3 py-1 rounded-lg font-mono text-cyan-600 border border-cyan-200">
+                  password
+                </code>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Footer */}
+        <div className="text-center mt-8 text-white text-sm">
+          <p>MGOS-AIOS © 2026 • Phase 4 Production Ready ✨</p>
+        </div>
       </div>
 
-      {/* Footer */}
-      <div className="text-center py-6 px-4 text-sm text-gray-600">
-        <p>MGOS-AIOS © 2026 • Phase 4 Production Ready</p>
-      </div>
+      {/* Blob Animation Keyframes */}
+      <style jsx>{`
+        @keyframes blob {
+          0%, 100% {
+            transform: translate(0, 0) scale(1);
+          }
+          33% {
+            transform: translate(30px, -50px) scale(1.1);
+          }
+          66% {
+            transform: translate(-20px, 20px) scale(0.9);
+          }
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+      `}</style>
     </div>
   );
 }
