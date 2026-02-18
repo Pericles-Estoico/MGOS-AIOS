@@ -7,6 +7,22 @@ import {
   EmailOptions,
 } from './email';
 
+// Mock nodemailer
+vi.mock('nodemailer', () => ({
+  default: {
+    createTransport: vi.fn(() => ({
+      sendMail: vi.fn((options: any) => {
+        // Simulate successful send for valid emails
+        if (options.to && options.to.includes('@')) {
+          return Promise.resolve({ messageId: 'mock-message-id' });
+        }
+        // Simulate error for invalid emails
+        return Promise.reject(new Error('Invalid email address'));
+      }),
+    })),
+  },
+}));
+
 describe('Email Service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -31,7 +47,7 @@ describe('Email Service', () => {
         html: '<p>Test</p>',
       };
 
-      // Should not throw error
+      // Should not throw error and return false on error
       const result = await sendEmail(options);
       expect(typeof result).toBe('boolean');
     });

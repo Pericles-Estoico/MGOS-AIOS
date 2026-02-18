@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
+import { notifyTaskAssigned } from '@/lib/notification-triggers';
 
 export async function POST(
   request: Request,
@@ -67,6 +68,9 @@ export async function POST(
       new_value: { assigned_to },
       created_by: session.user.id,
     });
+
+    // Send notification to newly assigned user
+    await notifyTaskAssigned(id, task.title, assigned_to);
 
     return Response.json(updated, { status: 200 });
   } catch (err) {
