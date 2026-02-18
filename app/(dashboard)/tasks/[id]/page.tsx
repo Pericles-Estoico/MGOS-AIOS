@@ -123,6 +123,20 @@ export default function TaskDetailPage({ params }: Props) {
     }
   };
 
+  const refreshEvidence = async () => {
+    if (!taskId) return;
+
+    try {
+      const res = await fetch(`/api/evidence?task_id=${taskId}`);
+      if (res.ok) {
+        const { data } = await res.json();
+        setTask((prev) => prev ? { ...prev, evidence: data } : null);
+      }
+    } catch (err) {
+      console.error('Failed to refresh evidence:', err);
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-12">Loading...</div>;
   }
@@ -232,7 +246,7 @@ export default function TaskDetailPage({ params }: Props) {
                       taskId={taskId || task.id}
                       onSubmit={() => {
                         setShowEvidenceForm(false);
-                        // Refresh task to show new evidence
+                        refreshEvidence();
                       }}
                     />
                   </div>
