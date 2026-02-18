@@ -14,7 +14,8 @@ export const authOptions: NextAuthOptions = {
           id: '1',
           email: credentials?.email || 'user@example.com',
           name: 'User Demo',
-        };
+          role: 'admin',
+        } as any;
       },
     }),
   ],
