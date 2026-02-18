@@ -1,11 +1,10 @@
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
+import { signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { LogOut, CheckCircle2, Clock, Zap, AlertCircle } from 'lucide-react';
+import { LogOut, CheckCircle2 } from 'lucide-react';
 
 export default function DashboardPage() {
-  const { data: session } = useSession();
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -21,9 +20,9 @@ export default function DashboardPage() {
   ];
 
   const tasks = [
-    { id: 1, title: 'Implementar autenticação', status: 'in-progress', priority: 'high' },
-    { id: 2, title: 'Criar design system', status: 'pending', priority: 'medium' },
-    { id: 3, title: 'Corrigir bugs de performance', status: 'review', priority: 'urgent' },
+    { id: 1, title: 'Implementar autenticação', status: 'em-andamento', priority: 'alta', statusLabel: 'Em Andamento', priorityLabel: 'Alta' },
+    { id: 2, title: 'Criar design system', status: 'pendente', priority: 'média', statusLabel: 'Pendente', priorityLabel: 'Média' },
+    { id: 3, title: 'Corrigir bugs de performance', status: 'revisão', priority: 'urgente', statusLabel: 'Em Revisão', priorityLabel: 'Urgente' },
   ];
 
   return (
@@ -39,7 +38,7 @@ export default function DashboardPage() {
             className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition"
           >
             <LogOut className="w-4 h-4" />
-            Logout
+            Sair
           </button>
         </div>
       </header>
@@ -76,18 +75,18 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex gap-2">
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    task.status === 'in-progress' ? 'bg-cyan-100 text-cyan-700' :
-                    task.status === 'pending' ? 'bg-orange-100 text-orange-700' :
+                    task.status === 'em-andamento' ? 'bg-cyan-100 text-cyan-700' :
+                    task.status === 'pendente' ? 'bg-orange-100 text-orange-700' :
                     'bg-purple-100 text-purple-700'
                   }`}>
-                    {task.status}
+                    {task.statusLabel}
                   </span>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    task.priority === 'urgent' ? 'bg-red-100 text-red-700' :
-                    task.priority === 'high' ? 'bg-orange-100 text-orange-700' :
+                    task.priority === 'urgente' ? 'bg-red-100 text-red-700' :
+                    task.priority === 'alta' ? 'bg-orange-100 text-orange-700' :
                     'bg-yellow-100 text-yellow-700'
                   }`}>
-                    {task.priority}
+                    {task.priorityLabel}
                   </span>
                 </div>
               </div>

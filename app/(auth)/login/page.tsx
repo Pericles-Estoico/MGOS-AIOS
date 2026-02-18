@@ -32,7 +32,7 @@ function LoginForm() {
         const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
         router.push(callbackUrl);
       }
-    } catch (err) {
+    } catch {
       setError('Erro ao fazer login');
       setLoading(false);
     }
@@ -162,7 +162,7 @@ function LoginForm() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-white text-sm">
-          <p>MGOS-AIOS © 2026 • Phase 4 Production Ready ✨</p>
+          <p>MGOS-AIOS © 2026 • Fase 4 Pronto para Produção ✨</p>
         </div>
       </div>
 
