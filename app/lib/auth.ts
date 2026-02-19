@@ -1,5 +1,6 @@
 import type { NextAuthOptions, User } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { supabase } from '@/lib/supabase';
 
 if (!process.env.NEXTAUTH_SECRET) {
   console.warn('⚠️  NEXTAUTH_SECRET is not set. Using default for development.');
@@ -15,23 +16,34 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials): Promise<User | null> {
         console.log('🔐 authorize() called with:', { email: credentials?.email });
 
-        // Demo credentials - replace with real auth when using Supabase
-        if (
-          credentials?.email === 'admin@example.com' &&
-          credentials?.password === 'password'
-        ) {
-          console.log('✅ Credentials valid, returning user');
-          const user: User & { role?: string } = {
-            id: '1',
-            email: 'admin@example.com',
-            name: 'Demo User',
-            role: 'admin',
-          };
-          return user;
+        if (!credentials?.email || !credentials?.password) {
+          console.log('❌ Missing credentials');
+          return null;
         }
 
-        console.log('❌ Credentials invalid');
-        return null;
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: credentials.email,
+            password: credentials.password,
+          });
+
+          if (error || !data.user) {
+            console.log('❌ Supabase auth error:', error?.message);
+            return null;
+          }
+
+          console.log('✅ Supabase auth successful:', { userId: data.user.id });
+          const user: User & { role?: string } = {
+            id: data.user.id,
+            email: data.user.email!,
+            name: data.user.user_metadata?.name ?? data.user.email,
+            role: data.user.user_metadata?.role ?? 'executor',
+          };
+          return user;
+        } catch (error) {
+          console.error('❌ authorize() error:', error);
+          return null;
+        }
       },
     }),
   ],

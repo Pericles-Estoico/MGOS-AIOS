@@ -3,12 +3,35 @@
  * These trigger email notifications based on user preferences
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+let _supabase: SupabaseClient | null;
+
+function getSupabaseClient(): SupabaseClient | null {
+  if (_supabase !== undefined) return _supabase;
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !key) {
+    _supabase = null;
+    return null;
+  }
+
+  _supabase = createClient(url, key);
+  return _supabase;
+}
+
+const supabase = new Proxy({} as SupabaseClient, {
+  get: (target, prop) => {
+    const client = getSupabaseClient();
+    if (!client) {
+      console.warn('⚠️  Supabase not configured for notifications');
+      return undefined;
+    }
+    return (client as any)[prop];
+  },
+});
 
 /**
  * Send task assignment notification
