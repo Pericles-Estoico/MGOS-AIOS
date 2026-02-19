@@ -1,0 +1,155 @@
+# Sub-Agents Configuration File
+# Used to generate all 42 marketplace sub-agents (7 specialties × 6 channels)
+# Format: channel > specialty > agent properties
+
+channels:
+  amazon:
+    name: Amazon
+    icon: 📦
+    master_name: Alex
+    specialties:
+      seo:
+        id: amazon-seo
+        name: Alex-SEO
+        title: Amazon SEO Specialist
+        icon: 🔍
+        focus: 'Keywords, GEO titles, A9 rankings'
+        commands: [geo-title, geo-description, keyword-strategy, ranking-audit]
+      ads:
+        id: amazon-ads
+        name: Alex-Ads
+        title: Amazon Ads Specialist
+        icon: 💰
+        focus: 'Sponsored Products/Brands/Display, ACoS optimization'
+        commands: [ads-strategy, bid-optimize, campaign-report, acos-calculator]
+      content:
+        id: amazon-content
+        name: Alex-Content
+        title: Amazon Content Specialist
+        icon: 📝
+        focus: 'A+ Content, images, bullet points, enhancement content'
+        commands: [a-plus-strategy, content-brief, image-strategy, bullet-optimization]
+      analytics:
+        id: amazon-analytics
+        name: Alex-Analytics
+        title: Amazon Analytics Specialist
+        icon: 📊
+        focus: 'Performance metrics, conversion analysis, revenue optimization'
+        commands: [performance-report, conversion-analysis, sales-trends, roi-analysis]
+      compliance:
+        id: amazon-compliance
+        name: Alex-Compliance
+        title: Amazon Compliance Specialist
+        icon: ⚖️
+        focus: 'Policies, account health, restrictions, compliance risks'
+        commands: [policy-check, account-health, risk-audit, compliance-report]
+      intel:
+        id: amazon-intel
+        name: Alex-Intel
+        title: Amazon Intelligence Specialist
+        icon: 🤖
+        focus: 'Scraping, change detection, task generation'
+        commands: [daily-scan, change-report, update-kb, emergency-scan]
+      creator:
+        id: amazon-creator
+        name: Alex-Creator
+        title: Amazon Creator Specialist
+        icon: 🎥
+        focus: 'Influencer programs, live shopping, creator partnerships'
+        commands: [creator-strategy, live-commerce-plan, influencer-outreach, affiliate-program]
+
+  mercadolivre:
+    name: MercadoLivre
+    icon: 🟦
+    master_name: Marina
+    specialties:
+      seo: { id: mercadolivre-seo, name: Marina-SEO, focus: 'GEO keywords, regional terms' }
+      ads: { id: mercadolivre-ads, name: Marina-Ads, focus: 'Performance Ads, regional bidding' }
+      content: { id: mercadolivre-content, name: Marina-Content, focus: 'Regional descriptions, logistics focus' }
+      analytics: { id: mercadolivre-analytics, name: Marina-Analytics, focus: 'Regional metrics, LatAm trends' }
+      compliance: { id: mercadolivre-compliance, name: Marina-Compliance, focus: 'LatAm policies, country-specific rules' }
+      intel: { id: mercadolivre-intel, name: Marina-Intel, focus: 'LatAm market monitoring' }
+      creator: { id: mercadolivre-creator, name: Marina-Creator, focus: 'Regional influencers, LatAm partnerships' }
+
+  shopee:
+    name: Shopee
+    icon: 🏪
+    master_name: Sunny
+    specialties:
+      seo: { id: shopee-seo, name: Sunny-SEO, focus: 'Video SEO, trending keywords, engagement' }
+      ads: { id: shopee-ads, name: Sunny-Ads, focus: 'Shopee Ads, in-feed campaigns' }
+      content: { id: shopee-content, name: Sunny-Content, focus: 'Video content, short-form strategy' }
+      analytics: { id: shopee-analytics, name: Sunny-Analytics, focus: 'Engagement metrics, video performance' }
+      compliance: { id: shopee-compliance, name: Sunny-Compliance, focus: 'SEA region policies, content rules' }
+      intel: { id: shopee-intel, name: Sunny-Intel, focus: 'SEA marketplace monitoring' }
+      creator: { id: shopee-creator, name: Sunny-Creator, focus: 'SEA creators, live commerce partnerships' }
+
+  shein:
+    name: Shein
+    icon: 👗
+    master_name: Tren
+    specialties:
+      seo: { id: shein-seo, name: Tren-SEO, focus: 'Trend keywords, style search optimization' }
+      ads: { id: shein-ads, name: Tren-Ads, focus: 'Fashion ads, trend-based bidding' }
+      content: { id: shein-content, name: Tren-Content, focus: 'Fashion content, styling guides' }
+      analytics: { id: shein-analytics, name: Tren-Analytics, focus: 'Trend analysis, fashion metrics' }
+      compliance: { id: shein-compliance, name: Tren-Compliance, focus: 'Fashion industry regulations, brand compliance' }
+      intel: { id: shein-intel, name: Tren-Intel, focus: 'Fashion trend monitoring' }
+      creator: { id: shein-creator, name: Tren-Creator, focus: 'Fashion influencers, trend creators' }
+
+  tiktokshop:
+    name: TikTok Shop
+    icon: 🎵
+    master_name: Viral
+    specialties:
+      seo: { id: tiktokshop-seo, name: Viral-SEO, focus: 'Hashtag strategy, viral keywords' }
+      ads: { id: tiktokshop-ads, name: Viral-Ads, focus: 'TikTok Ads Manager, creator campaigns' }
+      content: { id: tiktokshop-content, name: Viral-Content, focus: 'Video content, viral elements' }
+      analytics: { id: tiktokshop-analytics, name: Viral-Analytics, focus: 'Engagement, viral metrics' }
+      compliance: { id: tiktokshop-compliance, name: Viral-Compliance, focus: 'TikTok platform policies' }
+      intel: { id: tiktokshop-intel, name: Viral-Intel, focus: 'TikTok trend monitoring' }
+      creator: { id: tiktokshop-creator, name: Viral-Creator, focus: 'Creator partnerships, live commerce' }
+
+  kaway:
+    name: Kaway
+    icon: 🎁
+    master_name: Premium
+    specialties:
+      seo: { id: kaway-seo, name: Premium-SEO, focus: 'Luxury keywords, exclusivity positioning' }
+      ads: { id: kaway-ads, name: Premium-Ads, focus: 'Premium audience targeting, luxury campaigns' }
+      content: { id: kaway-content, name: Premium-Content, focus: 'Premium content, luxury storytelling' }
+      analytics: { id: kaway-analytics, name: Premium-Analytics, focus: 'Premium customer metrics, VIP analysis' }
+      compliance: { id: kaway-compliance, name: Premium-Compliance, focus: 'Luxury brand compliance, exclusivity rules' }
+      intel: { id: kaway-intel, name: Premium-Intel, focus: 'Premium market monitoring' }
+      creator: { id: kaway-creator, name: Premium-Creator, focus: 'Luxury creators, brand ambassadors' }
+
+# Specialty Archetypes (used for consistent personality)
+specialties_meta:
+  seo:
+    archetype: Analyst
+    tone: technical
+    primary_focus: Visibility & Ranking
+  ads:
+    archetype: Strategist
+    tone: performance-focused
+    primary_focus: ROI & Profitability
+  content:
+    archetype: Creator
+    tone: engaging
+    primary_focus: Quality & Conversion
+  analytics:
+    archetype: Analyst
+    tone: data-driven
+    primary_focus: Performance Metrics
+  compliance:
+    archetype: Guardian
+    tone: cautious
+    primary_focus: Risk Management
+  intel:
+    archetype: Monitor
+    tone: systematic
+    primary_focus: Intelligence & Automation
+  creator:
+    archetype: Connector
+    tone: relationship-focused
+    primary_focus: Partnerships & Community
