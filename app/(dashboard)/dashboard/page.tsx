@@ -5,6 +5,14 @@ import { getSession } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import {
+  Plus,
+  BarChart3,
+  Users,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+} from 'lucide-react';
 
 interface Task {
   id: string;
@@ -130,7 +138,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600" />
       </div>
     );
   }
@@ -149,7 +157,7 @@ export default function DashboardPage() {
       {/* Welcome Section */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">
-          Bem-vindo, {session?.user?.name || session?.user?.email}! 👋
+          Bem-vindo, {session?.user?.name || session?.user?.email}!
         </h1>
         <p className="text-gray-600 mt-2">
           Você está logado como{' '}
@@ -162,20 +170,20 @@ export default function DashboardPage() {
         <StatCard
           title="Total de Tasks"
           value={stats.total_tasks}
-          color="bg-blue-50 border-blue-200"
-          textColor="text-blue-600"
+          color="bg-teal-50 border-teal-200"
+          textColor="text-teal-600"
         />
         <StatCard
           title="Completas"
           value={stats.completed_tasks}
-          color="bg-green-50 border-green-200"
-          textColor="text-green-600"
+          color="bg-emerald-50 border-emerald-200"
+          textColor="text-emerald-600"
         />
         <StatCard
           title="Em Progresso"
           value={stats.in_progress_tasks}
-          color="bg-orange-50 border-orange-200"
-          textColor="text-orange-600"
+          color="bg-cyan-50 border-cyan-200"
+          textColor="text-cyan-600"
         />
         <StatCard
           title="Pendentes"
@@ -192,7 +200,7 @@ export default function DashboardPage() {
             <h2 className="text-xl font-bold">Minhas Tasks</h2>
             <Link
               href="/tasks"
-              className="text-blue-600 hover:text-blue-800 text-sm font-semibold"
+              className="text-teal-600 hover:text-teal-800 text-sm font-semibold"
             >
               Ver todas →
             </Link>
@@ -262,31 +270,31 @@ export default function DashboardPage() {
         <ActionCard
           title="Criar Task"
           description="Começar uma nova tarefa"
-          icon="✏️"
+          icon={<Plus className="w-6 h-6" />}
           href="/tasks/new"
-          color="bg-blue-50 border-blue-200"
+          color="bg-teal-50 border-teal-200"
         />
         <ActionCard
           title="Ver Analytics"
           description="Analisar performance da equipe"
-          icon="📊"
+          icon={<BarChart3 className="w-6 h-6" />}
           href={
             session?.user?.role && ['admin', 'head'].includes(session.user.role)
               ? '/analytics'
               : '/dashboard'
           }
-          color="bg-green-50 border-green-200"
+          color="bg-cyan-50 border-cyan-200"
         />
         <ActionCard
           title="Gerenciar Equipe"
           description="Gerenciar usuários e permissões"
-          icon="👥"
+          icon={<Users className="w-6 h-6" />}
           href={
             session?.user?.role === 'admin'
               ? '/settings/users'
               : '/dashboard'
           }
-          color="bg-purple-50 border-purple-200"
+          color="bg-emerald-50 border-emerald-200"
         />
       </div>
     </div>
@@ -312,7 +320,7 @@ function StatCard({ title, value, color, textColor }: StatCardProps) {
 interface ActionCardProps {
   title: string;
   description: string;
-  icon: string;
+  icon: React.ReactNode;
   href: string;
   color: string;
 }
@@ -329,7 +337,7 @@ function ActionCard({
       <div
         className={`p-6 border rounded-lg ${color} hover:shadow-md transition-shadow cursor-pointer`}
       >
-        <div className="text-3xl mb-2">{icon}</div>
+        <div className="text-teal-600 mb-3">{icon}</div>
         <h3 className="font-semibold text-gray-900">{title}</h3>
         <p className="text-sm text-gray-600 mt-1">{description}</p>
       </div>

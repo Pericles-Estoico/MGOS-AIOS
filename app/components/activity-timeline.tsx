@@ -31,9 +31,9 @@ interface ActivityTimelineProps {
 }
 
 const actionIcons: Record<string, React.ReactNode> = {
-  status_changed: <CheckCircle className="w-4 h-4 text-green-600" />,
-  commented: <MessageSquare className="w-4 h-4 text-blue-600" />,
-  reassigned: <Users className="w-4 h-4 text-purple-600" />,
+  status_changed: <CheckCircle className="w-4 h-4 text-emerald-600" />,
+  commented: <MessageSquare className="w-4 h-4 text-teal-600" />,
+  reassigned: <Users className="w-4 h-4 text-cyan-600" />,
   created: <AlertCircle className="w-4 h-4 text-gray-600" />,
 };
 

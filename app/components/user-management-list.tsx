@@ -167,9 +167,9 @@ export function UserManagementList() {
       case 'admin':
         return 'bg-red-100 text-red-800';
       case 'head':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-teal-100 text-teal-800';
       case 'qa':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-cyan-100 text-cyan-800';
       case 'executor':
         return 'bg-gray-100 text-gray-800';
       default:
@@ -179,7 +179,7 @@ export function UserManagementList() {
 
   const getStatusBadgeColor = (status: string) => {
     return status === 'active'
-      ? 'bg-green-100 text-green-800'
+      ? 'bg-emerald-100 text-emerald-800'
       : 'bg-gray-100 text-gray-800';
   };
 
@@ -427,7 +427,7 @@ export function UserManagementList() {
                     Delete
                   </button>
                   <button
-                    className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                    className="px-4 py-2 text-sm bg-teal-600 text-white rounded hover:bg-teal-700"
                     onClick={() => startEdit(selectedUser)}
                   >
                     Edit
@@ -495,7 +495,7 @@ export function UserManagementList() {
                     Cancel
                   </button>
                   <button
-                    className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                    className="px-4 py-2 text-sm bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50"
                     onClick={handleSaveEdit}
                     disabled={editLoading}
                   >

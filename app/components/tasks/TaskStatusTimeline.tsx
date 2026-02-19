@@ -1,5 +1,7 @@
 'use client';
 
+import { Clock, User } from 'lucide-react';
+
 interface StatusChange {
   id: string;
   operation: string;
@@ -56,7 +58,7 @@ export default function TaskStatusTimeline({ statusHistory = [], loading = false
           return (
             <div key={change.id || index} className="relative">
               {/* Timeline dot */}
-              <div className="absolute -left-7 mt-1 w-6 h-6 rounded-full bg-blue-600 border-4 border-white shadow-md"></div>
+              <div className="absolute -left-7 mt-1 w-6 h-6 rounded-full bg-teal-600 border-4 border-white shadow-md"></div>
 
               {/* Timeline card */}
               <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
@@ -68,8 +70,16 @@ export default function TaskStatusTimeline({ statusHistory = [], loading = false
                 </div>
 
                 <div className="mt-3 flex items-center gap-4 text-xs text-gray-500">
-                  <span>📅 {timestamp}</span>
-                  {change.created_by && <span>👤 {change.created_by}</span>}
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {timestamp}
+                  </span>
+                  {change.created_by && (
+                    <span className="flex items-center gap-1">
+                      <User className="w-3 h-3" />
+                      {change.created_by}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

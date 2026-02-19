@@ -5,6 +5,7 @@ import { getSession } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
 
 interface UserPreferences {
   email_task_assigned: boolean;
@@ -93,7 +94,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600" />
       </div>
     );
   }
@@ -200,7 +201,7 @@ export default function SettingsPage() {
         <button
           onClick={handleSavePreferences}
           disabled={saving}
-          className="mt-6 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
+          className="mt-6 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 disabled:bg-gray-400 transition-colors"
         >
           {saving ? 'Salvando...' : 'Salvar Preferências'}
         </button>
@@ -222,7 +223,7 @@ export default function SettingsPage() {
                   Criar, editar ou remover usuários
                 </p>
               </div>
-              <span className="text-gray-400">→</span>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
             </Link>
 
             <Link
@@ -235,7 +236,7 @@ export default function SettingsPage() {
                   Criar e acompanhar sprints
                 </p>
               </div>
-              <span className="text-gray-400">→</span>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
             </Link>
 
             <Link
@@ -248,21 +249,21 @@ export default function SettingsPage() {
                   Ver métricas de performance da equipe
                 </p>
               </div>
-              <span className="text-gray-400">→</span>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
             </Link>
           </div>
         </div>
       )}
 
       {/* Help Section */}
-      <div className="border rounded-lg bg-blue-50 border-blue-200 p-6">
-        <h2 className="text-lg font-bold text-blue-900 mb-4">Precisa de Ajuda?</h2>
-        <p className="text-blue-800 text-sm mb-4">
+      <div className="border rounded-lg bg-teal-50 border-teal-200 p-6">
+        <h2 className="text-lg font-bold text-teal-900 mb-4">Precisa de Ajuda?</h2>
+        <p className="text-teal-800 text-sm mb-4">
           Se você tiver dúvidas ou problemas, entre em contato com o administrador do sistema.
         </p>
-        <div className="space-y-2 text-sm text-blue-800">
-          <p>📧 Email: admin@example.com</p>
-          <p>💬 Slack: #help-desk</p>
+        <div className="space-y-2 text-sm text-teal-800">
+          <p>Email: admin@example.com</p>
+          <p>Slack: #help-desk</p>
         </div>
       </div>
     </div>
@@ -291,7 +292,7 @@ function PreferenceToggle({
       <button
         onClick={onChange}
         className={`ml-4 w-12 h-6 rounded-full transition-colors ${
-          checked ? 'bg-blue-600' : 'bg-gray-300'
+          checked ? 'bg-teal-500' : 'bg-gray-300'
         }`}
       >
         <div

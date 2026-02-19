@@ -132,7 +132,7 @@ export default function BurndownChart({
           <polyline
             points={completedPath}
             fill="none"
-            stroke="#3b82f6"
+            stroke="#10b981"
             strokeWidth="3"
           />
 
@@ -150,7 +150,7 @@ export default function BurndownChart({
                 cx={x}
                 cy={y}
                 r="4"
-                fill="#3b82f6"
+                fill="#10b981"
                 stroke="white"
                 strokeWidth="2"
               />
@@ -199,7 +199,7 @@ export default function BurndownChart({
       {showLegend && (
         <div className="mt-6 flex gap-6 justify-center">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-blue-600"></div>
+            <div className="w-4 h-0.5 bg-teal-600"></div>
             <span className="text-sm text-gray-700">Completed</span>
           </div>
           <div className="flex items-center gap-2">
@@ -214,17 +214,17 @@ export default function BurndownChart({
 
       {/* Stats */}
       <div className="mt-6 grid grid-cols-3 gap-4">
-        <div className="bg-blue-50 p-4 rounded-lg text-center">
+        <div className="bg-teal-50 p-4 rounded-lg text-center">
           <p className="text-sm text-gray-600">Completed</p>
-          <p className="text-2xl font-bold text-blue-600">{maxCompleted}</p>
+          <p className="text-2xl font-bold text-teal-600">{maxCompleted}</p>
         </div>
         <div className="bg-gray-50 p-4 rounded-lg text-center">
           <p className="text-sm text-gray-600">Total</p>
           <p className="text-2xl font-bold text-gray-900">{data.length > 0 ? maxValue : 0}</p>
         </div>
-        <div className="bg-green-50 p-4 rounded-lg text-center">
+        <div className="bg-emerald-50 p-4 rounded-lg text-center">
           <p className="text-sm text-gray-600">Progress</p>
-          <p className="text-2xl font-bold text-green-600">
+          <p className="text-2xl font-bold text-emerald-600">
             {maxValue > 0
               ? Math.round((maxCompleted / maxValue) * 100)
               : 0}%

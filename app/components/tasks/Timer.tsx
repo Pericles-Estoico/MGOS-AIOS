@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Play, Pause, Square, RotateCcw } from 'lucide-react';
 
 interface TimerProps {
   initialSeconds?: number;
@@ -47,19 +48,29 @@ export default function Timer({ initialSeconds = 0, onStop, autoStart = false }:
     <div className="flex flex-col items-center justify-center space-y-6">
       {/* Status indicator */}
       <div className="text-center">
-        <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${
+        <span className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold rounded-full ${
           isRunning
-            ? 'bg-green-100 text-green-700'
+            ? 'bg-emerald-100 text-emerald-700'
             : 'bg-gray-100 text-gray-700'
         }`}>
-          {isRunning ? '⏱️ Running' : '⏸️ Paused'}
+          {isRunning ? (
+            <>
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+              Running
+            </>
+          ) : (
+            <>
+              <Square className="w-3 h-3" />
+              Paused
+            </>
+          )}
         </span>
       </div>
 
       {/* Timer Display - Large and prominent */}
-      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 w-full max-w-sm">
+      <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-2xl p-8 w-full max-w-sm">
         <div
-          className="text-8xl font-bold font-mono text-center text-blue-900 tracking-wider"
+          className="text-8xl font-bold font-mono text-center text-teal-900 tracking-wider"
           role="timer"
           aria-live="polite"
           aria-label={`${String(minutes).padStart(2, '0')} minutes ${String(remainingSeconds).padStart(2, '0')} seconds`}
@@ -83,29 +94,41 @@ export default function Timer({ initialSeconds = 0, onStop, autoStart = false }:
         <button
           onClick={handleToggle}
           aria-label={isRunning ? 'Pause timer' : 'Start timer'}
-          className={`px-6 py-3 rounded-lg text-white font-semibold transition transform hover:scale-105 active:scale-95 ${
+          className={`flex items-center gap-2 px-6 py-3 rounded-lg text-white font-semibold transition transform hover:scale-105 active:scale-95 ${
             isRunning
-              ? 'bg-yellow-600 hover:bg-yellow-700'
-              : 'bg-green-600 hover:bg-green-700'
+              ? 'bg-amber-600 hover:bg-amber-700'
+              : 'bg-emerald-600 hover:bg-emerald-700'
           }`}
         >
-          {isRunning ? '⏸ Pause' : '▶ Start'}
+          {isRunning ? (
+            <>
+              <Pause className="w-4 h-4" />
+              Pause
+            </>
+          ) : (
+            <>
+              <Play className="w-4 h-4" />
+              Start
+            </>
+          )}
         </button>
 
         <button
           onClick={handleStop}
           aria-label="Stop timer and log time"
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition transform hover:scale-105 active:scale-95"
+          className="flex items-center gap-2 px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-semibold transition transform hover:scale-105 active:scale-95"
         >
-          ✓ Stop & Log
+          <Square className="w-4 h-4" />
+          Stop & Log
         </button>
 
         <button
           onClick={handleReset}
           aria-label="Reset timer to zero"
-          className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition transform hover:scale-105 active:scale-95"
+          className="flex items-center gap-2 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition transform hover:scale-105 active:scale-95"
         >
-          ↻ Reset
+          <RotateCcw className="w-4 h-4" />
+          Reset
         </button>
       </div>
     </div>
