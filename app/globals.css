@@ -1,5 +1,35 @@
 @import "tailwindcss";
 
+/* Dark mode CSS variables */
+:root {
+  --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+  --background: #ffffff;
+  --foreground: #000000;
+  --card: #f9fafb;
+  --card-border: #e5e7eb;
+  --primary: #10b981;
+  --secondary: #06b6d4;
+}
+
+.dark {
+  --background: #111827;
+  --foreground: #f3f4f6;
+  --card: #1f2937;
+  --card-border: #374151;
+  --primary: #10b981;
+  --secondary: #06b6d4;
+}
+
+html {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
 @layer utilities {
   .animation-delay-2000 {
     animation-delay: 2s;

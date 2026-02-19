@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import Sidebar from '@/components/layout/Sidebar';
+import DashboardShell from '@/components/layout/DashboardShell';
 
 export const metadata = {
   title: 'Dashboard - Digital TaskOps',
@@ -20,17 +20,5 @@ export default async function DashboardLayout({
     redirect('/login');
   }
 
-  return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar Navigation */}
-      <Sidebar user={session.user} />
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <div className="p-8">
-          {children}
-        </div>
-      </main>
-    </div>
-  );
+  return <DashboardShell user={session.user}>{children}</DashboardShell>;
 }
