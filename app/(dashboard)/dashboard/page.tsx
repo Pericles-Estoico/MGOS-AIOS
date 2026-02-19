@@ -13,6 +13,7 @@ import {
   Clock,
   AlertCircle,
 } from 'lucide-react';
+import { MarketplaceApprovalPanel } from '@/app/components/marketplace-approval-panel';
 
 interface Task {
   id: string;
@@ -264,6 +265,15 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Marketplace Intelligence Panel (Admin Only) */}
+      {session?.user?.role === 'admin' && (
+        <div className="border rounded-lg bg-white overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 border-b">
+            <MarketplaceApprovalPanel />
+          </div>
+        </div>
+      )}
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
