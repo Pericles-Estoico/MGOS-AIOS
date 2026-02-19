@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
+import { AITaskIndicator, ChannelTag } from '@/app/components/marketplace-intel-badge';
 
 interface Task {
   id: string;
@@ -15,6 +16,9 @@ interface Task {
   assigned_to?: string;
   created_by?: string;
   created_at: string;
+  source_type?: 'manual' | 'ai_generated';
+  channel?: string;
+  admin_approved?: boolean;
 }
 
 interface TasksResponse {
@@ -46,6 +50,7 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const [sourceFilter, setSourceFilter] = useState<'all' | 'manual' | 'ai_generated'>('all');
   const limit = 20;
 
   useEffect(() => {
@@ -76,19 +81,45 @@ export default function TasksPage() {
     fetchTasks();
   }, [page]);
 
+  // Filter tasks by source
+  const filteredTasks = tasks.filter((task) => {
+    if (sourceFilter === 'all') return true;
+    return (task.source_type || 'manual') === sourceFilter;
+  });
+
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Tarefas</h1>
-        {session?.user?.role && ['admin', 'head'].includes(session.user.role) && (
-          <Link
-            href="/tasks/new"
-            className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition"
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Tarefas</h1>
+          {filteredTasks.length > 0 && (
+            <p className="text-sm text-gray-600 mt-1">
+              {filteredTasks.length} de {tasks.length} tarefa{tasks.length !== 1 ? 's' : ''}
+            </p>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          {/* Source Filter */}
+          <select
+            value={sourceFilter}
+            onChange={(e) => setSourceFilter(e.target.value as 'all' | 'manual' | 'ai_generated')}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
           >
-            <Plus className="w-4 h-4" />
-            Nova Tarefa
-          </Link>
-        )}
+            <option value="all">Todas as Tarefas</option>
+            <option value="manual">Manual</option>
+            <option value="ai_generated">🤖 IA Geradas</option>
+          </select>
+
+          {session?.user?.role && ['admin', 'head'].includes(session.user.role) && (
+            <Link
+              href="/tasks/new"
+              className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition"
+            >
+              <Plus className="w-4 h-4" />
+              Nova Tarefa
+            </Link>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -107,20 +138,34 @@ export default function TasksPage() {
         <div className="bg-white rounded-lg shadow p-12 text-center">
           <p className="text-gray-500 text-lg">Nenhuma tarefa encontrada</p>
         </div>
+      ) : filteredTasks.length === 0 ? (
+        <div className="bg-white rounded-lg shadow p-12 text-center">
+          <p className="text-gray-500 text-lg">Nenhuma tarefa encontrada com este filtro</p>
+        </div>
       ) : (
         <div className="space-y-4">
-          {tasks.map((task) => (
+          {filteredTasks.map((task) => (
             <Link
               key={task.id}
               href={`/tasks/${task.id}`}
               className="block bg-white rounded-lg shadow hover:shadow-lg transition p-4"
             >
-              <div className="flex justify-between items-start">
+              <div className="flex justify-between items-start gap-4">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 hover:text-teal-600 transition-colors">
-                    {task.title}
-                  </h3>
-                  <p className="text-gray-600 text-sm mt-1">{task.description}</p>
+                  <div className="flex items-start gap-3">
+                    {task.source_type === 'ai_generated' && (
+                      <AITaskIndicator
+                        approved={task.admin_approved}
+                        channelInitial={task.channel?.[0].toUpperCase() || 'A'}
+                      />
+                    )}
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900 hover:text-teal-600 transition-colors">
+                        {task.title}
+                      </h3>
+                      <p className="text-gray-600 text-sm mt-1">{task.description}</p>
+                    </div>
+                  </div>
 
                   <div className="flex gap-2 mt-3 flex-wrap">
                     <span className={`px-2 py-1 text-xs font-medium rounded ${statusColors[task.status]}`}>
@@ -129,6 +174,9 @@ export default function TasksPage() {
                     <span className={`px-2 py-1 text-xs font-medium ${priorityColors[task.priority]}`}>
                       {task.priority}
                     </span>
+                    {task.source_type === 'ai_generated' && task.channel && (
+                      <ChannelTag channel={task.channel} size="sm" />
+                    )}
                     {task.due_date && (
                       <span className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded">
                         {new Date(task.due_date).toLocaleDateString('pt-BR')}
