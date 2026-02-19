@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-// SYN-14: Boot time captured before ANY require — measures hook cold start
+// SYN-14: Boot time captured before ANY import — measures hook cold start
 const _BOOT_TIME = process.hrtime.bigint();
-'use strict';
 
 /**
  * SYNAPSE Hook Entry Point — UserPromptSubmit
@@ -17,10 +16,25 @@ const _BOOT_TIME = process.hrtime.bigint();
  * @module synapse-engine-hook
  */
 
-const path = require('path');
-const { resolveHookRuntime, buildHookOutput } = require(
-  path.join(__dirname, '..', '..', '.aios-core', 'core', 'synapse', 'runtime', 'hook-runtime.js'),
-);
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+let resolveHookRuntime;
+let buildHookOutput;
+
+// Load dependencies
+try {
+  const hookRuntimeModule = await import(
+    join(__dirname, '..', '..', '.aios-core', 'core', 'synapse', 'runtime', 'hook-runtime.js')
+  );
+  resolveHookRuntime = hookRuntimeModule.resolveHookRuntime;
+  buildHookOutput = hookRuntimeModule.buildHookOutput;
+} catch (error) {
+  console.error('[synapse-hook] Failed to load hook-runtime:', error.message);
+}
 
 /** Safety timeout (ms) — defense-in-depth; Claude Code also manages hook timeout. */
 const HOOK_TIMEOUT_MS = 5000;
@@ -71,6 +85,7 @@ function run() {
   });
 }
 
-if (require.main === module) run();
+if (import.meta.url === `file://${process.argv[1]}`) run();
 
-module.exports = { readStdin, main, run, HOOK_TIMEOUT_MS };
+export { readStdin, main, run, HOOK_TIMEOUT_MS };
+export default { readStdin, main, run, HOOK_TIMEOUT_MS };

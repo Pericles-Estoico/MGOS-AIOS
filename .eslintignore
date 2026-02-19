@@ -1,0 +1,6 @@
+.aios-core/
+.next/
+out/
+build/
+dist/
+node_modules/
