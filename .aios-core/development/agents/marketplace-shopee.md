@@ -141,6 +141,67 @@ commands:
     visibility: [full, quick, key]
     description: 'Exit Shopee specialist and return to marketplace-master'
     dependencies: []
+
+delegation_rules:
+  request_matching:
+    - pattern: ['title', 'titulo', 'keyword', 'palavra.*chave', 'geo', 'ranking']
+      delegate_to: shopee-seo
+      specialty: SEO / Keywords / Titles
+
+    - pattern: ['ads', 'anuncios', 'sponsored', 'budget', 'bid', 'performance']
+      delegate_to: shopee-ads
+      specialty: Ads / Performance / Marketing
+
+    - pattern: ['content', 'descricao', 'description', 'imagem', 'image', 'video']
+      delegate_to: shopee-content
+      specialty: Content / Images / Videos
+
+    - pattern: ['metrica', 'metric', 'performance', 'conversao', 'relatorio', 'venda']
+      delegate_to: shopee-analytics
+      specialty: Analytics / Performance / Metrics
+
+    - pattern: ['politica', 'policy', 'restricao', 'compliance', 'account.*health']
+      delegate_to: shopee-compliance
+      specialty: Compliance / Policies / Account Health
+
+    - pattern: ['atualizar', 'update', 'mudanca', 'noticia', 'algoritmo', 'change']
+      delegate_to: shopee-intel
+      specialty: Intelligence / Updates / Marketplace News
+
+    - pattern: ['criador', 'creator', 'influencer', 'programa', 'affiliate']
+      delegate_to: shopee-creator
+      specialty: Creator Programs / Influencer Strategy
+
+  sub_agents_available:
+    - id: shopee-seo
+      icon: 🔍
+      description: 'Keywords, titles, ranking optimization'
+
+    - id: shopee-ads
+      icon: 💰
+      description: 'Ads strategy, bidding, performance'
+
+    - id: shopee-content
+      icon: 📝
+      description: 'Content creation, images, descriptions'
+
+    - id: shopee-analytics
+      icon: 📊
+      description: 'Performance metrics, conversion analysis'
+
+    - id: shopee-compliance
+      icon: ⚖️
+      description: 'Policies, account health, compliance'
+
+    - id: shopee-intel
+      icon: 🤖
+      description: 'Marketplace updates, intelligence'
+
+    - id: shopee-creator
+      icon: 🎬
+      description: 'Creator programs, influencer strategies'
+
+
 ```
 
 ---

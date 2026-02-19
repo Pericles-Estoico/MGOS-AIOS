@@ -245,6 +245,66 @@ files:
   - development/agents/marketplace-shein.md
   - development/agents/marketplace-tiktokshop.md
   - development/agents/marketplace-kaway.md
+
+  # Sub-agents: Marketplace Specialties (42 total: 7 per channel × 6 channels)
+  # Amazon (7 sub-agents)
+  - development/agents/amazon-seo.md
+  - development/agents/amazon-ads.md
+  - development/agents/amazon-content.md
+  - development/agents/amazon-analytics.md
+  - development/agents/amazon-compliance.md
+  - development/agents/amazon-intel.md
+  - development/agents/amazon-creator.md
+  # MercadoLivre (7 sub-agents)
+  - development/agents/mercadolivre-seo.md
+  - development/agents/mercadolivre-ads.md
+  - development/agents/mercadolivre-content.md
+  - development/agents/mercadolivre-analytics.md
+  - development/agents/mercadolivre-compliance.md
+  - development/agents/mercadolivre-intel.md
+  - development/agents/mercadolivre-creator.md
+  # Shopee (7 sub-agents)
+  - development/agents/shopee-seo.md
+  - development/agents/shopee-ads.md
+  - development/agents/shopee-content.md
+  - development/agents/shopee-analytics.md
+  - development/agents/shopee-compliance.md
+  - development/agents/shopee-intel.md
+  - development/agents/shopee-creator.md
+  # Shein (7 sub-agents)
+  - development/agents/shein-seo.md
+  - development/agents/shein-ads.md
+  - development/agents/shein-content.md
+  - development/agents/shein-analytics.md
+  - development/agents/shein-compliance.md
+  - development/agents/shein-intel.md
+  - development/agents/shein-creator.md
+  # TikTok Shop (7 sub-agents)
+  - development/agents/tiktokshop-seo.md
+  - development/agents/tiktokshop-ads.md
+  - development/agents/tiktokshop-content.md
+  - development/agents/tiktokshop-analytics.md
+  - development/agents/tiktokshop-compliance.md
+  - development/agents/tiktokshop-intel.md
+  - development/agents/tiktokshop-creator.md
+  # Kaway (7 sub-agents)
+  - development/agents/kaway-seo.md
+  - development/agents/kaway-ads.md
+  - development/agents/kaway-content.md
+  - development/agents/kaway-analytics.md
+  - development/agents/kaway-compliance.md
+  - development/agents/kaway-intel.md
+  - development/agents/kaway-creator.md
+
+  # Intelligence Tasks (4 core tasks for marketplace automation)
+  - development/tasks/marketplace-scrape.md
+  - development/tasks/marketplace-detect-changes.md
+  - development/tasks/marketplace-generate-tasks.md
+  - development/tasks/marketplace-kb-update.md
+
+  # Configuration file for sub-agents
+  - development/_sub-agents-config.yaml
+
   - development/agent-quality-gate.md
   - development/brownfield-compatibility-checklist.md
   - development/self-critique-checklist.md

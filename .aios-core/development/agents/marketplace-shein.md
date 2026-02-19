@@ -140,6 +140,67 @@ commands:
     visibility: [full, quick, key]
     description: 'Exit Shein specialist and return to marketplace-master'
     dependencies: []
+
+delegation_rules:
+  request_matching:
+    - pattern: ['title', 'titulo', 'keyword', 'palavra.*chave', 'geo', 'ranking']
+      delegate_to: shein-seo
+      specialty: SEO / Keywords / Titles
+
+    - pattern: ['ads', 'anuncios', 'sponsored', 'budget', 'bid', 'performance']
+      delegate_to: shein-ads
+      specialty: Ads / Performance / Marketing
+
+    - pattern: ['content', 'descricao', 'description', 'imagem', 'image', 'video']
+      delegate_to: shein-content
+      specialty: Content / Images / Videos
+
+    - pattern: ['metrica', 'metric', 'performance', 'conversao', 'relatorio', 'venda']
+      delegate_to: shein-analytics
+      specialty: Analytics / Performance / Metrics
+
+    - pattern: ['politica', 'policy', 'restricao', 'compliance', 'account.*health']
+      delegate_to: shein-compliance
+      specialty: Compliance / Policies / Account Health
+
+    - pattern: ['atualizar', 'update', 'mudanca', 'noticia', 'algoritmo', 'change']
+      delegate_to: shein-intel
+      specialty: Intelligence / Updates / Marketplace News
+
+    - pattern: ['criador', 'creator', 'influencer', 'programa', 'affiliate']
+      delegate_to: shein-creator
+      specialty: Creator Programs / Influencer Strategy
+
+  sub_agents_available:
+    - id: shein-seo
+      icon: 🔍
+      description: 'Keywords, titles, ranking optimization'
+
+    - id: shein-ads
+      icon: 💰
+      description: 'Ads strategy, bidding, performance'
+
+    - id: shein-content
+      icon: 📝
+      description: 'Content creation, images, descriptions'
+
+    - id: shein-analytics
+      icon: 📊
+      description: 'Performance metrics, conversion analysis'
+
+    - id: shein-compliance
+      icon: ⚖️
+      description: 'Policies, account health, compliance'
+
+    - id: shein-intel
+      icon: 🤖
+      description: 'Marketplace updates, intelligence'
+
+    - id: shein-creator
+      icon: 🎬
+      description: 'Creator programs, influencer strategies'
+
+
 ```
 
 ---

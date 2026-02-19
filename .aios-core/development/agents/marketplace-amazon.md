@@ -141,6 +141,87 @@ commands:
     visibility: [full, quick, key]
     description: 'Exit Amazon specialist and return to marketplace-master'
     dependencies: []
+
+delegation_rules:
+  request_matching:
+    - pattern: ['title', 'titulo', 'keyword', 'palavra.*chave', 'geo', 'ranking']
+      delegate_to: amazon-seo
+      specialty: SEO / Keywords / Titles
+      reasoning: 'Request involves title optimization, keywords, or ranking strategy'
+
+    - pattern: ['ads', 'anuncios', 'sponsored', 'acos', 'roas', 'budget', 'bid']
+      delegate_to: amazon-ads
+      specialty: Ads / Sponsored Products / Performance
+      reasoning: 'Request involves advertising strategy, bidding, or ad performance'
+
+    - pattern: ['content', 'a\+', 'a plus', 'imagem', 'image', 'descricao', 'bullet']
+      delegate_to: amazon-content
+      specialty: Content / Images / A+ / Descriptions
+      reasoning: 'Request involves content creation, images, or A+ content'
+
+    - pattern: ['metrica', 'metric', 'performance', 'conversao', 'conversion', 'relatorio', 'report']
+      delegate_to: amazon-analytics
+      specialty: Analytics / Performance / Metrics
+      reasoning: 'Request involves performance analysis, metrics, or reporting'
+
+    - pattern: ['politica', 'policy', 'restricao', 'restriction', 'compliance', 'suspensao', 'suspension', 'account.*health']
+      delegate_to: amazon-compliance
+      specialty: Compliance / Policies / Account Health
+      reasoning: 'Request involves policy compliance, account health, or restrictions'
+
+    - pattern: ['atualizar', 'update', 'mudanca', 'change', 'noticia', 'news', 'algoritmo', 'algorithm.*change']
+      delegate_to: amazon-intel
+      specialty: Intelligence / Updates / Change Detection
+      reasoning: 'Request involves marketplace updates, algorithm changes, or intelligence gathering'
+
+    - pattern: ['criador', 'creator', 'influencer', 'programa', 'program', 'affiliate', 'live']
+      delegate_to: amazon-creator
+      specialty: Creator Programs / Influencer / Live Shopping
+      reasoning: 'Request involves creator programs, influencers, or marketplace programs'
+
+  activation_flow: |
+    When user request is received:
+    1. Match request against all patterns (case-insensitive)
+    2. If single match found → activate that sub-agent
+    3. If multiple matches found → show user which sub-agents match, ask for clarification
+    4. If no match found → show help for all sub-agents
+    5. Sub-agent inherits marketplace context and operates within Amazon specialization
+
+  sub_agents_available:
+    - id: amazon-seo
+      icon: 🔍
+      description: 'Keywords, titles, A9 ranking optimization'
+      when_to_use: 'Title optimization, keyword strategy, ranking improvements'
+
+    - id: amazon-ads
+      icon: 💰
+      description: 'Sponsored Products, Brands, Display ads, bidding strategy'
+      when_to_use: 'Advertising campaigns, ACoS optimization, ad performance'
+
+    - id: amazon-content
+      icon: 📝
+      description: 'A+ content, images, descriptions, bullet points'
+      when_to_use: 'Creating or improving content, A+ content strategy'
+
+    - id: amazon-analytics
+      icon: 📊
+      description: 'Performance metrics, conversion analysis, reporting'
+      when_to_use: 'Understanding performance, analyzing trends, metrics reporting'
+
+    - id: amazon-compliance
+      icon: ⚖️
+      description: 'Policies, account health, risk mitigation'
+      when_to_use: 'Policy compliance, account health checks, restriction understanding'
+
+    - id: amazon-intel
+      icon: 🤖
+      description: 'Marketplace updates, algorithm changes, intelligence'
+      when_to_use: 'Learning about platform updates, detecting changes, staying current'
+
+    - id: amazon-creator
+      icon: 🎬
+      description: 'Creator programs, influencers, live shopping'
+      when_to_use: 'Creator collaborations, influencer strategies, program participation'
 ```
 
 ---

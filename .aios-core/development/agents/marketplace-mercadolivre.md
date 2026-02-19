@@ -135,6 +135,65 @@ commands:
     visibility: [full, quick, key]
     description: 'Exit MercadoLivre specialist and return to marketplace-master'
     dependencies: []
+
+delegation_rules:
+  request_matching:
+    - pattern: ['title', 'titulo', 'keyword', 'palavra.*chave', 'geo', 'visibilidade']
+      delegate_to: mercadolivre-seo
+      specialty: SEO / Keywords / Visibility
+
+    - pattern: ['ads', 'anuncios', 'performance.*ads', 'desempenho', 'budget', 'bid']
+      delegate_to: mercadolivre-ads
+      specialty: Performance Ads / Visibility / Strategy
+
+    - pattern: ['content', 'descricao', 'description', 'imagem', 'image', 'beneficio']
+      delegate_to: mercadolivre-content
+      specialty: Content / Descriptions / Benefits
+
+    - pattern: ['metrica', 'metric', 'performance', 'conversao', 'relatorio', 'venda']
+      delegate_to: mercadolivre-analytics
+      specialty: Analytics / Performance / Sales
+
+    - pattern: ['politica', 'policy', 'restricao', 'compliance', 'reputacao', 'confianca']
+      delegate_to: mercadolivre-compliance
+      specialty: Compliance / Reputation / Trust
+
+    - pattern: ['atualizar', 'update', 'mudanca', 'noticia', 'algoritmo', 'change']
+      delegate_to: mercadolivre-intel
+      specialty: Intelligence / Updates / Marketplace News
+
+    - pattern: ['criador', 'creator', 'influencer', 'programa', 'affiliate']
+      delegate_to: mercadolivre-creator
+      specialty: Creator Programs / Influencer Strategy
+
+  sub_agents_available:
+    - id: mercadolivre-seo
+      icon: 🔍
+      description: 'Keywords, titles, visibility optimization'
+
+    - id: mercadolivre-ads
+      icon: 💰
+      description: 'Performance Ads, bidding strategy, visibility'
+
+    - id: mercadolivre-content
+      icon: 📝
+      description: 'Descriptions, images, benefits communication'
+
+    - id: mercadolivre-analytics
+      icon: 📊
+      description: 'Performance metrics, conversion analysis'
+
+    - id: mercadolivre-compliance
+      icon: ⚖️
+      description: 'Policies, reputation, seller trust'
+
+    - id: mercadolivre-intel
+      icon: 🤖
+      description: 'Marketplace updates, algorithm changes'
+
+    - id: mercadolivre-creator
+      icon: 🎬
+      description: 'Creator programs, influencer strategies'
 ```
 
 ---

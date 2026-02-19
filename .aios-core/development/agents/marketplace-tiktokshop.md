@@ -148,6 +148,67 @@ commands:
     visibility: [full, quick, key]
     description: 'Exit TikTok Shop specialist and return to marketplace-master'
     dependencies: []
+
+delegation_rules:
+  request_matching:
+    - pattern: ['title', 'titulo', 'keyword', 'palavra.*chave', 'geo', 'ranking']
+      delegate_to: tiktokshop-seo
+      specialty: SEO / Keywords / Titles
+
+    - pattern: ['ads', 'anuncios', 'sponsored', 'budget', 'bid', 'performance']
+      delegate_to: tiktokshop-ads
+      specialty: Ads / Performance / Marketing
+
+    - pattern: ['content', 'descricao', 'description', 'imagem', 'image', 'video']
+      delegate_to: tiktokshop-content
+      specialty: Content / Images / Videos
+
+    - pattern: ['metrica', 'metric', 'performance', 'conversao', 'relatorio', 'venda']
+      delegate_to: tiktokshop-analytics
+      specialty: Analytics / Performance / Metrics
+
+    - pattern: ['politica', 'policy', 'restricao', 'compliance', 'account.*health']
+      delegate_to: tiktokshop-compliance
+      specialty: Compliance / Policies / Account Health
+
+    - pattern: ['atualizar', 'update', 'mudanca', 'noticia', 'algoritmo', 'change']
+      delegate_to: tiktokshop-intel
+      specialty: Intelligence / Updates / Marketplace News
+
+    - pattern: ['criador', 'creator', 'influencer', 'programa', 'affiliate']
+      delegate_to: tiktokshop-creator
+      specialty: Creator Programs / Influencer Strategy
+
+  sub_agents_available:
+    - id: tiktokshop-seo
+      icon: 🔍
+      description: 'Keywords, titles, ranking optimization'
+
+    - id: tiktokshop-ads
+      icon: 💰
+      description: 'Ads strategy, bidding, performance'
+
+    - id: tiktokshop-content
+      icon: 📝
+      description: 'Content creation, images, descriptions'
+
+    - id: tiktokshop-analytics
+      icon: 📊
+      description: 'Performance metrics, conversion analysis'
+
+    - id: tiktokshop-compliance
+      icon: ⚖️
+      description: 'Policies, account health, compliance'
+
+    - id: tiktokshop-intel
+      icon: 🤖
+      description: 'Marketplace updates, intelligence'
+
+    - id: tiktokshop-creator
+      icon: 🎬
+      description: 'Creator programs, influencer strategies'
+
+
 ```
 
 ---

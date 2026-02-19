@@ -148,6 +148,67 @@ commands:
     visibility: [full, quick, key]
     description: 'Exit Kaway specialist and return to marketplace-master'
     dependencies: []
+
+delegation_rules:
+  request_matching:
+    - pattern: ['title', 'titulo', 'keyword', 'palavra.*chave', 'geo', 'ranking']
+      delegate_to: kaway-seo
+      specialty: SEO / Keywords / Titles
+
+    - pattern: ['ads', 'anuncios', 'sponsored', 'budget', 'bid', 'performance']
+      delegate_to: kaway-ads
+      specialty: Ads / Performance / Marketing
+
+    - pattern: ['content', 'descricao', 'description', 'imagem', 'image', 'video']
+      delegate_to: kaway-content
+      specialty: Content / Images / Videos
+
+    - pattern: ['metrica', 'metric', 'performance', 'conversao', 'relatorio', 'venda']
+      delegate_to: kaway-analytics
+      specialty: Analytics / Performance / Metrics
+
+    - pattern: ['politica', 'policy', 'restricao', 'compliance', 'account.*health']
+      delegate_to: kaway-compliance
+      specialty: Compliance / Policies / Account Health
+
+    - pattern: ['atualizar', 'update', 'mudanca', 'noticia', 'algoritmo', 'change']
+      delegate_to: kaway-intel
+      specialty: Intelligence / Updates / Marketplace News
+
+    - pattern: ['criador', 'creator', 'influencer', 'programa', 'affiliate']
+      delegate_to: kaway-creator
+      specialty: Creator Programs / Influencer Strategy
+
+  sub_agents_available:
+    - id: kaway-seo
+      icon: 🔍
+      description: 'Keywords, titles, ranking optimization'
+
+    - id: kaway-ads
+      icon: 💰
+      description: 'Ads strategy, bidding, performance'
+
+    - id: kaway-content
+      icon: 📝
+      description: 'Content creation, images, descriptions'
+
+    - id: kaway-analytics
+      icon: 📊
+      description: 'Performance metrics, conversion analysis'
+
+    - id: kaway-compliance
+      icon: ⚖️
+      description: 'Policies, account health, compliance'
+
+    - id: kaway-intel
+      icon: 🤖
+      description: 'Marketplace updates, intelligence'
+
+    - id: kaway-creator
+      icon: 🎬
+      description: 'Creator programs, influencer strategies'
+
+
 ```
 
 ---
