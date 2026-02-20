@@ -9,8 +9,8 @@ import { Button } from '@/components/ui/button';
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState('pericles@vidadeceo.com.br');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('teste@teste.com');
+  const [password, setPassword] = useState('teste123');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -139,12 +139,14 @@ function LoginForm() {
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-600">Email:</span>
                 <code className="text-xs font-mono bg-white px-2 py-1 rounded border border-gray-200">
-                  pericles@vidadeceo.com.br
+                  teste@teste.com
                 </code>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-600">Senha:</span>
-                <span className="text-xs text-gray-600 italic">(Sua senha do Supabase)</span>
+                <code className="text-xs font-mono bg-white px-2 py-1 rounded border border-gray-200">
+                  teste123
+                </code>
               </div>
             </div>
           </div>
