@@ -1,6 +1,8 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
+import type { SupabaseClientType, Task, TeamMetric, UserMetric, TaskMetric } from '@/lib/types/supabase';
+import type { Session } from 'next-auth';
 
 interface ReportRequest {
   type: 'sprint' | 'team' | 'individual' | 'custom';
@@ -11,9 +13,21 @@ interface ReportRequest {
   grouping?: 'hour' | 'day' | 'week' | 'month';
 }
 
+interface ReportData {
+  type: string;
+  period?: string;
+  userId?: string;
+  summary: Record<string, unknown>;
+  statusDistribution?: Record<string, number>;
+  priorityDistribution?: Record<string, number>;
+  metrics?: unknown;
+  statusBreakdown?: Record<string, number>;
+  generatedAt: string;
+}
+
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as Session | null;
     if (!session) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -27,9 +41,9 @@ export async function POST(request: Request) {
     }
 
     const body: ReportRequest = await request.json();
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient(session.accessToken) as unknown as SupabaseClientType;
 
-    let data: any = {};
+    let data: ReportData | null = null;
 
     switch (body.type) {
       case 'sprint':
@@ -61,15 +75,18 @@ export async function POST(request: Request) {
   }
 }
 
-async function generateSprintReport(supabase: any, params: ReportRequest) {
+async function generateSprintReport(
+  supabase: SupabaseClientType,
+  params: ReportRequest
+): Promise<ReportData> {
   if (!params.sprintId) throw new Error('Sprint ID required');
 
-  const { data: tasks } = await supabase
+  const { data: tasks } = await (supabase as unknown as any)
     .from('tasks')
     .select('status, priority, assigned_to, created_at, updated_at')
     .eq('sprint_id', params.sprintId);
 
-  const statusCounts = {
+  const statusCounts: Record<string, number> = {
     pending: 0,
     in_progress: 0,
     submitted: 0,
@@ -78,27 +95,32 @@ async function generateSprintReport(supabase: any, params: ReportRequest) {
     rejected: 0,
   };
 
-  const priorityCounts = {
+  const priorityCounts: Record<string, number> = {
     low: 0,
     medium: 0,
     high: 0,
     critical: 0,
   };
 
-  tasks?.forEach((task: any) => {
-    statusCounts[task.status as keyof typeof statusCounts]++;
-    priorityCounts[task.priority as keyof typeof priorityCounts]++;
+  const taskList = (tasks || []) as Task[];
+  taskList.forEach((task: Task) => {
+    if (statusCounts[task.status] !== undefined) {
+      statusCounts[task.status]++;
+    }
+    if (priorityCounts[task.priority] !== undefined) {
+      priorityCounts[task.priority]++;
+    }
   });
 
   return {
     type: 'sprint',
     period: params.sprintId,
     summary: {
-      totalTasks: tasks?.length || 0,
-      completionRate: tasks?.length
+      totalTasks: taskList?.length || 0,
+      completionRate: taskList?.length
         ? Math.round(
-            ((tasks.filter((t: any) => t.status === 'approved').length /
-              tasks.length) *
+            ((taskList.filter((t: Task) => t.status === 'approved').length /
+              taskList.length) *
               100)
           )
         : 0,
@@ -109,15 +131,19 @@ async function generateSprintReport(supabase: any, params: ReportRequest) {
   };
 }
 
-async function generateTeamReport(supabase: any, params: ReportRequest) {
-  const { data: teamMetrics } = await supabase
+async function generateTeamReport(
+  supabase: SupabaseClientType,
+  params: ReportRequest
+): Promise<ReportData> {
+  const { data: teamMetrics } = await (supabase as unknown as any)
     .from('team_metrics')
     .select('*')
     .eq('sprint_id', params.sprintId || null)
     .order('captured_at', { ascending: false })
     .limit(1);
 
-  const metric = teamMetrics?.[0];
+  const metricList = (teamMetrics || []) as TeamMetric[];
+  const metric = metricList?.[0];
 
   return {
     type: 'team',
@@ -136,10 +162,13 @@ async function generateTeamReport(supabase: any, params: ReportRequest) {
   };
 }
 
-async function generateIndividualReport(supabase: any, params: ReportRequest) {
+async function generateIndividualReport(
+  supabase: SupabaseClientType,
+  params: ReportRequest
+): Promise<ReportData> {
   if (!params.userId) throw new Error('User ID required');
 
-  const { data: userMetrics } = await supabase
+  const { data: userMetrics } = await (supabase as unknown as any)
     .from('user_metrics')
     .select('*')
     .eq('user_id', params.userId)
@@ -147,7 +176,8 @@ async function generateIndividualReport(supabase: any, params: ReportRequest) {
     .order('captured_at', { ascending: false })
     .limit(1);
 
-  const metric = userMetrics?.[0];
+  const metricList = (userMetrics || []) as UserMetric[];
+  const metric = metricList?.[0];
 
   return {
     type: 'individual',
@@ -163,41 +193,46 @@ async function generateIndividualReport(supabase: any, params: ReportRequest) {
   };
 }
 
-async function generateCustomReport(supabase: any, params: ReportRequest) {
+async function generateCustomReport(
+  supabase: SupabaseClientType,
+  params: ReportRequest
+): Promise<ReportData> {
   const startDate = params.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const endDate = params.endDate || new Date().toISOString();
 
-  const { data: taskMetrics } = await supabase
+  const { data: taskMetrics } = await (supabase as unknown as any)
     .from('task_metrics')
     .select('*')
     .gte('captured_at', startDate)
     .lte('captured_at', endDate)
     .order('captured_at', { ascending: false });
 
-  const statusBreakdown = (taskMetrics || []).reduce((acc: any, metric: any) => {
-    acc[metric.final_status] = (acc[metric.final_status] || 0) + 1;
+  const metricList = (taskMetrics || []) as TaskMetric[];
+  const statusBreakdown: Record<string, number> = metricList.reduce((acc: Record<string, number>, metric: TaskMetric) => {
+    const status = metric.final_status;
+    acc[status] = (acc[status] || 0) + 1;
     return acc;
   }, {});
 
-  const avgEstimate = taskMetrics?.length
-    ? taskMetrics.reduce((sum: number, m: any) => sum + (m.estimate_hours || 0), 0) / taskMetrics.length
+  const avgEstimate = metricList?.length
+    ? metricList.reduce((sum: number, m: TaskMetric) => sum + (m.estimate_hours || 0), 0) / metricList.length
     : 0;
 
-  const avgActual = taskMetrics?.length
-    ? taskMetrics.reduce((sum: number, m: any) => sum + (m.actual_hours || 0), 0) / taskMetrics.length
+  const avgActual = metricList?.length
+    ? metricList.reduce((sum: number, m: TaskMetric) => sum + (m.actual_hours || 0), 0) / metricList.length
     : 0;
 
   return {
     type: 'custom',
     period: `${startDate} to ${endDate}`,
     summary: {
-      taskCount: taskMetrics?.length || 0,
+      taskCount: metricList?.length || 0,
       avgEstimate: Math.round(avgEstimate * 100) / 100,
       avgActual: Math.round(avgActual * 100) / 100,
       accuracyRate: avgEstimate ? Math.round(((1 - Math.abs(avgActual - avgEstimate) / avgEstimate) * 100)) : 0,
     },
     statusBreakdown,
-    metrics: taskMetrics,
+    metrics: metricList,
     generatedAt: new Date().toISOString(),
   };
 }

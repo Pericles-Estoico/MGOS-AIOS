@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Card } from '@/components/ui/card';
@@ -13,18 +13,7 @@ import {
   Activity,
   Loader,
 } from 'lucide-react';
-
-interface ActivityEvent {
-  id: string;
-  action: string;
-  created_at: string;
-  user_id: string;
-  user: {
-    name: string;
-    email: string;
-  };
-  details?: Record<string, any>;
-}
+import type { ActivityEvent } from '@/lib/types/supabase';
 
 interface ActivityTimelineProps {
   taskId: string;
@@ -37,10 +26,10 @@ const actionIcons: Record<string, React.ReactNode> = {
   created: <AlertCircle className="w-4 h-4 text-gray-600" />,
 };
 
-const actionLabels: Record<string, (details?: any) => string> = {
-  status_changed: (d) => `Alterou o status para ${d?.new_status || 'desconhecido'}`,
+const actionLabels: Record<string, (details?: Record<string, unknown>) => string> = {
+  status_changed: (d) => `Alterou o status para ${(d?.new_status as string) || 'desconhecido'}`,
   commented: () => 'Adicionou um comentário',
-  reassigned: (d) => `Reatribuiu a tarefa para ${d?.new_assignee || 'desconhecido'}`,
+  reassigned: (d) => `Reatribuiu a tarefa para ${(d?.new_assignee as string) || 'desconhecido'}`,
   created: () => 'Criou a tarefa',
   task_created: () => 'Criou a tarefa',
 };
@@ -52,6 +41,7 @@ export function ActivityTimeline({ taskId }: ActivityTimelineProps) {
 
   useEffect(() => {
     fetchActivities();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [taskId]);
 
   const fetchActivities = async () => {

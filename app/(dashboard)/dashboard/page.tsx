@@ -9,9 +9,6 @@ import {
   Plus,
   BarChart3,
   Users,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
 } from 'lucide-react';
 import { MarketplaceApprovalPanel } from '@/components/marketplace-approval-panel';
 

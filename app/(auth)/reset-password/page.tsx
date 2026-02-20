@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader, AlertCircle, CheckCircle2 } from 'lucide-react';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -16,12 +17,6 @@ function ResetPasswordForm() {
 
   // Get token from URL (Supabase sends it as 'code' parameter)
   const token = searchParams.get('code');
-
-  useEffect(() => {
-    if (!token) {
-      setError('Token de reset inválido. Solicite um novo reset de senha.');
-    }
-  }, [token]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +43,7 @@ function ResetPasswordForm() {
 
     try {
       // Exchange token for session
-      const { data, error: sessionError } = await (supabase as any).auth.exchangeCodeForSession(
+      const { data, error: sessionError } = await (supabase as unknown as SupabaseClient).auth.exchangeCodeForSession(
         token
       );
 
@@ -59,7 +54,7 @@ function ResetPasswordForm() {
       }
 
       // Update password
-      const { error: updateError } = await (supabase as any).auth.updateUser({
+      const { error: updateError } = await (supabase as unknown as SupabaseClient).auth.updateUser({
         password: password,
       });
 

@@ -20,7 +20,7 @@ export async function GET() {
       },
       accessToken: session.accessToken ? '***' : undefined, // Don't expose token
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

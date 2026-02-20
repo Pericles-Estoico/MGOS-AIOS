@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export default function DebugPage() {
   const [email, setEmail] = useState('');
@@ -17,7 +18,7 @@ export default function DebugPage() {
       console.log('📝 Testando com:', { email, password });
       console.log('🔌 Supabase client:', supabase);
 
-      const { data, error } = await (supabase as any).auth.signInWithPassword({
+      const { data, error } = await (supabase as unknown as SupabaseClient).auth.signInWithPassword({
         email,
         password,
       });

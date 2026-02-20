@@ -58,7 +58,18 @@ export async function GET(
     }
 
     // Transform data to include names
-    const transformedHistory = (history || []).map((entry: any) => ({
+    interface HistoryEntry {
+      id: string;
+      old_assignee_id: string;
+      new_assignee_id: string;
+      reason: string;
+      reassigned_by: string;
+      created_at: string;
+      old_assignee?: { name: string };
+      new_assignee?: { name: string };
+      performer?: { name: string };
+    }
+    const transformedHistory = (history || []).map((entry: HistoryEntry) => ({
       id: entry.id,
       old_assignee_id: entry.old_assignee_id,
       new_assignee_id: entry.new_assignee_id,

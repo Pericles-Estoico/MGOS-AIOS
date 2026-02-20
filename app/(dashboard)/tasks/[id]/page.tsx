@@ -82,7 +82,6 @@ export default function TaskDetailPage({ params }: Props) {
   const [showReassignForm, setShowReassignForm] = useState(false);
   const [showExtendDueForm, setShowExtendDueForm] = useState(false);
   const [startingTask, setStartingTask] = useState(false);
-  const [statusHistoryLoading, setStatusHistoryLoading] = useState(false);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get ID from params
@@ -322,7 +321,7 @@ export default function TaskDetailPage({ params }: Props) {
             {showTimer ? (
               <div className="mb-6">
                 <Timer
-                  onStop={(minutes) => {
+                  onStop={() => {
                     setShowTimer(false);
                     setShowTimeLogForm(true);
                   }}

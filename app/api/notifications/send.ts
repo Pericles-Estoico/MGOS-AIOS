@@ -26,7 +26,7 @@ const supabase = new Proxy({} as SupabaseClient, {
       console.warn('⚠️  Supabase not configured for send endpoint');
       return undefined;
     }
-    return (client as any)[prop];
+    return (client as unknown as Record<string, unknown>)[prop as string];
   },
 });
 

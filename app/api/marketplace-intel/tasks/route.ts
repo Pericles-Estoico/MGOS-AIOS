@@ -12,6 +12,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import type { Session } from 'next-auth';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -163,7 +164,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // 1. Authenticate user
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as Session | null;
     if (!session) {
       return NextResponse.json(
         { error: 'Não autorizado - por favor, faça login' },
@@ -172,7 +173,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 2. Check admin role
-    const user = session.user as any;
+    const user = session.user;
     if (user?.role !== 'admin') {
       return NextResponse.json(
         { error: 'Apenas administradores podem acessar tarefas de inteligência' },

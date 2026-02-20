@@ -11,6 +11,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import type { Session } from 'next-auth';
 
 // Initialize Supabase client (use anon key for user-authenticated operations)
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -45,7 +46,7 @@ export async function PATCH(
 ) {
   try {
     // 1. Authenticate user
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as Session | null;
     if (!session) {
       return NextResponse.json(
         { error: 'Não autorizado - por favor, faça login' },
@@ -54,7 +55,7 @@ export async function PATCH(
     }
 
     // 2. Check admin role
-    const user = session.user as any;
+    const user = session.user;
     if (user?.role !== 'admin') {
       return NextResponse.json(
         { error: 'Apenas administradores podem aprovar tarefas de inteligência' },
@@ -93,7 +94,7 @@ export async function PATCH(
     }
 
     // 6. Prepare update data
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       admin_approved: true,
       updated_at: new Date().toISOString(),
     };
@@ -212,7 +213,7 @@ export async function DELETE(
 ) {
   try {
     // 1. Authenticate user
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as Session | null;
     if (!session) {
       return NextResponse.json(
         { error: 'Não autorizado - por favor, faça login' },
@@ -221,7 +222,7 @@ export async function DELETE(
     }
 
     // 2. Check admin role
-    const user = session.user as any;
+    const user = session.user;
     if (user?.role !== 'admin') {
       return NextResponse.json(
         { error: 'Apenas administradores podem rejeitar tarefas de inteligência' },

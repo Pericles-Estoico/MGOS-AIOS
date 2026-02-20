@@ -56,7 +56,15 @@ export async function GET(
     }
 
     // Transform data to include reviewer names
-    const transformedReviews = (reviews || []).map((review: any) => ({
+    interface ReviewData {
+      id: string;
+      action: string;
+      feedback: string;
+      reviewer_id: string;
+      reviewer?: { name: string };
+      created_at: string;
+    }
+    const transformedReviews = (reviews || []).map((review: ReviewData) => ({
       id: review.id,
       action: review.action,
       feedback: review.feedback,

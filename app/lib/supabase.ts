@@ -55,7 +55,7 @@ export const supabase = new Proxy({} as SupabaseClient, {
       console.warn('⚠️  Supabase client not initialized');
       return undefined;
     }
-    return (client as any)[prop];
+    return (client as unknown as Record<string, unknown>)[prop as string];
   },
 });
 
@@ -64,7 +64,7 @@ export const supabaseAdmin = new Proxy({} as SupabaseClient | null, {
   get: (target, prop) => {
     const client = getSupabaseAdminClient();
     if (!client) return undefined;
-    return (client as any)[prop];
+    return (client as unknown as Record<string, unknown>)[prop as string];
   },
 });
 
@@ -88,5 +88,5 @@ export function createSupabaseServerClient(accessToken?: string): SupabaseClient
         auth: { persistSession: false },
       };
 
-  return createClient(supabaseUrl, supabaseAnonKey, options as any);
+  return createClient(supabaseUrl, supabaseAnonKey, options as unknown as Record<string, unknown>);
 }

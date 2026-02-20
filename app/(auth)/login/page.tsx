@@ -38,7 +38,7 @@ function LoginForm() {
         setError('Erro ao fazer login');
         setLoading(false);
       }
-    } catch (error) {
+    } catch {
       setError('Erro na conexão. Tente novamente.');
       setLoading(false);
     }

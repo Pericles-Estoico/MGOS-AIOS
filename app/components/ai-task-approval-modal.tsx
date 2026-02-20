@@ -10,8 +10,8 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { X, ChevronRight, Copy, Check } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, ChevronRight } from 'lucide-react';
 import { MarketplaceIntelBadge, ChannelTag } from './marketplace-intel-badge';
 
 interface AITaskApprovalModalProps {

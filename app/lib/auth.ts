@@ -63,7 +63,7 @@ export const authOptions: NextAuthOptions = {
       console.log('📝 jwt() callback:', { tokenId: token.sub, userId: user?.id });
       if (user) {
         token.id = user.id;
-        token.role = (user as any).role;
+        token.role = (user as unknown as Record<string, unknown>).role;
       }
       return token;
     },
@@ -71,7 +71,7 @@ export const authOptions: NextAuthOptions = {
       console.log('📋 session() callback:', { email: session.user?.email, role: token.role });
       if (session.user) {
         session.user.id = token.id as string;
-        (session.user as any).role = token.role;
+        (session.user as unknown as Record<string, unknown>).role = token.role;
       }
       return session;
     },

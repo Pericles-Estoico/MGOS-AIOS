@@ -14,7 +14,14 @@ interface Task {
   assigned_to?: string;
   due_date?: string;
   created_at: string;
-  status_history?: any[];
+  status_history?: Array<{
+    id: string;
+    operation: string;
+    old_value?: Record<string, unknown>;
+    new_value?: Record<string, unknown>;
+    created_by?: string;
+    created_at: string;
+  }>;
 }
 
 interface TaskStats {

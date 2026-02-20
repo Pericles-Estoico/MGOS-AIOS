@@ -86,7 +86,7 @@ export function ReassignmentHistory({ taskId }: ReassignmentHistoryProps) {
 
           {entry.reason && (
             <div className="text-sm text-gray-600 border-l-2 border-blue-300 pl-3 italic">
-              "{entry.reason}"
+              &quot;{entry.reason}&quot;
             </div>
           )}
         </div>
