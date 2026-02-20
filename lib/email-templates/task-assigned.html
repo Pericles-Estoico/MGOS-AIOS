@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova Tarefa Atribuída</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; }
+    .container { max-width: 600px; margin: 0 auto; background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    h1 { color: #1a73e8; margin-top: 0; }
+    .task-card { background-color: #f8f9fa; padding: 20px; border-radius: 6px; border-left: 4px solid #1a73e8; margin: 20px 0; }
+    .task-title { font-size: 18px; font-weight: bold; color: #202124; margin: 0 0 10px 0; }
+    .task-description { color: #5f6368; margin: 10px 0; line-height: 1.6; }
+    .task-meta { display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 1px solid #e8eaed; }
+    .meta-item { font-size: 14px; }
+    .meta-label { color: #5f6368; font-weight: 500; }
+    .meta-value { color: #202124; margin-top: 4px; }
+    .priority-high { color: #d33b27; font-weight: bold; }
+    .priority-medium { color: #f9ab00; font-weight: bold; }
+    .priority-low { color: #188038; font-weight: bold; }
+    .cta-button { display: inline-block; background-color: #1a73e8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin-top: 20px; font-weight: 500; }
+    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e8eaed; font-size: 12px; color: #5f6368; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>✓ Nova Tarefa Atribuída</h1>
+
+    <p>Olá <strong>{{userName}}</strong>,</p>
+
+    <p>Você foi atribuído à seguinte tarefa:</p>
+
+    <div class="task-card">
+      <div class="task-title">{{taskTitle}}</div>
+      <div class="task-description">{{taskDescription}}</div>
+
+      <div class="task-meta">
+        <div class="meta-item">
+          <div class="meta-label">Prioridade</div>
+          <div class="meta-value priority-{{priorityClass}}">{{priority}}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Data de Vencimento</div>
+          <div class="meta-value">{{dueDate}}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Atribuído por</div>
+          <div class="meta-value">{{assignedBy}}</div>
+        </div>
+      </div>
+    </div>
+
+    <p>Acesse a tarefa para visualizar mais detalhes e começar a trabalhar:</p>
+
+    <a href="{{taskUrl}}" class="cta-button">Abrir Tarefa</a>
+
+    <div class="footer">
+      <p>Este é um email automático do sistema Synkra AIOS.</p>
+      <p>Você pode gerenciar suas preferências de notificação em <a href="{{preferencesUrl}}">suas configurações</a>.</p>
+    </div>
+  </div>
+</body>
+</html>
