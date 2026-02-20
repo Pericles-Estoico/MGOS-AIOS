@@ -17,8 +17,39 @@ NC='\033[0m'
 
 # Configuration
 ENVIRONMENT=${1:-production}
+DOMAIN=${2:-www.sellersops.com.br}  # Default domain
 PROJECT_NAME="mgos-marketplace"
 DEPLOY_DIR=$(pwd)
+
+# Support for domain flag
+if [[ "$*" == *"--domain="* ]]; then
+  DOMAIN=$(echo "$@" | grep -oP '(?<=--domain=)\S+')
+fi
+
+# Domain configuration
+case $DOMAIN in
+  marketplace.aios.local)
+    DOMAIN_NAME="Marketplace AIOS Local"
+    ENV_FILE=".env.local"
+    VERCEL_PROJECT="marketplace-aios-local"
+    NEXTAUTH_URL="http://localhost:3000"
+    API_URL="http://localhost:3000"
+    ;;
+  www.sellersops.com.br)
+    DOMAIN_NAME="SellersOps Public"
+    ENV_FILE=".env.sellersops"
+    VERCEL_PROJECT="marketplace-sellersops"
+    NEXTAUTH_URL="https://www.sellersops.com.br"
+    API_URL="https://www.sellersops.com.br"
+    ;;
+  *)
+    print_error "Domínio inválido: $DOMAIN"
+    echo "Domínios suportados:"
+    echo "  - marketplace.aios.local (interno)"
+    echo "  - www.sellersops.com.br (público)"
+    exit 1
+    ;;
+esac
 
 # Functions
 print_header() {
@@ -120,28 +151,41 @@ run_tests() {
 
 # Deploy to Vercel
 deploy_vercel() {
-  print_header "Deploying para Vercel ($ENVIRONMENT)"
+  print_header "Deploying para Vercel — $DOMAIN_NAME"
 
   if ! command -v vercel &> /dev/null; then
     print_warning "Vercel CLI não instalado. Instalando..."
     npm install -g vercel
   fi
 
+  print_warning "Carregando variáveis de ambiente de $ENV_FILE..."
+  if [ ! -f "$ENV_FILE" ]; then
+    print_error "Arquivo $ENV_FILE não encontrado"
+    exit 1
+  fi
+
   case $ENVIRONMENT in
     production)
-      print_warning "Deploying para produção..."
-      vercel --prod --token $VERCEL_TOKEN
+      print_warning "Deploying para produção: $DOMAIN..."
+      vercel --prod \
+        --token $VERCEL_TOKEN \
+        --env NEXTAUTH_URL=$NEXTAUTH_URL \
+        --env NEXT_PUBLIC_API_URL=$API_URL \
+        --build-env ENVIRONMENT=$ENVIRONMENT
       ;;
     staging)
-      print_warning "Deploying para staging..."
-      vercel --token $VERCEL_TOKEN
+      print_warning "Deploying para staging: $DOMAIN..."
+      vercel --token $VERCEL_TOKEN \
+        --env NEXTAUTH_URL=$NEXTAUTH_URL \
+        --env NEXT_PUBLIC_API_URL=$API_URL \
+        --build-env ENVIRONMENT=staging
       ;;
     development)
       print_warning "Development - ignorando deploy Vercel"
       ;;
   esac
 
-  print_success "Deploy Vercel completado"
+  print_success "Deploy Vercel completado para $DOMAIN"
 }
 
 # Deploy to Docker
@@ -191,32 +235,25 @@ EOF
 
 # Verify deployment
 verify_deployment() {
-  print_header "Verificando deployment"
+  print_header "Verificando deployment de $DOMAIN"
 
-  case $ENVIRONMENT in
-    production)
-      APP_URL=${PRODUCTION_URL:-"https://marketplace.aios.local"}
-      ;;
-    staging)
-      APP_URL=${STAGING_URL:-"https://staging-marketplace.aios.local"}
-      ;;
-    development)
-      APP_URL="http://localhost:3000"
-      ;;
-  esac
+  # Use the configured domain URL
+  APP_URL="$API_URL"
 
   print_warning "Testando conectividade com $APP_URL..."
 
   for i in {1..5}; do
-    if curl -s -o /dev/null -w "%{http_code}" "$APP_URL/api/health" | grep -q "200"; then
-      print_success "Servidor respondendo (HTTP 200)"
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$APP_URL/api/health" 2>/dev/null)
+    if [ "$HTTP_CODE" = "200" ]; then
+      print_success "Servidor respondendo em $DOMAIN (HTTP 200)"
       return
     fi
-    print_warning "Tentativa $i/5 - aguardando servidor..."
+    print_warning "Tentativa $i/5 - aguardando servidor (HTTP $HTTP_CODE)..."
     sleep 5
   done
 
-  print_error "Servidor não respondendo após 25 segundos"
+  print_error "Servidor não respondendo em $APP_URL após 25 segundos"
+  print_warning "Note: Health check pode demorar alguns minutos em primeira implantação"
   exit 1
 }
 
@@ -262,6 +299,7 @@ rollback() {
 # Main execution
 main() {
   print_header "🚀 MARKETPLACE MASTER DEPLOYMENT"
+  echo "Domínio: $DOMAIN_NAME ($DOMAIN)"
   echo "Ambiente: $ENVIRONMENT"
   echo "Data: $(date)"
   echo ""
@@ -294,11 +332,12 @@ main() {
   verify_deployment
 
   print_header "✅ DEPLOYMENT COMPLETO"
+  echo "Domínio: $DOMAIN_NAME ($DOMAIN)"
   echo "Ambiente: $ENVIRONMENT"
-  echo "App URL: $APP_URL"
+  echo "App URL: $API_URL"
   echo "Timestamp: $(date)"
   echo ""
-  echo "🎉 Marketplace Master está pronto para uso!"
+  echo "🎉 Marketplace Master está pronto em $DOMAIN!"
 }
 
 # Trap errors
