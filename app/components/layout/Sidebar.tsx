@@ -17,6 +17,7 @@ import {
   LogOut,
   Sun,
   Moon,
+  Globe,
 } from 'lucide-react';
 import GlobalSearch from '../global-search';
 
@@ -94,6 +95,15 @@ export default function Sidebar({ user, onClose }: SidebarProps) {
             <p className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Admin</p>
             {navLink('/team', 'Dashboard do Time', <Users className="w-5 h-5" />)}
             {navLink('/team/time-logs', 'Registros de Tempo', <Clock className="w-5 h-5" />)}
+          </>
+        )}
+
+        {/* Marketplace routes (admin/head only) */}
+        {user?.role && ['admin', 'head'].includes(user.role) && (
+          <>
+            <div className="h-px bg-gray-100 dark:bg-gray-700 my-3" />
+            <p className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Marketplace</p>
+            {navLink('/marketplace', 'Marketplace Master', <Globe className="w-5 h-5" />)}
           </>
         )}
 
