@@ -3,7 +3,7 @@ import { authOptions } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 
 // In-memory task storage (until Supabase is integrated)
-let tasks = [
+const tasks = [
   {
     id: '1',
     title: 'Implementar autenticação',
