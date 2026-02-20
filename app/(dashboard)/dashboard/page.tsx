@@ -13,7 +13,7 @@ import {
   Clock,
   AlertCircle,
 } from 'lucide-react';
-import { MarketplaceApprovalPanel } from '@/app/components/marketplace-approval-panel';
+import { MarketplaceApprovalPanel } from '@/components/marketplace-approval-panel';
 
 interface Task {
   id: string;

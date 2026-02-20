@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
-import { AITaskIndicator, ChannelTag } from '@/app/components/marketplace-intel-badge';
+import { AITaskIndicator, ChannelTag } from '@/components/marketplace-intel-badge';
 
 interface Task {
   id: string;
