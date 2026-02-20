@@ -56,7 +56,7 @@ export default function Sidebar({ user, onClose }: SidebarProps) {
           </div>
           <div>
             <h1 className="text-lg font-bold text-gray-900 dark:text-white">MGOS</h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Task Management</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Gerenciamento de Tarefas</p>
           </div>
         </div>
         <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
@@ -75,15 +75,15 @@ export default function Sidebar({ user, onClose }: SidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 space-y-1 p-3 overflow-y-auto">
         {navLink('/dashboard', 'Dashboard', <BarChart3 className="w-5 h-5" />)}
-        {navLink('/tasks', 'All Tasks', <CheckSquare className="w-5 h-5" />)}
-        {navLink('/tasks/my-tasks', 'My Tasks', <ListTodo className="w-5 h-5" />)}
+        {navLink('/tasks', 'Todas as Tarefas', <CheckSquare className="w-5 h-5" />)}
+        {navLink('/tasks/my-tasks', 'Minhas Tarefas', <ListTodo className="w-5 h-5" />)}
 
         {/* QA only routes */}
         {user?.role === 'qa' && (
           <>
             <div className="h-px bg-gray-100 dark:bg-gray-700 my-3" />
             <p className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">QA</p>
-            {navLink('/qa-reviews', 'QA Reviews', <Search className="w-5 h-5" />)}
+            {navLink('/qa-reviews', 'Revisões de QA', <Search className="w-5 h-5" />)}
           </>
         )}
 
@@ -92,15 +92,15 @@ export default function Sidebar({ user, onClose }: SidebarProps) {
           <>
             <div className="h-px bg-gray-100 dark:bg-gray-700 my-3" />
             <p className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Admin</p>
-            {navLink('/team', 'Team Dashboard', <Users className="w-5 h-5" />)}
-            {navLink('/team/time-logs', 'Time Logs', <Clock className="w-5 h-5" />)}
+            {navLink('/team', 'Dashboard do Time', <Users className="w-5 h-5" />)}
+            {navLink('/team/time-logs', 'Registros de Tempo', <Clock className="w-5 h-5" />)}
           </>
         )}
 
         {/* User routes */}
         <div className="h-px bg-gray-100 dark:bg-gray-700 my-3" />
-        {navLink('/best-practices', 'Best Practices', <BookOpen className="w-5 h-5" />)}
-        {navLink('/settings', 'Settings', <Settings className="w-5 h-5" />)}
+        {navLink('/best-practices', 'Melhores Práticas', <BookOpen className="w-5 h-5" />)}
+        {navLink('/settings', 'Configurações', <Settings className="w-5 h-5" />)}
       </nav>
 
       {/* Theme Toggle + Logout */}
@@ -112,9 +112,9 @@ export default function Sidebar({ user, onClose }: SidebarProps) {
           title={theme === 'dark' ? 'Mudar para light mode' : 'Mudar para dark mode'}
         >
           {theme === 'dark' ? (
-            <><Sun className="w-4 h-4" /> <span className="hidden md:inline">Light</span></>
+            <><Sun className="w-4 h-4" /> <span className="hidden md:inline">Claro</span></>
           ) : (
-            <><Moon className="w-4 h-4" /> <span className="hidden md:inline">Dark</span></>
+            <><Moon className="w-4 h-4" /> <span className="hidden md:inline">Escuro</span></>
           )}
         </button>
 

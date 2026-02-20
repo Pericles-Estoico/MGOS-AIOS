@@ -83,7 +83,7 @@ export default function AdvancedFilters({
         onClick={() => setCollapsed(!collapsed)}
       >
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-gray-900">Advanced Filters</h3>
+          <h3 className="font-semibold text-gray-900">Filtros Avançados</h3>
           {activeFilterCount > 0 && (
             <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded">
               {activeFilterCount}
@@ -107,12 +107,12 @@ export default function AdvancedFilters({
               onChange={(e) => handleStatusChange(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             >
-              <option value="all">All Statuses</option>
-              <option value="assigned">Assigned</option>
-              <option value="in_progress">In Progress</option>
-              <option value="submitted">Submitted</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
+              <option value="all">Todos os Estatutos</option>
+              <option value="assigned">Atribuída</option>
+              <option value="in_progress">Em Progresso</option>
+              <option value="submitted">Submetida</option>
+              <option value="approved">Aprovada</option>
+              <option value="rejected">Rejeitada</option>
             </select>
           </div>
 
@@ -126,11 +126,11 @@ export default function AdvancedFilters({
               onChange={(e) => handlePriorityChange(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             >
-              <option value="all">All Priorities</option>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
+              <option value="all">Todas as Prioridades</option>
+              <option value="low">Baixa</option>
+              <option value="medium">Média</option>
+              <option value="high">Alta</option>
+              <option value="critical">Crítica</option>
             </select>
           </div>
 
@@ -138,14 +138,14 @@ export default function AdvancedFilters({
           {users.length > 0 && (
             <div className="mb-4">
               <label className="block text-sm font-semibold text-gray-900 mb-2">
-                Assigned To
+                Atribuído a
               </label>
               <select
                 value={filters.executor || ''}
                 onChange={(e) => handleExecutorChange(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               >
-                <option value="">All Users</option>
+                <option value="">Todos os Usuários</option>
                 {users.map((user) => (
                   <option key={user.id} value={user.id}>
                     {user.name}
@@ -158,7 +158,7 @@ export default function AdvancedFilters({
           {/* Due Date Range */}
           <div className="mb-4">
             <label className="block text-sm font-semibold text-gray-900 mb-2">
-              Due Date
+              Data de Vencimento
             </label>
             <div className="flex gap-2">
               <input
@@ -189,7 +189,7 @@ export default function AdvancedFilters({
                 onChange={(e) => handleSprintChange(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               >
-                <option value="">All Sprints</option>
+                <option value="">Todos os Sprints</option>
                 {sprints.map((sprint) => (
                   <option key={sprint.id} value={sprint.id}>
                     {sprint.name}
@@ -205,7 +205,7 @@ export default function AdvancedFilters({
               onClick={handleClearAll}
               className="w-full px-3 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              Clear All Filters
+              Limpar Todos os Filtros
             </button>
           )}
         </>
