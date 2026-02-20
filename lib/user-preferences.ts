@@ -7,10 +7,17 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+let supabaseClient: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseClient() {
+  if (!supabaseClient) {
+    supabaseClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+    );
+  }
+  return supabaseClient;
+}
 
 // Type definitions
 export interface UserPreferences {
@@ -56,6 +63,7 @@ export interface PreferenceUpdate {
  */
 export async function getUserPreferences(userId: string): Promise<UserPreferences | null> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('notification_preferences')
       .select('*')
@@ -95,6 +103,8 @@ export async function updatePreferences(
   updates: PreferenceUpdate
 ): Promise<UserPreferences | null> {
   try {
+    const supabase = getSupabaseClient();
+
     // Validate quiet hours format if provided
     if (updates.quietHoursStart) {
       validateTimeFormat(updates.quietHoursStart);
@@ -208,6 +218,7 @@ export async function isInQuietHours(userId: string): Promise<boolean> {
  */
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('user_profiles')
       .select('*')
@@ -244,6 +255,7 @@ export async function updateUserProfile(
   updates: Partial<Omit<UserProfile, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>
 ): Promise<UserProfile | null> {
   try {
+    const supabase = getSupabaseClient();
     const updateData: Record<string, unknown> = {
       display_name: updates.displayName,
       avatar_url: updates.avatarUrl,
@@ -283,12 +295,12 @@ export async function updateUserProfile(
 }
 
 /**
- * Validate time format (HH:MM)
+ * Validate time format (HH:MM) - Requires leading zeros
  */
-function validateTimeFormat(time: string): boolean {
-  const regex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+export function validateTimeFormat(time: string): boolean {
+  const regex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
   if (!regex.test(time)) {
-    throw new Error(`Invalid time format: ${time}. Expected HH:MM`);
+    throw new Error(`Invalid time format: ${time}. Expected HH:MM (e.g., 08:30, 23:59)`);
   }
   return true;
 }
@@ -303,6 +315,7 @@ async function logPreferenceChange(
   newValue: string | null
 ): Promise<void> {
   try {
+    const supabase = getSupabaseClient();
     await supabase.from('preference_audit_log').insert({
       user_id: userId,
       preference_key: preferenceKey,
@@ -314,6 +327,70 @@ async function logPreferenceChange(
   } catch (err) {
     console.error('Error logging preference change:', err);
   }
+}
+
+/**
+ * Reset preferences to defaults for user
+ */
+export async function resetToDefaults(userId: string): Promise<UserPreferences | null> {
+  const defaults: PreferenceUpdate = {
+    taskAssigned: true,
+    statusChanged: true,
+    commentMention: true,
+    deadlineApproaching: true,
+    dailyDigest: false,
+    quietHoursStart: undefined,
+    quietHoursEnd: undefined,
+    timezone: 'UTC',
+  };
+
+  try {
+    await logPreferenceChange(userId, 'preferences_reset', null, JSON.stringify(defaults));
+    return updatePreferences(userId, defaults);
+  } catch (err) {
+    console.error('Error resetting preferences:', err);
+    return null;
+  }
+}
+
+/**
+ * Validate preference update
+ */
+export function validatePreferences(updates: PreferenceUpdate): string[] {
+  const errors: string[] = [];
+
+  if (updates.quietHoursStart) {
+    try {
+      validateTimeFormat(updates.quietHoursStart);
+    } catch (err) {
+      errors.push(`Invalid quietHoursStart: ${(err as Error).message}`);
+    }
+  }
+
+  if (updates.quietHoursEnd) {
+    try {
+      validateTimeFormat(updates.quietHoursEnd);
+    } catch (err) {
+      errors.push(`Invalid quietHoursEnd: ${(err as Error).message}`);
+    }
+  }
+
+  if (updates.quietHoursStart && updates.quietHoursEnd) {
+    const [startHour, startMin] = updates.quietHoursStart.split(':').map(Number);
+    const [endHour, endMin] = updates.quietHoursEnd.split(':').map(Number);
+    const startTime = startHour * 60 + startMin;
+    const endTime = endHour * 60 + endMin;
+
+    if (startTime === endTime) {
+      errors.push('quietHoursStart and quietHoursEnd cannot be the same');
+    }
+  }
+
+  if (updates.timezone && !getSupportedTimezones().includes(updates.timezone)) {
+    errors.push(`Invalid timezone: ${updates.timezone}`);
+  }
+
+  return errors;
 }
 
 /**
