@@ -1,5 +1,5 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { authOptions } from '@/lib/auth-mock';
 import { redirect } from 'next/navigation';
 import DashboardShell from '@/components/layout/DashboardShell';
 
