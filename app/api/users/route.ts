@@ -26,6 +26,12 @@ export async function GET(request: Request) {
     const searchQuery = url.searchParams.get('search');
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     // Build base query
     let query = supabase
@@ -131,6 +137,12 @@ export async function POST(request: Request) {
     }
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     // Check if email already exists
     const { data: existingUser } = await supabase

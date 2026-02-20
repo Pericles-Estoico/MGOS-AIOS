@@ -15,6 +15,12 @@ export async function GET(
     const { id } = await params;
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     // Get all users with active presence on this task
     const { data: presence, error } = await supabase

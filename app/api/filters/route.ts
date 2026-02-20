@@ -13,6 +13,12 @@ export async function GET(request: Request) {
     const includeShared = searchParams.get('include_shared') === 'true';
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     let query = supabase
       .from('saved_filters')
@@ -64,6 +70,12 @@ export async function POST(request: Request) {
     }
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     // If setting as default, unset other defaults
     if (is_default) {

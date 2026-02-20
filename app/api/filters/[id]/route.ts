@@ -17,6 +17,12 @@ export async function PUT(
     const { name, description, filters, is_shared, is_default } = body;
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     // Verify ownership
     const { data: filter, error: fetchError } = await supabase
@@ -79,6 +85,12 @@ export async function DELETE(
     const { id } = await params;
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     // Verify ownership
     const { data: filter, error: fetchError } = await supabase

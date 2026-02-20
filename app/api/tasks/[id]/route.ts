@@ -14,6 +14,12 @@ export async function GET(
 
     const { id } = await params;
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     const { data, error } = await supabase
       .from('tasks')
@@ -65,6 +71,12 @@ export async function PUT(
     const { status, priority, due_date, assigned_to } = body;
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     const { data, error } = await supabase
       .from('tasks')
@@ -117,6 +129,12 @@ export async function DELETE(
 
     const { id } = await params;
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     // Soft delete
     const { error } = await supabase

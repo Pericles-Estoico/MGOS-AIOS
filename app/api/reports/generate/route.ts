@@ -42,6 +42,12 @@ export async function POST(request: Request) {
 
     const body: ReportRequest = await request.json();
     const supabase = createSupabaseServerClient(session.accessToken) as unknown as SupabaseClientType;
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     let data: ReportData | null = null;
 

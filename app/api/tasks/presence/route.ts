@@ -20,6 +20,12 @@ export async function POST(request: Request) {
     }
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     // Update or insert user presence
     const { data, error } = await supabase

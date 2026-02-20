@@ -14,6 +14,12 @@ export async function GET(request: Request) {
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '20', 10), 100);
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     const { data, error, count } = await supabase
       .from('time_logs')
@@ -74,6 +80,12 @@ export async function POST(request: Request) {
     }
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     const { data, error } = await supabase
       .from('time_logs')

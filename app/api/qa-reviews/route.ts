@@ -24,6 +24,12 @@ export async function GET(request: Request) {
     const search = searchParams.get('search');
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     // Build query for submitted tasks
     let query = supabase
@@ -112,6 +118,12 @@ export async function POST(request: Request) {
     }
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     // Get task details
     const { data: task, error: taskError } = await supabase

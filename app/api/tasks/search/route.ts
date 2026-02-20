@@ -24,6 +24,12 @@ export async function GET(request: Request) {
     const sprint = searchParams.get('sprint');
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     // Build search query
     let query = supabase

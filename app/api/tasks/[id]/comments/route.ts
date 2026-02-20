@@ -15,6 +15,12 @@ export async function GET(
     const { id } = await params;
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     // Fetch comments with user details
     const { data: comments, error } = await supabase
@@ -66,6 +72,12 @@ export async function POST(
     }
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     // Create comment
     const { data: comment, error } = await supabase

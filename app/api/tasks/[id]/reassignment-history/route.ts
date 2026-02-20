@@ -13,6 +13,12 @@ export async function GET(
     }
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
     const taskId = params.id;
 
     // Fetch task to verify user has access

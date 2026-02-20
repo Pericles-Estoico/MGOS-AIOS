@@ -21,6 +21,13 @@ export async function POST(request: Request) {
 
     const supabase = createSupabaseServerClient(session.accessToken);
 
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
+
     const { data, error } = await supabase
       .from('evidence')
       .insert({
@@ -68,6 +75,13 @@ export async function GET(request: Request) {
     }
 
     const supabase = createSupabaseServerClient(session.accessToken);
+
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     const { data, error } = await supabase
       .from('evidence')

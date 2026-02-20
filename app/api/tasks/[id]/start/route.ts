@@ -21,6 +21,12 @@ export async function POST(
 
     // 3. Create Supabase client
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     // 4. Get current task to validate status and assignment
     const { data: task, error: fetchError } = await supabase

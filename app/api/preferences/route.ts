@@ -18,6 +18,12 @@ export async function GET(request: Request) {
     }
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     // Fetch user preferences
     const { data, error } = await supabase
@@ -64,6 +70,12 @@ export async function POST(request: Request) {
     } = body;
 
     const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
 
     // Upsert preferences for current user
     const { data, error } = await supabase
