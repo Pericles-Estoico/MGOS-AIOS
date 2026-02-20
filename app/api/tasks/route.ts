@@ -1,70 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { NextRequest } from 'next/server';
-
-// In-memory task storage (until Supabase is integrated)
-const tasks = [
-  {
-    id: '1',
-    title: 'Implementar autenticação',
-    description: 'Configurar NextAuth com Supabase',
-    status: 'in_progress',
-    priority: 'high',
-    due_date: '2026-02-25',
-    assigned_to: '1',
-    created_by: 'admin',
-    created_at: '2026-02-18T10:00:00Z',
-    updated_at: '2026-02-18T14:30:00Z',
-  },
-  {
-    id: '2',
-    title: 'Criar design system',
-    description: 'Componentes reutilizáveis',
-    status: 'pending',
-    priority: 'medium',
-    due_date: '2026-02-22',
-    assigned_to: '2',
-    created_by: 'admin',
-    created_at: '2026-02-18T10:00:00Z',
-    updated_at: '2026-02-18T10:00:00Z',
-  },
-  {
-    id: '3',
-    title: 'Corrigir bugs de performance',
-    description: 'Otimizar queries',
-    status: 'approved',
-    priority: 'high',
-    due_date: '2026-02-20',
-    assigned_to: '1',
-    created_by: 'admin',
-    created_at: '2026-02-16T10:00:00Z',
-    updated_at: '2026-02-17T15:20:00Z',
-  },
-  {
-    id: '4',
-    title: 'Documentar API',
-    description: 'Criar documentação completa das APIs',
-    status: 'in_progress',
-    priority: 'medium',
-    due_date: '2026-02-28',
-    assigned_to: '1',
-    created_by: 'admin',
-    created_at: '2026-02-15T10:00:00Z',
-    updated_at: '2026-02-18T11:45:00Z',
-  },
-  {
-    id: '5',
-    title: 'Integrar Supabase',
-    description: 'Conectar aplicação ao banco de dados',
-    status: 'pending',
-    priority: 'high',
-    due_date: '2026-03-05',
-    assigned_to: '1',
-    created_by: 'admin',
-    created_at: '2026-02-18T10:00:00Z',
-    updated_at: '2026-02-18T10:00:00Z',
-  },
-];
+import { createSupabaseServerClient } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
   try {
@@ -77,38 +14,83 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 3. Extrair query params
-    const searchParams = request.nextUrl.searchParams;
-    const assignedTo = searchParams.get('assigned_to');
-    const limit = parseInt(searchParams.get('limit') || '20', 10);
-    const sortBy = searchParams.get('sort_by') || 'updated_at';
-
-    // 4. Filtrar por assigned_to
-    let filteredTasks = tasks;
-    if (assignedTo) {
-      filteredTasks = tasks.filter(task => task.assigned_to === assignedTo);
-    }
-
-    // 5. Ordenar
-    if (sortBy === 'updated_at') {
-      filteredTasks.sort((a, b) =>
-        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    // 2. Criar cliente Supabase
+    const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Banco de dados não configurado' },
+        { status: 503 }
       );
     }
 
-    // 6. Aplicar limit
-    const paginatedTasks = filteredTasks.slice(0, limit);
+    // 3. Extrair query params
+    const searchParams = request.nextUrl.searchParams;
+    const assignedTo = searchParams.get('assigned_to');
+    const status = searchParams.get('status');
+    const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
+    const offset = parseInt(searchParams.get('offset') || '0', 10);
+    const sortBy = searchParams.get('sort_by') || 'updated_at';
+
+    // 4. Construir query
+    let query = supabase
+      .from('tasks')
+      .select(
+        `
+        id,
+        title,
+        description,
+        status,
+        priority,
+        due_date,
+        assigned_to,
+        created_by,
+        created_at,
+        updated_at,
+        source_type,
+        channel
+        `,
+        { count: 'exact' }
+      );
+
+    // 5. Aplicar filtros
+    if (assignedTo) {
+      query = query.eq('assigned_to', assignedTo);
+    }
+    if (status) {
+      query = query.eq('status', status);
+    }
+
+    // 6. Ordenar e paginar
+    if (sortBy === 'updated_at') {
+      query = query.order('updated_at', { ascending: false });
+    } else if (sortBy === 'created_at') {
+      query = query.order('created_at', { ascending: false });
+    } else if (sortBy === 'due_date') {
+      query = query.order('due_date', { ascending: true });
+    }
+
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      console.error('Erro ao buscar tarefas do Supabase:', error);
+      return Response.json(
+        { error: 'Erro ao buscar tarefas' },
+        { status: 500 }
+      );
+    }
 
     return Response.json({
-      data: paginatedTasks,
+      data: data || [],
       pagination: {
-        total: filteredTasks.length,
+        total: count || 0,
         limit,
-        offset: 0,
+        offset,
       },
     });
   } catch (err) {
-    console.error('Erro na API:', err);
+    console.error('Erro na API GET /tasks:', err);
     return Response.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }
@@ -135,12 +117,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Parse request body
+    // 3. Criar cliente Supabase
+    const supabase = createSupabaseServerClient(session.accessToken);
+    if (!supabase) {
+      return Response.json(
+        { error: 'Banco de dados não configurado' },
+        { status: 503 }
+      );
+    }
+
+    // 4. Parse request body
     const body = await request.json();
     const { title, description, priority, due_date, assigned_to } = body;
 
-    // 4. Validar campos obrigatórios
-    if (!title) {
+    // 5. Validar campos obrigatórios
+    if (!title || !title.trim()) {
       return Response.json(
         { error: 'Título é obrigatório' },
         { status: 400 }
@@ -154,9 +145,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. Gerar novo task
-    const newTask = {
-      id: String(Math.max(...tasks.map(t => parseInt(t.id)), 0) + 1),
+    // 6. Preparar dados da tarefa
+    const taskData = {
       title: title.trim(),
       description: description?.trim() || '',
       status: 'pending',
@@ -164,16 +154,38 @@ export async function POST(request: NextRequest) {
       due_date: due_date || null,
       assigned_to: assigned_to || null,
       created_by: session.user.id,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
     };
 
-    // 6. Salvar na memória (até Supabase estar configurado)
-    tasks.push(newTask);
+    // 7. Inserir na tabela de tarefas
+    const { data: newTask, error: insertError } = await supabase
+      .from('tasks')
+      .insert([taskData])
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('Erro ao inserir tarefa no Supabase:', insertError);
+      return Response.json(
+        { error: 'Erro ao criar tarefa' },
+        { status: 500 }
+      );
+    }
+
+    // 8. Registrar no audit log
+    await supabase
+      .from('audit_logs')
+      .insert({
+        table_name: 'tasks',
+        record_id: newTask.id,
+        operation: 'create',
+        old_value: null,
+        new_value: newTask,
+        created_by: session.user.id,
+      });
 
     return Response.json(newTask, { status: 201 });
   } catch (err) {
-    console.error('Erro na API POST:', err);
+    console.error('Erro na API POST /tasks:', err);
     return Response.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }
