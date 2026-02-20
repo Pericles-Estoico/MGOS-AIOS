@@ -21,7 +21,7 @@ interface EmailData {
   recipientEmail: string;
   subject: string;
   templateName: string;
-  templateData?: Record<string, any>;
+  templateData?: Record<string, string | number | boolean | null>;
 }
 
 /**
@@ -106,7 +106,7 @@ export async function processEmailQueue(): Promise<{ processed: number; failed: 
         );
 
         // Send email
-        const info = await transporter.sendMail({
+        await transporter.sendMail({
           from: process.env.SMTP_FROM || 'noreply@taskops.com',
           to: email.recipient_email,
           subject: subject,
@@ -227,7 +227,7 @@ async function getEmailTemplate(
  */
 function renderTemplate(
   template: { subject: string; html: string; text?: string },
-  data: Record<string, any>
+  data: Record<string, string | number | boolean>
 ): { subject: string; html: string; text?: string } {
   let subject = template.subject;
   let html = template.html;

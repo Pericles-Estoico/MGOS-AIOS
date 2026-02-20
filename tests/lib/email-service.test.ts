@@ -14,7 +14,7 @@ import {
 // Mock Supabase
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(() => ({
-    from: vi.fn((table: string) => ({
+    from: vi.fn(() => ({
       select: vi.fn().mockReturnThis(),
       insert: vi.fn().mockReturnThis(),
       update: vi.fn().mockReturnThis(),
