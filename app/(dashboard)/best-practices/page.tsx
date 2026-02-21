@@ -1,37 +1,37 @@
 export const metadata = {
-  title: 'Best Practices - Digital TaskOps',
+  title: 'Melhores Práticas - Digital TaskOps',
 };
 
 export default function BestPracticesPage() {
   const practices = [
     {
-      title: 'Task Documentation',
-      description: 'Always include clear task descriptions and acceptance criteria',
+      title: 'Documentação de Tarefas',
+      description: 'Sempre inclua descrições claras e critérios de aceitação nas tarefas',
       icon: '📝',
     },
     {
-      title: 'Time Tracking',
-      description: 'Log your time regularly to maintain accurate project metrics',
+      title: 'Registro de Tempo',
+      description: 'Registre seu tempo regularmente para manter métricas precisas do projeto',
       icon: '⏱️',
     },
     {
-      title: 'Evidence Submission',
-      description: 'Submit evidence immediately after task completion for faster review',
+      title: 'Submissão de Evidências',
+      description: 'Envie evidências imediatamente após conclusão para revisão mais rápida',
       icon: '✓',
     },
     {
-      title: 'Communication',
-      description: 'Use task comments to communicate with team members',
+      title: 'Comunicação',
+      description: 'Use comentários em tarefas para se comunicar com os membros do time',
       icon: '💬',
     },
     {
-      title: 'Quality First',
-      description: 'Always prioritize quality over speed in task execution',
+      title: 'Qualidade em Primeiro',
+      description: 'Sempre priorize qualidade sobre velocidade na execução de tarefas',
       icon: '⭐',
     },
     {
-      title: 'Continuous Learning',
-      description: 'Share insights and lessons learned with the team',
+      title: 'Aprendizado Contínuo',
+      description: 'Compartilhe insights e lições aprendidas com o time',
       icon: '📚',
     },
   ];

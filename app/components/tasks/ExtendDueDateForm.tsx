@@ -20,7 +20,7 @@ export default function ExtendDueDateForm({ taskId, currentDueDate, onSubmit }: 
     setError(null);
 
     if (!newDueDate) {
-      setError('Please select a due date');
+      setError('Selecione uma data de vencimento');
       setLoading(false);
       return;
     }
@@ -34,7 +34,7 @@ export default function ExtendDueDateForm({ taskId, currentDueDate, onSubmit }: 
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || 'Failed to extend due date');
+        setError(data.error || 'Falha ao estender data de vencimento');
         return;
       }
 
@@ -59,13 +59,13 @@ export default function ExtendDueDateForm({ taskId, currentDueDate, onSubmit }: 
 
       {success && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded">
-          Due date extended successfully!
+          Data de vencimento estendida com sucesso!
         </div>
       )}
 
       <div>
         <label htmlFor="due-date" className="block text-sm font-medium text-gray-700 mb-2">
-          New Due Date <span className="text-red-500">*</span>
+          Nova Data de Vencimento <span className="text-red-500">*</span>
         </label>
         <input
           id="due-date"
@@ -76,7 +76,7 @@ export default function ExtendDueDateForm({ taskId, currentDueDate, onSubmit }: 
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
         />
         <p className="text-xs text-gray-500 mt-1">
-          Select a future date to extend the task deadline
+          Selecione uma data futura para estender o prazo da tarefa
         </p>
       </div>
 

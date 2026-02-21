@@ -244,7 +244,7 @@ export default function SettingsPage() {
               className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
             >
               <div>
-                <p className="font-semibold text-gray-900">Analytics Dashboard</p>
+                <p className="font-semibold text-gray-900">Dashboard de Análise</p>
                 <p className="text-sm text-gray-600">
                   Ver métricas de performance da equipe
                 </p>

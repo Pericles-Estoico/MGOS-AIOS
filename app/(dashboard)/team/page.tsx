@@ -134,14 +134,14 @@ export default function TeamPage() {
     <div>
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Team Dashboard</h1>
-          <p className="text-gray-600 mt-1">{total} total tasks</p>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard do Time</h1>
+          <p className="text-gray-600 mt-1">{total} tarefas no total</p>
         </div>
         <Link
           href="/qa-reviews"
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
-          View QA Queue →
+          Ver Fila de QA →
         </Link>
       </div>
 
@@ -186,7 +186,7 @@ export default function TeamPage() {
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">
-            {statusFilter === 'all' ? 'All Tasks' : `Tasks: ${statusFilter}`}
+            {statusFilter === 'all' ? 'Todas as Tarefas' : `Tarefas: ${statusFilter}`}
           </h2>
           {statusFilter !== 'all' && (
             <button

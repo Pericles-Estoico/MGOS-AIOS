@@ -20,7 +20,7 @@ export default function TaskReassignForm({ taskId, currentAssignee, onSubmit }: 
     setError(null);
 
     if (!newAssignee) {
-      setError('Please select a team member');
+      setError('Selecione um membro do time');
       setLoading(false);
       return;
     }
@@ -34,7 +34,7 @@ export default function TaskReassignForm({ taskId, currentAssignee, onSubmit }: 
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || 'Failed to reassign task');
+        setError(data.error || 'Falha ao reatribuir tarefa');
         return;
       }
 
@@ -59,13 +59,13 @@ export default function TaskReassignForm({ taskId, currentAssignee, onSubmit }: 
 
       {success && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded">
-          Task reassigned successfully!
+          Tarefa reatribuída com sucesso!
         </div>
       )}
 
       <div>
         <label htmlFor="assignee" className="block text-sm font-medium text-gray-700 mb-2">
-          Assign to <span className="text-red-500">*</span>
+          Atribuir a <span className="text-red-500">*</span>
         </label>
         <input
           id="assignee"
@@ -74,10 +74,10 @@ export default function TaskReassignForm({ taskId, currentAssignee, onSubmit }: 
           onChange={(e) => setNewAssignee(e.target.value)}
           disabled={loading}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
-          placeholder="Team member name or ID"
+          placeholder="Nome ou ID do membro do time"
         />
         <p className="text-xs text-gray-500 mt-1">
-          Enter the name or ID of the team member to assign this task to
+          Digite o nome ou ID do membro do time para atribuir esta tarefa
         </p>
       </div>
 
@@ -86,7 +86,7 @@ export default function TaskReassignForm({ taskId, currentAssignee, onSubmit }: 
         disabled={loading}
         className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:bg-gray-400 transition"
       >
-        {loading ? 'Assigning...' : 'Reassign Task'}
+        {loading ? 'Atribuindo...' : 'Reatribuir Tarefa'}
       </button>
     </form>
   );
