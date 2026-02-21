@@ -9,6 +9,13 @@ const mockUsers = {
     role: 'admin',
     password: 'teste123', // Mock: any password accepted
   },
+  'pericles@vidadeceo.com.br': {
+    id: '2',
+    email: 'pericles@vidadeceo.com.br',
+    name: 'Pericles Estoico',
+    role: 'admin',
+    password: 'Estoico123@',
+  },
 };
 
 export const authOptions: any = {
@@ -20,14 +27,19 @@ export const authOptions: any = {
         password: { label: 'Senha', type: 'password' },
       },
       async authorize(credentials, req) {
-        // Mock: accept any email/password combination
+        // Check if email is in mock users
         if (!credentials?.email) {
           return null;
         }
 
-        // For demo, return the mock user or create on the fly
-        const mockUser = mockUsers['teste@teste.com'];
-        if (mockUser && credentials.email === mockUser.email) {
+        const mockUser = mockUsers[credentials.email as keyof typeof mockUsers];
+
+        if (mockUser) {
+          // Check password if it exists
+          if (mockUser.password && credentials.password !== mockUser.password) {
+            console.log('❌ Invalid password for', credentials.email);
+            return null;
+          }
           return {
             id: mockUser.id,
             email: mockUser.email,
@@ -36,9 +48,9 @@ export const authOptions: any = {
           };
         }
 
-        // Allow any other email for testing
+        // Allow any other email for testing with any password
         return {
-          id: '1',
+          id: Math.random().toString(36).substr(2, 9),
           email: credentials.email,
           name: credentials.email.split('@')[0],
           role: 'user' as any,
