@@ -10,11 +10,11 @@ export async function GET() {
     }
 
     // Only admin and head can view sprints
-    if (!['admin', 'head'].includes(session.user.role)) {
+    if (!['admin', 'head'].includes(session.user?.role || '')) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as any).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as any).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },

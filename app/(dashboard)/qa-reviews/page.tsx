@@ -81,7 +81,7 @@ export default function QAReviewsPage() {
     }
 
     // Check role
-    if (!['qa', 'admin', 'head'].includes(session.user.role)) {
+    if (!session.user?.role || !['qa', 'admin', 'head'].includes(session.user.role)) {
       router.push('/dashboard');
       return;
     }

@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as any).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },

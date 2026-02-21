@@ -173,7 +173,7 @@ export async function calculatePerUserMetrics(
         date_start: dateRange.start.toISOString(),
         date_end: dateRange.end.toISOString(),
         user_id_filter: specificUserId || null,
-      })
+      } as any)
       .select('*');
 
     if (error) {
@@ -181,7 +181,7 @@ export async function calculatePerUserMetrics(
       throw error;
     }
 
-    const metrics: PerUserMetrics[] = (data || []).map((row: any) => ({
+    const metrics: PerUserMetrics[] = ((data || []) as unknown[]).map((row: any) => ({
       userId: row.user_id,
       displayName: row.display_name,
       taskCount: row.task_count || 0,
@@ -217,7 +217,7 @@ export async function calculateTeamMetrics(dateRange: DateRange): Promise<TeamMe
       .rpc('calculate_team_metrics', {
         date_start: dateRange.start.toISOString(),
         date_end: dateRange.end.toISOString(),
-      })
+      } as any)
       .select('*');
 
     if (error) {
@@ -225,7 +225,7 @@ export async function calculateTeamMetrics(dateRange: DateRange): Promise<TeamMe
       throw error;
     }
 
-    const row = data?.[0] || {};
+    const row = (((data || []) as unknown[])?.[0] || {}) as Record<string, unknown>;
 
     // Parse burndown trend from JSON array
     const burndownTrend = Array.isArray(row.burndown_trend)
@@ -236,11 +236,11 @@ export async function calculateTeamMetrics(dateRange: DateRange): Promise<TeamMe
       : [];
 
     const metrics: TeamMetrics = {
-      totalTasks: row.total_tasks || 0,
-      avgDailyCompletion: parseFloat(row.avg_daily_completion) || 0,
+      totalTasks: (row.total_tasks as unknown as number) || 0,
+      avgDailyCompletion: parseFloat(row.avg_daily_completion as unknown as string) || 0,
       burndownTrend,
-      teamAvgTime: parseFloat(row.team_avg_time) || 0,
-      overallSuccessRate: parseFloat(row.overall_success_rate) || 0,
+      teamAvgTime: parseFloat(row.team_avg_time as unknown as string) || 0,
+      overallSuccessRate: parseFloat(row.overall_success_rate as unknown as string) || 0,
     };
 
     metricsCache.set(cacheKey, metrics);
@@ -268,7 +268,7 @@ export async function calculateQAMetrics(dateRange: DateRange): Promise<QAMetric
       .rpc('calculate_qa_metrics', {
         date_start: dateRange.start.toISOString(),
         date_end: dateRange.end.toISOString(),
-      })
+      } as any)
       .select('*');
 
     if (error) {
@@ -276,12 +276,12 @@ export async function calculateQAMetrics(dateRange: DateRange): Promise<QAMetric
       throw error;
     }
 
-    const row = data?.[0] || {};
+    const row = (((data || []) as unknown[])?.[0] || {}) as Record<string, unknown>;
 
     const metrics: QAMetrics = {
-      avgReviewTime: parseFloat(row.avg_review_time) || 0,
-      pendingReviews: row.pending_reviews || 0,
-      reviewSLA: parseFloat(row.review_sla) || 0,
+      avgReviewTime: parseFloat(row.avg_review_time as unknown as string) || 0,
+      pendingReviews: (row.pending_reviews as unknown as number) || 0,
+      reviewSLA: parseFloat(row.review_sla as unknown as string) || 0,
     };
 
     metricsCache.set(cacheKey, metrics);

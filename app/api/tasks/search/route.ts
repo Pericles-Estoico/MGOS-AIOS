@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     const dueDateTo = searchParams.get('due_date_to');
     const sprint = searchParams.get('sprint');
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as any).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },

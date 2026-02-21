@@ -42,6 +42,13 @@ function ResetPasswordForm() {
     }
 
     try {
+      // Validate token exists
+      if (!token) {
+        setError('Token não fornecido ou expirado. Solicite um novo reset.');
+        setLoading(false);
+        return;
+      }
+
       // Exchange token for session
       const { data, error: sessionError } = await (supabase as unknown as SupabaseClient).auth.exchangeCodeForSession(
         token

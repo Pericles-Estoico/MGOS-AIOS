@@ -14,7 +14,7 @@ export async function GET(
 
     const { id } = await params;
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as any).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },
@@ -40,13 +40,7 @@ export async function GET(
     if (error) throw error;
 
     // Transform response to flatten user data
-    interface PresenceData {
-      user_id: string;
-      status: string;
-      is_typing: boolean;
-      users?: { name: string; email: string };
-    }
-    const formattedData = presence?.map((p: PresenceData) => ({
+    const formattedData = presence?.map((p: any) => ({
       user_id: p.user_id,
       name: p.users?.name || 'Unknown',
       email: p.users?.email || 'unknown@example.com',

@@ -13,7 +13,7 @@ export async function GET(
     }
 
     const { id } = await params;
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as any).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },
@@ -70,7 +70,7 @@ export async function PUT(
     const body = await request.json();
     const { status, priority, due_date, assigned_to } = body;
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as any).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },
@@ -128,7 +128,7 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as any).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },

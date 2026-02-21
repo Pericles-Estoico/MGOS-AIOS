@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     const filterStatus = url.searchParams.get('filter_status');
     const searchQuery = url.searchParams.get('search');
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as any).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },
@@ -136,7 +136,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as any).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },

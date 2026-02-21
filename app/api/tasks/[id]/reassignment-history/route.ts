@@ -12,7 +12,7 @@ export async function GET(
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as any).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },
@@ -35,7 +35,7 @@ export async function GET(
     // Check access: user is assigned, admin, or head
     if (
       task.assigned_to !== session.user?.id &&
-      !['admin', 'head'].includes(session.user?.role)
+      !['admin', 'head'].includes(session.user?.role || '')
     ) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
@@ -64,18 +64,7 @@ export async function GET(
     }
 
     // Transform data to include names
-    interface HistoryEntry {
-      id: string;
-      old_assignee_id: string;
-      new_assignee_id: string;
-      reason: string;
-      reassigned_by: string;
-      created_at: string;
-      old_assignee?: { name: string };
-      new_assignee?: { name: string };
-      performer?: { name: string };
-    }
-    const transformedHistory = (history || []).map((entry: HistoryEntry) => ({
+    const transformedHistory = (history || []).map((entry: any) => ({
       id: entry.id,
       old_assignee_id: entry.old_assignee_id,
       new_assignee_id: entry.new_assignee_id,

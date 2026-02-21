@@ -7,7 +7,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import type { AnalyticsResponse } from '@/lib/types/analytics';
+import type { AnalyticsResponse } from '../types/analytics';
 
 interface UseAnalyticsMetricsOptions {
   days?: number;

@@ -33,7 +33,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const taskManager = new TaskManager(session.user?.email);
+    const taskManager = new TaskManager(session.user?.email || undefined);
     const updatedTask = await taskManager.completeTask(body, session.user?.id || 'unknown');
 
     // Calculate time accuracy

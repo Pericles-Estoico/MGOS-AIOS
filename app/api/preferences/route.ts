@@ -2,6 +2,16 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
 
+interface SessionWithAccessToken {
+  user?: {
+    id?: string;
+    email?: string;
+    name?: string;
+    role?: string;
+  };
+  accessToken?: string;
+}
+
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,7 +27,7 @@ export async function GET(request: Request) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as SessionWithAccessToken).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },
@@ -69,7 +79,7 @@ export async function POST(request: Request) {
       email_burndown_warning,
     } = body;
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as SessionWithAccessToken).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },

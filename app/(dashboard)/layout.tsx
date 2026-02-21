@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-mock';
 import { redirect } from 'next/navigation';
 import DashboardShell from '@/components/layout/DashboardShell';
+import type { Session } from 'next-auth';
 
 export const metadata = {
   title: 'Dashboard - Digital TaskOps',
@@ -14,9 +15,9 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   // Verify authentication server-side
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(authOptions)) as Session | null;
 
-  if (!session) {
+  if (!session || !session.user) {
     redirect('/login');
   }
 

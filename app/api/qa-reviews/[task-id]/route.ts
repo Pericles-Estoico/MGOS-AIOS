@@ -2,6 +2,26 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
 
+interface SessionWithAccessToken {
+  user?: {
+    id?: string;
+    email?: string;
+    name?: string;
+  };
+  accessToken?: string;
+}
+
+interface QAReview {
+  id: string;
+  action: string;
+  feedback: string;
+  reviewer_id: string;
+  reviewer?: Array<{
+    name: string;
+  }>;
+  created_at: string;
+}
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ 'task-id': string }> }
@@ -14,7 +34,7 @@ export async function GET(
 
     const { 'task-id': taskId } = await params;
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as SessionWithAccessToken).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },
@@ -35,7 +55,7 @@ export async function GET(
 
     // Check access: task executor, QA member, admin, or head
     const isExecutor = task.assigned_to === session.user?.id;
-    const isQA = ['qa', 'admin', 'head'].includes(session.user?.role);
+    const isQA = ['qa', 'admin', 'head'].includes(session.user?.role || '');
 
     if (!isExecutor && !isQA) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
@@ -62,20 +82,12 @@ export async function GET(
     }
 
     // Transform data to include reviewer names
-    interface ReviewData {
-      id: string;
-      action: string;
-      feedback: string;
-      reviewer_id: string;
-      reviewer?: { name: string };
-      created_at: string;
-    }
-    const transformedReviews = (reviews || []).map((review: ReviewData) => ({
+    const transformedReviews = (reviews || []).map((review: QAReview) => ({
       id: review.id,
       action: review.action,
       feedback: review.feedback,
       reviewer_id: review.reviewer_id,
-      reviewer_name: review.reviewer?.name || 'Unknown',
+      reviewer_name: review.reviewer?.[0]?.name || 'Unknown',
       created_at: review.created_at,
     }));
 

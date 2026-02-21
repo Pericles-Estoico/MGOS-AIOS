@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
   try {
     // 1. Validate authorization header (service role or AIOS token)
     const authHeader = request.headers.get('authorization');
-    const isServiceRole = authHeader?.includes(supabaseServiceKey?.substring(0, 20));
+    const isServiceRole = authHeader && supabaseServiceKey ? authHeader.includes(supabaseServiceKey.substring(0, 20)) : false;
     const isAiosToken = authHeader?.startsWith('Bearer aios-');
 
     if (!isServiceRole && !isAiosToken) {

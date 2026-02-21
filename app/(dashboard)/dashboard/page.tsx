@@ -52,7 +52,7 @@ export default function DashboardPage() {
       }
 
       setSession(userSession);
-      await fetchUserDashboard(userSession.user?.id);
+      await fetchUserDashboard(userSession.user?.id || '');
     };
 
     checkAuth();

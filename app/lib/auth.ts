@@ -22,6 +22,11 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
+          if (!supabase) {
+            console.log('❌ Supabase not configured');
+            return null;
+          }
+
           const { data, error } = await supabase.auth.signInWithPassword({
             email: credentials.email,
             password: credentials.password,
@@ -62,15 +67,15 @@ export const authOptions: NextAuthOptions = {
     jwt({ token, user }) {
       console.log('📝 jwt() callback:', { tokenId: token.sub, userId: user?.id });
       if (user) {
-        token.id = user.id;
-        token.role = (user as unknown as Record<string, unknown>).role;
+        token.sub = user.id;
+        token.role = ((user as unknown as Record<string, unknown>).role || 'executor') as any;
       }
       return token;
     },
     session({ session, token }) {
       console.log('📋 session() callback:', { email: session.user?.email, role: token.role });
       if (session.user) {
-        session.user.id = token.id as string;
+        session.user.id = (token.sub || '') as string;
         (session.user as unknown as Record<string, unknown>).role = token.role;
       }
       return session;

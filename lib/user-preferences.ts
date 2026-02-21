@@ -75,19 +75,20 @@ export async function getUserPreferences(userId: string): Promise<UserPreference
       return null;
     }
 
+    const preferences = data as unknown as Record<string, unknown>;
     return {
-      id: data.id,
-      userId: data.user_id,
-      taskAssigned: data.task_assigned ?? true,
-      statusChanged: data.status_changed ?? true,
-      commentMention: data.comment_mention ?? true,
-      deadlineApproaching: data.deadline_approaching ?? true,
-      dailyDigest: data.daily_digest ?? false,
-      quietHoursStart: data.quiet_hours_start,
-      quietHoursEnd: data.quiet_hours_end,
-      timezone: data.timezone || 'UTC',
-      lastModifiedAt: data.last_modified_at,
-      isActive: data.is_active ?? true,
+      id: preferences.id as string,
+      userId: preferences.user_id as string,
+      taskAssigned: (preferences.task_assigned ?? true) as boolean,
+      statusChanged: (preferences.status_changed ?? true) as boolean,
+      commentMention: (preferences.comment_mention ?? true) as boolean,
+      deadlineApproaching: (preferences.deadline_approaching ?? true) as boolean,
+      dailyDigest: (preferences.daily_digest ?? false) as boolean,
+      quietHoursStart: preferences.quiet_hours_start as string | undefined,
+      quietHoursEnd: preferences.quiet_hours_end as string | undefined,
+      timezone: (preferences.timezone || 'UTC') as string,
+      lastModifiedAt: preferences.last_modified_at as string | undefined,
+      isActive: (preferences.is_active ?? true) as boolean,
     };
   } catch (err) {
     console.error('Unexpected error fetching preferences:', err);
@@ -113,6 +114,9 @@ export async function updatePreferences(
       validateTimeFormat(updates.quietHoursEnd);
     }
 
+    // Call RPC to increment version
+    await supabase.rpc('increment_preference_version', { user_id: userId } as any);
+
     const updateData: Record<string, unknown> = {
       task_assigned: updates.taskAssigned,
       status_changed: updates.statusChanged,
@@ -123,10 +127,9 @@ export async function updatePreferences(
       quiet_hours_end: updates.quietHoursEnd,
       timezone: updates.timezone,
       last_modified_at: new Date().toISOString(),
-      preference_version: supabase.rpc('increment_preference_version', { user_id: userId }),
     };
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('notification_preferences')
       .update(updateData)
       .eq('user_id', userId)
@@ -181,7 +184,7 @@ export async function isNotificationEnabled(
     daily_digest: 'dailyDigest',
   };
 
-  return prefs[typeMap[notificationType]] ?? false;
+  return (prefs[typeMap[notificationType]] as boolean) ?? false;
 }
 
 /**
@@ -230,16 +233,17 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
       return null;
     }
 
+    const profile = data as unknown as Record<string, unknown>;
     return {
-      id: data.id,
-      userId: data.user_id,
-      displayName: data.display_name,
-      avatarUrl: data.avatar_url,
-      bio: data.bio,
-      timezone: data.timezone || 'UTC',
-      language: data.language || 'pt-BR',
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
+      id: profile.id as string,
+      userId: profile.user_id as string,
+      displayName: profile.display_name as string | undefined,
+      avatarUrl: profile.avatar_url as string | undefined,
+      bio: profile.bio as string | undefined,
+      timezone: (profile.timezone || 'UTC') as string,
+      language: (profile.language || 'pt-BR') as string,
+      createdAt: (profile.created_at || '') as string,
+      updatedAt: (profile.updated_at || '') as string,
     };
   } catch (err) {
     console.error('Unexpected error fetching profile:', err);
@@ -265,7 +269,7 @@ export async function updateUserProfile(
       updated_at: new Date().toISOString(),
     };
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('user_profiles')
       .update(updateData)
       .eq('user_id', userId)
@@ -316,7 +320,7 @@ async function logPreferenceChange(
 ): Promise<void> {
   try {
     const supabase = getSupabaseClient();
-    await supabase.from('preference_audit_log').insert({
+    await (supabase as any).from('preference_audit_log').insert({
       user_id: userId,
       preference_key: preferenceKey,
       old_value: oldValue,

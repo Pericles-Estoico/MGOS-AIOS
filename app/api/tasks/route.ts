@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 2. Criar cliente Supabase
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as any).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Banco de dados não configurado' },
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Criar cliente Supabase
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as any).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Banco de dados não configurado' },

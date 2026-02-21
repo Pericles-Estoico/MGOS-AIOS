@@ -6,10 +6,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { UserPreferences } from '@/lib/user-preferences';
 
 interface NotificationPreferencesProps {
-  onSave?: (prefs: UserPreferences) => void;
+  onSave?: (prefs: any) => void;
   onError?: (error: string) => void;
 }
 
@@ -17,7 +16,7 @@ export function NotificationPreferences({
   onSave,
   onError,
 }: NotificationPreferencesProps) {
-  const [preferences, setPreferences] = useState<UserPreferences | null>(null);
+  const [preferences, setPreferences] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [timezones, setTimezones] = useState<string[]>([]);
@@ -131,7 +130,7 @@ export function NotificationPreferences({
                 type="checkbox"
                 checked={
                   (changes[key] as boolean) ??
-                  (preferences[key as keyof UserPreferences] as boolean)
+                  (preferences[key as keyof any] as boolean)
                 }
                 onChange={() => handleToggle(key)}
                 className="w-4 h-4"

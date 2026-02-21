@@ -13,7 +13,7 @@ export async function GET(request: Request) {
     const offset = parseInt(url.searchParams.get('offset') || '0', 10);
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '20', 10), 100);
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as any).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as any).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },

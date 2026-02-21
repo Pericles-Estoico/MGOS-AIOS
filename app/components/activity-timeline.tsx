@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Card } from '@/components/ui/card';
@@ -13,7 +13,6 @@ import {
   Activity,
   Loader,
 } from 'lucide-react';
-import type { ActivityEvent } from '@/lib/types/supabase';
 
 interface ActivityTimelineProps {
   taskId: string;
@@ -35,7 +34,7 @@ const actionLabels: Record<string, (details?: Record<string, unknown>) => string
 };
 
 export function ActivityTimeline({ taskId }: ActivityTimelineProps) {
-  const [activities, setActivities] = useState<ActivityEvent[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

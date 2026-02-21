@@ -6,10 +6,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { UserProfile } from '@/lib/user-preferences';
+// import removed
 
 interface UserProfileProps {
-  onSave?: (profile: UserProfile) => void;
+  onSave?: (profile: any) => void;
   onError?: (error: string) => void;
 }
 
@@ -17,7 +17,7 @@ export function UserProfile({
   onSave,
   onError,
 }: UserProfileProps) {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [changes, setChanges] = useState<Record<string, unknown>>({});

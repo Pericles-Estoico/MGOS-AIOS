@@ -20,7 +20,7 @@ export async function POST(
     const { id: taskId } = await params;
 
     // 3. Create Supabase client
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as any).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },

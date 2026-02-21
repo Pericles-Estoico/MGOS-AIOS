@@ -18,7 +18,6 @@ export async function GET() {
         role: session.user?.role,
         name: session.user?.name,
       },
-      accessToken: session.accessToken ? '***' : undefined, // Don't expose token
     });
   } catch {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });

@@ -2,6 +2,15 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
 
+interface SessionWithAccessToken {
+  user?: {
+    id?: string;
+    email?: string;
+    name?: string;
+  };
+  accessToken?: string;
+}
+
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -16,7 +25,7 @@ export async function PUT(
     const body = await request.json();
     const { name, description, filters, is_shared, is_default } = body;
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as SessionWithAccessToken).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },
@@ -84,7 +93,7 @@ export async function DELETE(
 
     const { id } = await params;
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as SessionWithAccessToken).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },

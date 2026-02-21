@@ -38,7 +38,7 @@ export default function SprintsPage() {
         router.push('/login');
         return;
       }
-      if (!['admin', 'head'].includes(userSession.user.role)) {
+      if (!userSession.user?.role || !['admin', 'head'].includes(userSession.user.role)) {
         router.push('/dashboard');
         return;
       }

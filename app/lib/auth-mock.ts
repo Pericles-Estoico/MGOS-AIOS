@@ -1,4 +1,3 @@
-import type { NextAuthConfig } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 // Mock user database
@@ -12,7 +11,7 @@ const mockUsers = {
   },
 };
 
-export const authOptions: NextAuthConfig = {
+export const authOptions: any = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -20,7 +19,7 @@ export const authOptions: NextAuthConfig = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Senha', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         // Mock: accept any email/password combination
         if (!credentials?.email) {
           return null;
@@ -33,7 +32,7 @@ export const authOptions: NextAuthConfig = {
             id: mockUser.id,
             email: mockUser.email,
             name: mockUser.name,
-            role: mockUser.role,
+            role: mockUser.role as any,
           };
         }
 
@@ -42,7 +41,7 @@ export const authOptions: NextAuthConfig = {
           id: '1',
           email: credentials.email,
           name: credentials.email.split('@')[0],
-          role: 'user',
+          role: 'user' as any,
         };
       },
     }),
@@ -51,16 +50,16 @@ export const authOptions: NextAuthConfig = {
     signIn: '/login',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: any) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
-        token.role = (user as unknown as Record<string, unknown>).role || 'user';
+        token.role = ((user as unknown as Record<string, unknown>).role || 'user') as any;
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: any) {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.email = token.email;

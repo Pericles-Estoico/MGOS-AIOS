@@ -48,7 +48,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const taskManager = new TaskManager(session.user?.email);
+    const taskManager = new TaskManager(session.user?.email || undefined);
     const updatedTasks = await taskManager.approveTasks(body, session.user?.id || 'unknown');
 
     return NextResponse.json(

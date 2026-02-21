@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { authOptions } from '@/lib/auth';
-import type { Provider } from 'next-auth/providers';
 
 export async function POST(req: Request) {
   try {
@@ -8,9 +7,9 @@ export async function POST(req: Request) {
     console.log('🧪 TEST: Attempting manual authorization test');
 
     // Find the credentials provider
-    const credentialsProvider = authOptions.providers.find(
-      (p: Provider) => (p as unknown as Record<string, unknown>).id === 'credentials'
-    ) as unknown as Record<string, unknown>;
+    const credentialsProvider = (authOptions.providers as unknown[]).find(
+      (p: unknown) => (p as Record<string, unknown>).id === 'credentials'
+    ) as Record<string, unknown> | undefined;
 
     if (!credentialsProvider) {
       return NextResponse.json({
@@ -22,7 +21,8 @@ export async function POST(req: Request) {
     console.log('🧪 TEST: Found credentials provider, calling authorize()');
 
     // Test the authorize function directly
-    const user = await (credentialsProvider.authorize as (credentials: Record<string, unknown>, req: Record<string, unknown>) => Promise<Record<string, unknown> | null>)?.(
+    const authorize = credentialsProvider.authorize as (credentials: Record<string, unknown>, req: Record<string, unknown>) => Promise<Record<string, unknown> | null>;
+    const user = await authorize?.(
       { email, password },
       {}
     );

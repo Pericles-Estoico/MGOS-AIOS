@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     }
 
     // Only QA role can access
-    if (!['qa', 'admin', 'head'].includes(session.user.role)) {
+    if (!['qa', 'admin', 'head'].includes(session.user?.role || '')) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     const executorFilter = searchParams.get('executor');
     const search = searchParams.get('search');
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as any).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },
@@ -95,7 +95,7 @@ export async function POST(request: Request) {
     }
 
     // Only QA role can create reviews
-    if (!['qa', 'admin', 'head'].includes(session.user.role)) {
+    if (!['qa', 'admin', 'head'].includes(session.user?.role || '')) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -117,7 +117,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as any).accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },

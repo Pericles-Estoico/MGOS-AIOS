@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10), 100);
     const offset = parseInt(searchParams.get('offset') || '0', 10);
 
-    const taskManager = new TaskManager(session.user?.email);
+    const taskManager = new TaskManager(session.user?.email || undefined);
 
     let tasks;
     if (marketplace) {

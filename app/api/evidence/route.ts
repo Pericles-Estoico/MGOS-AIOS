@@ -2,6 +2,15 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
 
+interface SessionWithAccessToken {
+  user?: {
+    id?: string;
+    email?: string;
+    name?: string;
+  };
+  accessToken?: string;
+}
+
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -19,7 +28,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as SessionWithAccessToken).accessToken);
 
     if (!supabase) {
       return Response.json(
@@ -74,7 +83,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const supabase = createSupabaseServerClient(session.accessToken);
+    const supabase = createSupabaseServerClient((session as SessionWithAccessToken).accessToken);
 
     if (!supabase) {
       return Response.json(

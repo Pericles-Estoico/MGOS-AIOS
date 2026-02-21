@@ -237,7 +237,7 @@ export default function TaskDetailPage({ params }: Props) {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Status History</h3>
               <TaskStatusTimeline
                 statusHistory={task.status_history}
-                loading={statusHistoryLoading}
+                loading={false}
               />
             </div>
 
@@ -371,7 +371,7 @@ export default function TaskDetailPage({ params }: Props) {
               <p className="text-gray-500 text-sm mb-4">No QA reviews yet</p>
             )}
 
-            {session?.user?.role === 'qa' && (
+            {(['qa', 'admin', 'head'].includes(session?.user?.role as string)) && (
               <>
                 <button
                   onClick={() => setShowQAForm(!showQAForm)}

@@ -51,7 +51,7 @@ export default function SettingsPage() {
         return;
       }
       setSession(userSession);
-      await fetchPreferences(userSession.user?.id);
+      await fetchPreferences(userSession.user?.id || '');
     };
     checkAuth();
   }, [router, fetchPreferences]);
