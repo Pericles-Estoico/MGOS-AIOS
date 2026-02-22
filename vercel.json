@@ -6,9 +6,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "env": {
-    "NODE_ENV": {
-      "value": "production"
-    },
+    "NODE_ENV": "production",
     "NEXTAUTH_URL": {
       "description": "NextAuth URL for domain"
     },
