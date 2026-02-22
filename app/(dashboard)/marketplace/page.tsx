@@ -67,36 +67,17 @@ export default function MarketplacePage() {
         setLoading(true);
         setError(null);
 
-        // Fetch orchestration status
-        const response = await fetch('/api/orchestration/tasks');
-        if (!response.ok) throw new Error('Erro ao buscar dados do marketplace');
+        // Fetch overview stats (real data from API)
+        const statsResponse = await fetch('/api/marketplace/stats/overview');
+        if (!statsResponse.ok) throw new Error('Erro ao buscar stats do marketplace');
+        const statsData = await statsResponse.json();
+        setStats(statsData);
 
-        const data = await response.json();
-
-        // Mock data for now - will be replaced with real API calls
-        const mockStats: MarketplaceStats = {
-          totalChannels: 6,
-          activeChannels: 5,
-          totalTasks: 45,
-          completedTasks: 28,
-          pendingApproval: 12,
-          averageCompletionTime: 3.5,
-        };
-
-        const mockChannelStatus: ChannelStatus[] = MARKETPLACE_CHANNELS.map((channel) => ({
-          channel: channel.id,
-          name: channel.name,
-          icon: channel.icon,
-          status: Math.random() > 0.1 ? 'online' : 'warning',
-          tasksCreated: Math.floor(Math.random() * 20) + 5,
-          tasksApproved: Math.floor(Math.random() * 15) + 2,
-          tasksCompleted: Math.floor(Math.random() * 10) + 1,
-          avgCompletionTime: Math.random() * 5 + 2,
-          performance: Math.floor(Math.random() * 30) + 70,
-        }));
-
-        setStats(mockStats);
-        setChannelStatus(mockChannelStatus);
+        // Fetch channel stats (real data from API)
+        const channelsResponse = await fetch('/api/marketplace/stats/channels');
+        if (!channelsResponse.ok) throw new Error('Erro ao buscar stats dos canais');
+        const channelsData = await channelsResponse.json();
+        setChannelStatus(channelsData.channels || []);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erro desconhecido');
       } finally {

@@ -1,45 +1,79 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-mock';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
+import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
     const url = new URL(request.url);
     const offset = parseInt(url.searchParams.get('offset') || '0', 10);
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '20', 10), 100);
 
-    const supabase = createSupabaseServerClient((session as any).accessToken);
+    const supabase = createSupabaseServerClient();
     if (!supabase) {
-      return Response.json(
+      return NextResponse.json(
         { error: 'Database connection not available' },
         { status: 503 }
       );
     }
 
-    const { data, error, count } = await supabase
+    const userRole = (session.user as unknown as Record<string, unknown>)?.role || 'executor';
+    const userId = session.user?.id;
+
+    // Build query with JOINs for user and task information
+    let query = supabase
       .from('time_logs')
       .select(
-        'id, task_id, user_id, duration_minutes, description, logged_date, created_at',
+        `id,
+         duration_minutes,
+         logged_at,
+         notes,
+         task_id,
+         user_id,
+         tasks!inner(id, title),
+         users!inner(id, name, email)`,
         { count: 'exact' }
       )
-      .order('logged_date', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .order('logged_at', { ascending: false });
+
+    // Restrict data based on role
+    if (userRole === 'executor') {
+      query = query.eq('user_id', userId);
+    }
+    // admin and head see all logs
+
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, error, count } = await query;
 
     if (error) {
       console.error('Supabase error:', error);
-      return Response.json(
+      return NextResponse.json(
         { error: 'Failed to fetch time logs' },
         { status: 500 }
       );
     }
 
-    return Response.json({
-      data: data || [],
+    // Format response
+    const formattedData = (data || []).map((log: any) => ({
+      id: log.id,
+      userName: log.users?.name || 'Unknown',
+      userEmail: log.users?.email || '',
+      taskId: log.task_id,
+      taskTitle: log.tasks?.title || 'Unknown Task',
+      durationMinutes: log.duration_minutes,
+      hours: (log.duration_minutes / 60).toFixed(1),
+      notes: log.notes,
+      loggedAt: log.logged_at,
+    }));
+
+    return NextResponse.json({
+      data: formattedData,
       pagination: {
         total: count || 0,
         limit,
@@ -48,7 +82,7 @@ export async function GET(request: Request) {
     });
   } catch (err) {
     console.error('API error:', err);
-    return Response.json(
+    return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
@@ -59,29 +93,29 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
     const body = await request.json();
-    const { task_id, duration_minutes, description, logged_date } = body;
+    const { task_id, duration_minutes, notes } = body;
 
     if (!task_id || !duration_minutes) {
-      return Response.json(
-        { error: 'Bad Request - task_id and duration_minutes are required' },
+      return NextResponse.json(
+        { error: 'task_id e duration_minutes são obrigatórios' },
         { status: 400 }
       );
     }
 
-    if (duration_minutes < 0 || duration_minutes > 1440) {
-      return Response.json(
-        { error: 'Bad Request - duration must be between 0 and 1440 minutes' },
+    if (duration_minutes < 1 || duration_minutes > 1440) {
+      return NextResponse.json(
+        { error: 'duration_minutes deve estar entre 1 e 1440' },
         { status: 400 }
       );
     }
 
-    const supabase = createSupabaseServerClient((session as any).accessToken);
+    const supabase = createSupabaseServerClient();
     if (!supabase) {
-      return Response.json(
+      return NextResponse.json(
         { error: 'Database connection not available' },
         { status: 503 }
       );
@@ -91,26 +125,26 @@ export async function POST(request: Request) {
       .from('time_logs')
       .insert({
         task_id,
-        user_id: session.user.id,
+        user_id: session.user?.id,
         duration_minutes,
-        description,
-        logged_date: logged_date || new Date().toISOString().split('T')[0],
+        notes: notes || null,
+        logged_at: new Date().toISOString(),
       })
       .select()
       .single();
 
     if (error) {
       console.error('Supabase error:', error);
-      return Response.json(
-        { error: 'Failed to log time' },
+      return NextResponse.json(
+        { error: 'Falha ao registrar tempo' },
         { status: 500 }
       );
     }
 
-    return Response.json(data, { status: 201 });
+    return NextResponse.json(data, { status: 201 });
   } catch (err) {
     console.error('API error:', err);
-    return Response.json(
+    return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );

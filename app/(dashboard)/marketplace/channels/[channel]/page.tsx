@@ -120,52 +120,41 @@ export default function ChannelDetailPage() {
         setLoading(true);
         setError(null);
 
-        // Mock data - será substituído por API real
-        const mockMetrics: ChannelMetrics = {
-          channelName: config?.name || 'Unknown',
+        const response = await fetch(`/api/marketplace/channels/${channel}`);
+        if (!response.ok) throw new Error('Erro ao buscar analytics do canal');
+
+        const { data } = await response.json();
+
+        // Map API response to ChannelMetrics format
+        const metrics: ChannelMetrics = {
+          channelName: data.name || 'Unknown',
           channelIcon: config?.icon || '?',
-          agentName: config?.agentName || 'Unknown Agent',
-          status: 'online',
+          agentName: data.agentPerformance.agent || 'Unknown Agent',
+          status: data.tasksGenerated > 0 ? (data.completionRate >= 70 ? 'online' : 'warning') : 'offline',
           taskStats: {
-            created: Math.floor(Math.random() * 50) + 10,
-            approved: Math.floor(Math.random() * 40) + 5,
-            inProgress: Math.floor(Math.random() * 15) + 2,
-            completed: Math.floor(Math.random() * 30) + 5,
-            rejected: Math.floor(Math.random() * 5),
-            avgCompletionTime: Math.random() * 5 + 2,
+            created: data.tasksGenerated,
+            approved: data.tasksApproved,
+            inProgress: Math.max(0, data.tasksGenerated - data.tasksApproved - data.tasksRejected - data.tasksCompleted),
+            completed: data.tasksCompleted,
+            rejected: data.tasksRejected,
+            avgCompletionTime: data.avgCompletionTime,
           },
           performanceMetrics: {
-            approvalRate: Math.floor(Math.random() * 30) + 75,
-            completionRate: Math.floor(Math.random() * 20) + 80,
-            qualityScore: Math.floor(Math.random() * 15) + 85,
-            avgEfficiency: Math.floor(Math.random() * 25) + 75,
+            approvalRate: Math.round(data.approvalRate),
+            completionRate: Math.round(data.completionRate),
+            qualityScore: Math.round(data.approvalRate), // Using approval rate as quality proxy
+            avgEfficiency: Math.round(data.completionRate), // Using completion rate as efficiency proxy
           },
-          recentTasks: [
-            {
-              id: '1',
-              title: 'Otimizar título do produto',
-              status: 'completed',
-              priority: 'high',
-              createdAt: new Date().toISOString(),
-            },
-            {
-              id: '2',
-              title: 'Analisar conteúdo A+',
-              status: 'in_progress',
-              priority: 'medium',
-              createdAt: new Date(Date.now() - 3600000).toISOString(),
-            },
-            {
-              id: '3',
-              title: 'Criar anúncio patrocinado',
-              status: 'awaiting_approval',
-              priority: 'high',
-              createdAt: new Date(Date.now() - 7200000).toISOString(),
-            },
-          ],
+          recentTasks: data.recentTasks.map((task: any) => ({
+            id: task.id,
+            title: task.title,
+            status: task.status,
+            priority: task.priority,
+            createdAt: task.createdAt,
+          })),
         };
 
-        setMetrics(mockMetrics);
+        setMetrics(metrics);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erro desconhecido');
       } finally {
