@@ -6,6 +6,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 
 interface NotificationPreferencesProps {
   onSave?: (prefs: any) => void;
@@ -16,6 +17,7 @@ export function NotificationPreferences({
   onSave,
   onError,
 }: NotificationPreferencesProps) {
+  const { data: session } = useSession();
   const [preferences, setPreferences] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -24,17 +26,15 @@ export function NotificationPreferences({
 
   // Load preferences on mount
   useEffect(() => {
-    loadPreferences();
-  }, []);
+    if (session?.user?.id) {
+      loadPreferences();
+    }
+  }, [session?.user?.id]);
 
   const loadPreferences = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/user/preferences', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-        },
-      });
+      const response = await fetch('/api/user/preferences');
 
       if (!response.ok) throw new Error('Failed to load preferences');
 
@@ -79,7 +79,6 @@ export function NotificationPreferences({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
         },
         body: JSON.stringify(changes),
       });

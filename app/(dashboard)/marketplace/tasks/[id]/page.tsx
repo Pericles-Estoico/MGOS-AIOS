@@ -84,29 +84,14 @@ export default function TaskDetailPage() {
         setLoading(true);
         setError(null);
 
-        // TODO: Replace with actual API call
-        // const response = await fetch(`/api/marketplace/tasks/${taskId}`);
-        // const data = await response.json();
+        const response = await fetch(`/api/marketplace/tasks/${taskId}`);
 
-        // Mock data
-        const mockTask: Task = {
-          id: taskId,
-          marketplace: 'amazon',
-          title: 'Otimizar título do produto com keywords GEO',
-          description:
-            'Análise e otimização de títulos de produtos para melhorar SEO em Amazon, incluindo palavras-chave geográficas e de alto volume de busca.',
-          category: 'optimization',
-          priority: 'high',
-          status: 'awaiting_approval',
-          createdBy: 'Alex (Amazon Agent)',
-          estimatedHours: 4,
-          createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          agentRecommendation:
-            'Título atual não está otimizado para buscar por geo-localização. Aplicar padrão "Product Name + Geo + Size + Color" aumentaria CTR em ~15%.',
-          notes: 'Priorizare marcas com maior volume de vendas',
-        };
+        if (!response.ok) {
+          throw new Error('Falha ao carregar tarefa');
+        }
 
-        setTask(mockTask);
+        const { data } = await response.json();
+        setTask(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erro desconhecido');
       } finally {
@@ -124,11 +109,20 @@ export default function TaskDetailPage() {
 
     setIsUpdating(true);
     try {
-      // TODO: Call actual API
-      // await fetch(`/api/marketplace/tasks/${task.id}`, {
-      //   method: 'PATCH',
-      //   body: JSON.stringify({ status: 'approved' }),
-      // });
+      const response = await fetch(`/api/marketplace/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'approved',
+          notes: 'Aprovada pelo usuário'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao aprovar tarefa');
+      }
 
       setTask({ ...task, status: 'approved', approvedAt: new Date().toISOString() });
       alert('✅ Tarefa aprovada com sucesso!');
@@ -144,11 +138,20 @@ export default function TaskDetailPage() {
 
     setIsUpdating(true);
     try {
-      // TODO: Call actual API
-      // await fetch(`/api/marketplace/tasks/${task.id}`, {
-      //   method: 'PATCH',
-      //   body: JSON.stringify({ status: 'rejected' }),
-      // });
+      const response = await fetch(`/api/marketplace/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'rejected',
+          notes: 'Rejeitada pelo usuário'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao rejeitar tarefa');
+      }
 
       setTask({ ...task, status: 'rejected' });
       alert('❌ Tarefa rejeitada');

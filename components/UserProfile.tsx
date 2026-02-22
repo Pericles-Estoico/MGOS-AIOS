@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-// import removed
+import { useSession } from 'next-auth/react';
 
 interface UserProfileProps {
   onSave?: (profile: any) => void;
@@ -17,6 +17,7 @@ export function UserProfile({
   onSave,
   onError,
 }: UserProfileProps) {
+  const { data: session } = useSession();
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -25,17 +26,15 @@ export function UserProfile({
 
   // Load profile on mount
   useEffect(() => {
-    loadProfile();
-  }, []);
+    if (session?.user?.id) {
+      loadProfile();
+    }
+  }, [session?.user?.id]);
 
   const loadProfile = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/user/profile', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-        },
-      });
+      const response = await fetch('/api/user/profile');
 
       if (!response.ok) throw new Error('Failed to load profile');
 
@@ -72,7 +71,6 @@ export function UserProfile({
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
         },
         body: JSON.stringify(changes),
       });
