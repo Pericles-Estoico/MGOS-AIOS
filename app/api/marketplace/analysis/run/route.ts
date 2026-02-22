@@ -8,7 +8,6 @@ const VALID_CHANNELS = [
   'mercadolivre',
   'shopee',
   'shein',
-  'tiktok',
   'tiktok-shop',
   'kaway',
 ];
