@@ -100,9 +100,9 @@ export default function QAReviewsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">QA Review</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Revisões de QA</h1>
         <p className="text-gray-600">
-          Review submitted tasks and provide feedback
+          Revise tarefas enviadas e forneça feedback
         </p>
       </div>
 
@@ -111,7 +111,7 @@ export default function QAReviewsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <input
             type="text"
-            placeholder="Search tasks..."
+            placeholder="Pesquisar tarefas..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -122,23 +122,23 @@ export default function QAReviewsPage() {
             onChange={(e) => setPriority(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="all">All Priorities</option>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-            <option value="critical">Critical</option>
+            <option value="all">Todas as Prioridades</option>
+            <option value="low">Baixa</option>
+            <option value="medium">Média</option>
+            <option value="high">Alta</option>
+            <option value="critical">Crítica</option>
           </select>
 
           <button
             onClick={() => fetchTasks(1)}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           >
-            Search
+            🔍 Pesquisar
           </button>
         </div>
 
         <div className="mt-4 text-sm text-gray-600">
-          Showing {tasks.length} of {pagination.total} submitted tasks
+          Exibindo {tasks.length} de {pagination.total} tarefas enviadas
         </div>
       </div>
 
@@ -146,7 +146,7 @@ export default function QAReviewsPage() {
       <div className="space-y-4">
         {tasks.length === 0 ? (
           <div className="text-center py-12 bg-gray-50 rounded-lg">
-            <p className="text-gray-600">No submitted tasks to review</p>
+            <p className="text-gray-600">Nenhuma tarefa enviada para revisar</p>
           </div>
         ) : (
           tasks.map((task) => (
@@ -164,10 +164,10 @@ export default function QAReviewsPage() {
                   </p>
                   <div className="flex items-center gap-4 text-sm text-gray-600">
                     <span>
-                      Assigned to: <strong>{task.users.name}</strong>
+                      Atribuído para: <strong>{task.users.name}</strong>
                     </span>
                     <span>
-                      Priority:{' '}
+                      Prioridade:{' '}
                       <span
                         className={`font-semibold ${
                           task.priority === 'critical'
@@ -183,7 +183,7 @@ export default function QAReviewsPage() {
                       </span>
                     </span>
                     <span>
-                      Submitted:{' '}
+                      Enviada em:{' '}
                       {new Date(task.submitted_at).toLocaleDateString('pt-BR')}
                     </span>
                   </div>
@@ -197,7 +197,7 @@ export default function QAReviewsPage() {
                     }}
                     className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                   >
-                    History
+                    📋 Histórico
                   </button>
                   <button
                     onClick={() => {
@@ -206,7 +206,7 @@ export default function QAReviewsPage() {
                     }}
                     className="px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                   >
-                    Review
+                    ✅ Revisar
                   </button>
                 </div>
               </div>

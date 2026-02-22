@@ -200,7 +200,7 @@ export default function TaskDetailPage({ params }: Props) {
   return (
     <div>
       <Link href="/tasks" className="text-blue-600 hover:underline mb-6 block">
-        ← Back to Tasks
+        ← Voltar para Tarefas
       </Link>
 
       <div className="grid grid-cols-3 gap-6">
@@ -234,7 +234,7 @@ export default function TaskDetailPage({ params }: Props) {
 
             {/* Status Timeline */}
             <div className="mt-8 pt-8 border-t border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Status History</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Histórico de Status</h3>
               <TaskStatusTimeline
                 statusHistory={task.status_history}
                 loading={false}
@@ -296,7 +296,7 @@ export default function TaskDetailPage({ params }: Props) {
                   onClick={() => setShowEvidenceForm(!showEvidenceForm)}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                 >
-                  {showEvidenceForm ? '✕ Cancel' : '+ Submit Evidence'}
+                  {showEvidenceForm ? '✕ Cancelar' : '✅ Enviar Evidência'}
                 </button>
 
                 {showEvidenceForm && (
@@ -316,7 +316,7 @@ export default function TaskDetailPage({ params }: Props) {
 
           {/* Timer & Time Logging */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Time Tracking</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Rastreamento de Tempo</h2>
 
             {showTimer ? (
               <div className="mb-6">
@@ -377,7 +377,7 @@ export default function TaskDetailPage({ params }: Props) {
                   onClick={() => setShowQAForm(!showQAForm)}
                   className="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                 >
-                  {showQAForm ? '✕ Cancel' : '+ Submit Review'}
+                  {showQAForm ? '✕ Cancelar' : '✅ Enviar Revisão'}
                 </button>
 
                 {showQAForm && (
@@ -399,13 +399,13 @@ export default function TaskDetailPage({ params }: Props) {
             <>
               {/* Reassign Task */}
               <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Reassign Task</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Reatribuir Tarefa</h3>
 
                 <button
                   onClick={() => setShowReassignForm(!showReassignForm)}
                   className="w-full px-3 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
                 >
-                  {showReassignForm ? '✕ Cancel' : '👤 Reassign'}
+                  {showReassignForm ? '✕ Cancelar' : '👤 Reatribuir'}
                 </button>
 
                 {showReassignForm && (
@@ -430,7 +430,7 @@ export default function TaskDetailPage({ params }: Props) {
                   onClick={() => setShowExtendDueForm(!showExtendDueForm)}
                   className="w-full px-3 py-2 text-sm bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
                 >
-                  {showExtendDueForm ? '✕ Cancel' : '📅 Extend'}
+                  {showExtendDueForm ? '✕ Cancelar' : '📅 Estender'}
                 </button>
 
                 {showExtendDueForm && (
