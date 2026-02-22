@@ -179,13 +179,13 @@ export async function calculatePerUserMetrics(
     }
 
     // Query 1: Get per-user metrics (counts, avg time, rates)
-    const { data, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
       .rpc('calculate_per_user_metrics', {
         date_start: dateRange.start.toISOString(),
         date_end: dateRange.end.toISOString(),
         user_id_filter: specificUserId || null,
-      })
-      .select('*');
+      });
 
     if (error) {
       console.error('Error calculating per-user metrics:', error);
@@ -196,10 +196,10 @@ export async function calculatePerUserMetrics(
       userId: row.user_id,
       displayName: row.display_name,
       taskCount: row.task_count || 0,
-      avgCompletionTime: parseFloat(row.avg_completion_time) || 0,
-      totalHours: parseFloat(row.total_hours) || 0,
-      approvalRate: parseFloat(row.approval_rate) || 0,
-      rejectionRate: parseFloat(row.rejection_rate) || 0,
+      avgCompletionTime: parseFloat(row.avg_completion_time || '0') || 0,
+      totalHours: parseFloat(row.total_hours || '0') || 0,
+      approvalRate: parseFloat(row.approval_rate || '0') || 0,
+      rejectionRate: parseFloat(row.rejection_rate || '0') || 0,
       lastCompleted: row.last_completed ? new Date(row.last_completed) : undefined,
     }));
 
@@ -237,12 +237,12 @@ export async function calculateTeamMetrics(dateRange: DateRange): Promise<TeamMe
 
   try {
     // Query: Get team-level metrics and burndown trend
-    const { data, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
       .rpc('calculate_team_metrics', {
         date_start: dateRange.start.toISOString(),
         date_end: dateRange.end.toISOString(),
-      })
-      .select('*');
+      });
 
     if (error) {
       console.error('Error calculating team metrics:', error);
@@ -288,12 +288,12 @@ export async function calculateQAMetrics(dateRange: DateRange): Promise<QAMetric
 
   try {
     // Query: Get QA metrics (review time, SLA)
-    const { data, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
       .rpc('calculate_qa_metrics', {
         date_start: dateRange.start.toISOString(),
         date_end: dateRange.end.toISOString(),
-      })
-      .select('*');
+      });
 
     if (error) {
       console.error('Error calculating QA metrics:', error);

@@ -115,7 +115,8 @@ export async function updatePreferences(
     }
 
     // Call RPC to increment version
-    await supabase.rpc('increment_preference_version', { user_id: userId });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).rpc('increment_preference_version', { user_id: userId });
 
     const updateData: Record<string, unknown> = {
       task_assigned: updates.taskAssigned,
@@ -129,7 +130,8 @@ export async function updatePreferences(
       last_modified_at: new Date().toISOString(),
     };
 
-    const { data, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
       .from('notification_preferences')
       .update(updateData)
       .eq('user_id', userId)
@@ -269,7 +271,8 @@ export async function updateUserProfile(
       updated_at: new Date().toISOString(),
     };
 
-    const { data, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
       .from('user_profiles')
       .update(updateData)
       .eq('user_id', userId)
@@ -320,7 +323,8 @@ async function logPreferenceChange(
 ): Promise<void> {
   try {
     const supabase = getSupabaseClient();
-    await supabase.from('preference_audit_log').insert({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from('preference_audit_log').insert({
       user_id: userId,
       preference_key: preferenceKey,
       old_value: oldValue,

@@ -13,6 +13,14 @@ import {
   Zap
 } from 'lucide-react';
 
+interface RecentTask {
+  id: string;
+  title: string;
+  status: string;
+  priority: string;
+  createdAt?: string;
+}
+
 interface ChannelMetrics {
   channelName: string;
   channelIcon: string;
@@ -32,13 +40,7 @@ interface ChannelMetrics {
     qualityScore: number;
     avgEfficiency: number;
   };
-  recentTasks: Array<{
-    id: string;
-    title: string;
-    status: string;
-    priority: string;
-    createdAt: string;
-  }>;
+  recentTasks: Array<RecentTask>;
 }
 
 const CHANNEL_CONFIG = {
@@ -143,7 +145,7 @@ export default function ChannelDetailPage() {
             qualityScore: Math.round(data.approvalRate), // Using approval rate as quality proxy
             avgEfficiency: Math.round(data.completionRate), // Using completion rate as efficiency proxy
           },
-          recentTasks: data.recentTasks.map((task: any) => ({
+          recentTasks: data.recentTasks.map((task: RecentTask) => ({
             id: task.id,
             title: task.title,
             status: task.status,
@@ -362,7 +364,7 @@ export default function ChannelDetailPage() {
                   <div>
                     <p className="font-medium text-gray-900">{task.title}</p>
                     <p className="text-xs text-gray-600">
-                      {new Date(task.createdAt).toLocaleString('pt-BR')}
+                      {task.createdAt ? new Date(task.createdAt).toLocaleString('pt-BR') : 'Data desconhecida'}
                     </p>
                   </div>
                   <span

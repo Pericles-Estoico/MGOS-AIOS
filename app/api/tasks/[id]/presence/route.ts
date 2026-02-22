@@ -1,4 +1,5 @@
 import { getServerSession } from 'next-auth';
+import type { Session } from 'next-auth';
 import { authOptions } from '@/lib/auth-mock';
 import { createSupabaseServerClient } from '@/lib/supabase';
 
@@ -14,7 +15,8 @@ export async function GET(
 
     const { id } = await params;
 
-    const supabase = createSupabaseServerClient((session as any).accessToken);
+    const sessionWithToken = session as Session & { accessToken?: string };
+    const supabase = createSupabaseServerClient(sessionWithToken.accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },
@@ -40,12 +42,12 @@ export async function GET(
     if (error) throw error;
 
     // Transform response to flatten user data
-    const formattedData = presence?.map((p: any) => ({
-      user_id: p.user_id,
-      name: p.users?.name || 'Unknown',
-      email: p.users?.email || 'unknown@example.com',
-      status: p.status,
-      is_typing: p.is_typing,
+    const formattedData = presence?.map((p) => ({
+      user_id: (p as Record<string, unknown>).user_id,
+      name: ((p as Record<string, unknown>).users as Record<string, unknown> | undefined)?.name || 'Unknown',
+      email: ((p as Record<string, unknown>).users as Record<string, unknown> | undefined)?.email || 'unknown@example.com',
+      status: (p as Record<string, unknown>).status,
+      is_typing: (p as Record<string, unknown>).is_typing,
     })) || [];
 
     return Response.json({ data: formattedData });

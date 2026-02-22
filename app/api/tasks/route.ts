@@ -1,4 +1,5 @@
 import { getServerSession } from 'next-auth';
+import type { Session } from 'next-auth';
 import { authOptions } from '@/lib/auth-mock';
 import { NextRequest } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase';
@@ -15,7 +16,8 @@ export async function GET(request: NextRequest) {
     }
 
     // 2. Criar cliente Supabase
-    const supabase = createSupabaseServerClient((session as any).accessToken);
+    const sessionWithToken = session as Session & { accessToken?: string };
+    const supabase = createSupabaseServerClient(sessionWithToken.accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Banco de dados não configurado' },
@@ -118,7 +120,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Criar cliente Supabase
-    const supabase = createSupabaseServerClient((session as any).accessToken);
+    const sessionWithToken = session as Session & { accessToken?: string };
+    const supabase = createSupabaseServerClient(sessionWithToken.accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Banco de dados não configurado' },

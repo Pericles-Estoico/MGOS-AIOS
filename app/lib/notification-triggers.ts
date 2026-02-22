@@ -29,7 +29,7 @@ const supabase = new Proxy({} as SupabaseClient, {
       console.warn('⚠️  Supabase not configured for notifications');
       return undefined;
     }
-    return (client as any)[prop];
+    return (client as SupabaseClient)[prop as keyof SupabaseClient];
   },
 });
 

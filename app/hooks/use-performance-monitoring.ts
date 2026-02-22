@@ -158,7 +158,7 @@ export function logPerformanceMetrics() {
   try {
     if ('performance' in window && 'getEntriesByType' in performance) {
       const paintEntries = performance.getEntriesByType('paint');
-      const navigationTiming = performance.getEntriesByType('navigation')[0] as any;
+      const navigationTiming = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
 
       console.group('📊 Performance Metrics');
 
@@ -172,8 +172,8 @@ export function logPerformanceMetrics() {
         console.log(`DNS: ${Math.round(navigationTiming.domainLookupEnd - navigationTiming.domainLookupStart)}ms`);
         console.log(`TCP: ${Math.round(navigationTiming.connectEnd - navigationTiming.connectStart)}ms`);
         console.log(`TTFB: ${Math.round(navigationTiming.responseStart - navigationTiming.requestStart)}ms`);
-        console.log(`DOMContentLoaded: ${Math.round(navigationTiming.domContentLoadedEventEnd - navigationTiming.navigationStart)}ms`);
-        console.log(`Load: ${Math.round(navigationTiming.loadEventEnd - navigationTiming.navigationStart)}ms`);
+        console.log(`DOMContentLoaded: ${Math.round(navigationTiming.domContentLoadedEventEnd - navigationTiming.fetchStart)}ms`);
+        console.log(`Load: ${Math.round(navigationTiming.loadEventEnd - navigationTiming.fetchStart)}ms`);
       }
 
       console.groupEnd();

@@ -1,6 +1,9 @@
 import { getServerSession } from 'next-auth';
+import type { Session } from 'next-auth';
 import { authOptions } from '@/lib/auth-mock';
 import { createSupabaseServerClient } from '@/lib/supabase';
+
+type ReassignmentEntry = Record<string, unknown>;
 
 export async function GET(
   request: Request,
@@ -12,7 +15,8 @@ export async function GET(
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = createSupabaseServerClient((session as any).accessToken);
+    const sessionWithToken = session as Session & { accessToken?: string };
+    const supabase = createSupabaseServerClient(sessionWithToken.accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },
@@ -64,17 +68,20 @@ export async function GET(
     }
 
     // Transform data to include names
-    const transformedHistory = (history || []).map((entry: any) => ({
-      id: entry.id,
-      old_assignee_id: entry.old_assignee_id,
-      new_assignee_id: entry.new_assignee_id,
-      old_assignee_name: entry.old_assignee?.name || 'Unknown',
-      new_assignee_name: entry.new_assignee?.name || 'Unknown',
-      reason: entry.reason,
-      reassigned_by: entry.reassigned_by,
-      reassigned_by_name: entry.performer?.name || 'Unknown',
-      created_at: entry.created_at,
-    }));
+    const transformedHistory = (history || []).map((entry) => {
+      const e = entry as Record<string, unknown>;
+      return {
+        id: e.id,
+        old_assignee_id: e.old_assignee_id,
+        new_assignee_id: e.new_assignee_id,
+        old_assignee_name: ((e.old_assignee as Record<string, unknown> | undefined)?.[0] as Record<string, unknown> | undefined)?.name || 'Unknown',
+        new_assignee_name: ((e.new_assignee as Record<string, unknown> | undefined)?.[0] as Record<string, unknown> | undefined)?.name || 'Unknown',
+        reason: e.reason,
+        reassigned_by: e.reassigned_by,
+        reassigned_by_name: ((e.performer as Record<string, unknown> | undefined)?.[0] as Record<string, unknown> | undefined)?.name || 'Unknown',
+        created_at: e.created_at,
+      };
+    });
 
     return Response.json({ data: transformedHistory });
   } catch (err) {

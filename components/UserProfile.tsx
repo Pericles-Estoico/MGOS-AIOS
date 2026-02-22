@@ -122,13 +122,13 @@ export function UserProfile({
           <input
             type="text"
             maxLength={255}
-            value={(changes.displayName as string) ?? profile.displayName ?? ''}
-            onChange={(e) => handleInputChange('displayName', e.target.value)}
+            value={(changes.name as string) ?? profile.name ?? ''}
+            onChange={(e) => handleInputChange('name', e.target.value)}
             placeholder="Your name"
             className="w-full px-3 py-2 border rounded"
           />
           <p className="text-xs text-gray-500">
-            {(changes.displayName as string ?? profile.displayName ?? '').length}/255 characters
+            {(changes.name as string ?? profile.name ?? '').length}/255 characters
           </p>
         </div>
 
@@ -137,37 +137,21 @@ export function UserProfile({
           <label className="block text-sm font-medium">Avatar URL</label>
           <input
             type="url"
-            value={(changes.avatarUrl as string) ?? profile.avatarUrl ?? ''}
-            onChange={(e) => handleInputChange('avatarUrl', e.target.value)}
+            value={(changes.avatar as string) ?? profile.avatar ?? ''}
+            onChange={(e) => handleInputChange('avatar', e.target.value)}
             placeholder="https://example.com/avatar.jpg"
             className="w-full px-3 py-2 border rounded"
           />
-          {((changes.avatarUrl as string) ?? profile.avatarUrl) && (
+          {((changes.avatar as string) ?? profile.avatar) && (
             <div className="mt-2">
               <img
-                src={(changes.avatarUrl as string) ?? profile.avatarUrl}
+                src={(changes.avatar as string) ?? profile.avatar}
                 alt="Avatar Preview"
                 className="w-24 h-24 rounded-full object-cover"
                 onError={() => onError?.('Invalid image URL')}
               />
             </div>
           )}
-        </div>
-
-        {/* Bio */}
-        <div className="space-y-2 mb-8">
-          <label className="block text-sm font-medium">Bio</label>
-          <textarea
-            maxLength={500}
-            rows={4}
-            value={(changes.bio as string) ?? profile.bio ?? ''}
-            onChange={(e) => handleInputChange('bio', e.target.value)}
-            placeholder="Tell us about yourself..."
-            className="w-full px-3 py-2 border rounded"
-          />
-          <p className="text-xs text-gray-500">
-            {(changes.bio as string ?? profile.bio ?? '').length}/500 characters
-          </p>
         </div>
 
         {/* Language */}
@@ -195,24 +179,6 @@ export function UserProfile({
           <p className="text-xs text-gray-500">
             Manage timezone in Notification Preferences
           </p>
-        </div>
-
-        {/* Account Info */}
-        <div className="space-y-2 mb-8 bg-gray-50 p-4 rounded border border-gray-200">
-          <div className="flex justify-between">
-            <span className="text-sm font-medium">Account Created</span>
-            <span className="text-sm text-gray-600">
-              {new Date(profile.createdAt).toLocaleDateString()}
-            </span>
-          </div>
-          {profile.updatedAt && (
-            <div className="flex justify-between">
-              <span className="text-sm font-medium">Last Updated</span>
-              <span className="text-sm text-gray-600">
-                {new Date(profile.updatedAt).toLocaleString()}
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Action Buttons */}

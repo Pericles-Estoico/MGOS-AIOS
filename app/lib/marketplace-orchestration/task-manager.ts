@@ -47,7 +47,7 @@ export class TaskManager {
     const supabase = createSupabaseServerClient(this.accessToken);
     if (!supabase) throw new Error('Supabase not configured');
 
-    const { data, error, count } = await (supabase as unknown as any)
+    const { data, error, count } = await supabase
       .from('marketplace_tasks')
       .select('*', { count: 'exact' })
       .eq('status', 'awaiting_approval')
@@ -139,7 +139,7 @@ export class TaskManager {
     const supabase = createSupabaseServerClient(this.accessToken);
     if (!supabase) throw new Error('Supabase not configured');
 
-    let query = (supabase as unknown as any)
+    let query = supabase
       .from('marketplace_tasks')
       .select('*')
       .eq('marketplace', marketplace);
@@ -161,7 +161,7 @@ export class TaskManager {
     const supabase = createSupabaseServerClient(this.accessToken);
     if (!supabase) throw new Error('Supabase not configured');
 
-    const { data, error } = await (supabase as unknown as any)
+    const { data, error } = await supabase
       .rpc('get_marketplace_daily_stats');
 
     if (error) throw new Error(`Failed to fetch stats: ${error.message}`);

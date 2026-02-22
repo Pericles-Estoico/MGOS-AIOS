@@ -484,7 +484,7 @@ Formato esperado (JSON estruturado):
         // Merge opportunities
         if (Array.isArray(parsed.opportunities)) {
           aggregatedPlan.opportunities.push(
-            ...parsed.opportunities.map((opp: any, idx: number) => ({
+            ...parsed.opportunities.map((opp: Record<string, unknown>, idx: number) => ({
               ...opp,
               id: aggregatedPlan.opportunities.length + idx + 1,
             }))

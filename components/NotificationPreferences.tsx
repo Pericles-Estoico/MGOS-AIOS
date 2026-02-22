@@ -140,7 +140,7 @@ export function NotificationPreferences({
                 type="checkbox"
                 checked={
                   (changes[key] as boolean) ??
-                  (preferences[key as keyof any] as boolean)
+                  (preferences[key as keyof typeof preferences] as boolean)
                 }
                 onChange={() => handleToggle(key)}
                 className="w-4 h-4"
@@ -161,9 +161,9 @@ export function NotificationPreferences({
             <input
               type="time"
               value={
-                (changes.quietHoursStart as string) ?? preferences.quietHoursStart ?? '22:00'
+                (changes.quiet_hours_start as string) ?? preferences.quiet_hours_start ?? '22:00'
               }
-              onChange={(e) => handleTimeChange('quietHoursStart', e.target.value)}
+              onChange={(e) => handleTimeChange('quiet_hours_start', e.target.value)}
               className="w-full px-3 py-2 border rounded"
             />
           </div>
@@ -175,35 +175,13 @@ export function NotificationPreferences({
             <input
               type="time"
               value={
-                (changes.quietHoursEnd as string) ?? preferences.quietHoursEnd ?? '08:00'
+                (changes.quiet_hours_end as string) ?? preferences.quiet_hours_end ?? '08:00'
               }
-              onChange={(e) => handleTimeChange('quietHoursEnd', e.target.value)}
+              onChange={(e) => handleTimeChange('quiet_hours_end', e.target.value)}
               className="w-full px-3 py-2 border rounded"
             />
           </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Timezone</label>
-            <select
-              value={(changes.timezone as string) ?? preferences.timezone}
-              onChange={(e) => handleTimezoneChange(e.target.value)}
-              className="w-full px-3 py-2 border rounded"
-            >
-              {timezones.map((tz) => (
-                <option key={tz} value={tz}>
-                  {tz}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
-
-        {/* Last Modified Info */}
-        {preferences.lastModifiedAt && (
-          <p className="text-xs text-gray-500">
-            Last modified: {new Date(preferences.lastModifiedAt).toLocaleString()}
-          </p>
-        )}
 
         {/* Action Buttons */}
         <div className="flex gap-3 mt-8">

@@ -12,6 +12,7 @@ export function TypingIndicator({ isTyping, userName = 'Alguém' }: TypingIndica
 
   useEffect(() => {
     if (!isTyping) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDots('');
       return;
     }

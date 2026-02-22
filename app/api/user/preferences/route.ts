@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
     const userId = session.user?.id;
 
     // Build update object, mapping front-end field names to database columns
-    const updateData: Record<string, any> = {};
+    const updateData: Record<string, boolean | string> = {};
 
     const fieldMap: Record<string, string> = {
       taskAssigned: 'email_task_assigned',
@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
 /**
  * Format database preferences to front-end format
  */
-function formatPreferences(prefs: any) {
+function formatPreferences(prefs: Record<string, boolean | null>) {
   return {
     taskAssigned: prefs.email_task_assigned ?? true,
     statusChanged: prefs.email_status_changed ?? true,

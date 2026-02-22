@@ -1,4 +1,5 @@
 import { getServerSession } from 'next-auth';
+import type { Session } from 'next-auth';
 import { authOptions } from '@/lib/auth-mock';
 import { createSupabaseServerClient } from '@/lib/supabase';
 
@@ -23,7 +24,8 @@ export async function GET(request: Request) {
     const dueDateTo = searchParams.get('due_date_to');
     const sprint = searchParams.get('sprint');
 
-    const supabase = createSupabaseServerClient((session as any).accessToken);
+    const sessionWithToken = session as Session & { accessToken?: string };
+    const supabase = createSupabaseServerClient(sessionWithToken.accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },

@@ -33,8 +33,16 @@ const actionLabels: Record<string, (details?: Record<string, unknown>) => string
   task_created: () => 'Criou a tarefa',
 };
 
+interface Activity {
+  id: string;
+  action: string;
+  created_at: string;
+  details?: Record<string, unknown>;
+  user?: { id: string; name: string; email: string };
+}
+
 export function ActivityTimeline({ taskId }: ActivityTimelineProps) {
-  const [activities, setActivities] = useState<any[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -102,11 +110,11 @@ export function ActivityTimeline({ taskId }: ActivityTimelineProps) {
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <Avatar className="w-6 h-6">
-                      <AvatarImage src={`https://avatar.vercel.sh/${activity.user.email}`} />
-                      <AvatarFallback>{activity.user.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={`https://avatar.vercel.sh/${activity.user?.email || 'unknown'}`} />
+                      <AvatarFallback>{(activity.user?.name || 'U').charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium text-sm">{activity.user.name}</p>
+                      <p className="font-medium text-sm">{activity.user?.name || 'Unknown'}</p>
                       <p className="text-sm text-gray-700">
                         {actionLabels[activity.action]?.(activity.details) || activity.action}
                       </p>
@@ -117,9 +125,9 @@ export function ActivityTimeline({ taskId }: ActivityTimelineProps) {
                   </span>
                 </div>
 
-                {activity.details?.old_status && (
+                {Boolean((activity.details as Record<string, unknown> | undefined)?.old_status) && (
                   <p className="text-xs text-gray-500 ml-8 mt-1">
-                    {activity.details.old_status} → {activity.details.new_status}
+                    {String((activity.details as Record<string, unknown>).old_status)} → {String((activity.details as Record<string, unknown>).new_status)}
                   </p>
                 )}
               </div>

@@ -18,11 +18,13 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
 
   // Fechar sidebar ao navegar
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSidebarOpen(false);
   }, [pathname]);
 
   // Evitar hydration mismatch
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

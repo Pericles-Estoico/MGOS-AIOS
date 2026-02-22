@@ -28,7 +28,7 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Senha', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, _req) {
         // Check if email is in mock users
         if (!credentials?.email) {
           return null;
@@ -46,7 +46,7 @@ export const authOptions: NextAuthOptions = {
             id: mockUser.id,
             email: mockUser.email,
             name: mockUser.name,
-            role: mockUser.role,
+            role: mockUser.role as 'admin' | 'executor' | 'viewer' | 'user',
           };
         }
 
@@ -55,6 +55,7 @@ export const authOptions: NextAuthOptions = {
           id: Math.random().toString(36).substr(2, 9),
           email: credentials.email as string,
           name: (credentials.email as string).split('@')[0],
+          role: 'executor' as const,
         };
       },
     }),
@@ -65,19 +66,19 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }: { token: JWT; user?: { id?: string; email?: string; name?: string; role?: string } }) {
       if (user) {
-        token.id = user.id;
-        token.email = user.email;
-        token.name = user.name;
-        token.role = user.role || 'user';
+        if (user.id) token.id = user.id;
+        if (user.email) token.email = user.email;
+        if (user.name) token.name = user.name;
+        token.role = (user.role || 'user') as 'admin' | 'executor' | 'viewer' | 'user';
       }
       return token;
     },
     async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.email = token.email;
-        session.user.name = token.name;
-        (session.user as unknown as Record<string, unknown>).role = token.role;
+        if (token.id) session.user.id = token.id as string;
+        if (token.email) session.user.email = token.email as string;
+        if (token.name) session.user.name = token.name as string;
+        (session.user as unknown as Record<string, unknown>).role = token.role || 'user';
       }
       return session;
     },

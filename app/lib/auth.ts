@@ -68,7 +68,7 @@ export const authOptions: NextAuthOptions = {
       console.log('📝 jwt() callback:', { tokenId: token.sub, userId: user?.id });
       if (user) {
         token.sub = user.id;
-        token.role = ((user as unknown as Record<string, unknown>).role || 'executor') as any;
+        token.role = ((user as unknown as Record<string, unknown>).role || 'executor') as 'admin' | 'executor' | 'viewer' | 'user';
       }
       return token;
     },

@@ -11,7 +11,7 @@ import {
 vi.mock('nodemailer', () => ({
   default: {
     createTransport: vi.fn(() => ({
-      sendMail: vi.fn((options: any) => {
+      sendMail: vi.fn((options: { to?: string; subject?: string; html?: string }) => {
         // Simulate successful send for valid emails
         if (options.to && options.to.includes('@')) {
           return Promise.resolve({ messageId: 'mock-message-id' });

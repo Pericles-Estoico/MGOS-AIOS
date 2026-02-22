@@ -119,7 +119,7 @@ export async function PUT(request: NextRequest) {
     const userId = session.user?.id;
 
     // Build update object with only provided fields
-    const updateData: Record<string, any> = {};
+    const updateData: Record<string, string | undefined> = {};
     if (displayName !== undefined) updateData.display_name = displayName;
     if (avatarUrl !== undefined) updateData.avatar_url = avatarUrl;
     if (bio !== undefined) updateData.bio = bio;

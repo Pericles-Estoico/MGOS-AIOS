@@ -14,8 +14,8 @@ interface CacheEntry<T> {
 }
 
 // Global cache for query results
-const queryCache = new Map<string, CacheEntry<any>>();
-const activeFetches = new Map<string, Promise<any>>();
+const queryCache = new Map<string, CacheEntry<unknown>>();
+const activeFetches = new Map<string, Promise<unknown>>();
 
 const DEFAULT_OPTIONS: QueryOptions = {
   revalidateOnFocus: true,
@@ -29,7 +29,7 @@ const DEFAULT_OPTIONS: QueryOptions = {
  * Prevents duplicate requests within dedupingInterval
  * Automatically refreshes data on window focus/reconnect
  */
-export function useTasksQuery<T = any>(
+export function useTasksQuery<T = unknown>(
   url: string | null,
   options: QueryOptions = {}
 ) {
@@ -52,7 +52,7 @@ export function useTasksQuery<T = any>(
       if (cached) {
         const age = Date.now() - cached.timestamp;
         if (age < mergedOptions.dedupingInterval!) {
-          setData(cached.data);
+          setData(cached.data as T);
           setError(cached.error);
           setLoading(false);
           return;
@@ -61,7 +61,7 @@ export function useTasksQuery<T = any>(
 
       // Check if fetch already in progress (deduping)
       if (activeFetches.has(cacheKey)) {
-        const result = await activeFetches.get(cacheKey);
+        const result = (await activeFetches.get(cacheKey)) as CacheEntry<T>;
         setData(result.data);
         setError(result.error);
         setLoading(false);
@@ -95,7 +95,7 @@ export function useTasksQuery<T = any>(
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       const cacheEntry: CacheEntry<T> = {
-        data: undefined as any,
+        data: undefined as unknown as T,
         timestamp: Date.now(),
         error,
       };

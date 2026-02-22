@@ -60,14 +60,14 @@ export async function GET(request: Request) {
     }
 
     // Format response
-    const formattedData = (data || []).map((log: any) => ({
+    const formattedData = (data || []).map((log: Record<string, unknown>) => ({
       id: log.id,
-      userName: log.users?.name || 'Unknown',
-      userEmail: log.users?.email || '',
+      userName: (((log.users as unknown[] | undefined)?.[0] as Record<string, unknown> | undefined)?.name || 'Unknown') as string,
+      userEmail: (((log.users as unknown[] | undefined)?.[0] as Record<string, unknown> | undefined)?.email || '') as string,
       taskId: log.task_id,
-      taskTitle: log.tasks?.title || 'Unknown Task',
-      durationMinutes: log.duration_minutes,
-      hours: (log.duration_minutes / 60).toFixed(1),
+      taskTitle: (((log.tasks as unknown[] | undefined)?.[0] as Record<string, unknown> | undefined)?.title || 'Unknown Task') as string,
+      durationMinutes: log.duration_minutes as number,
+      hours: ((log.duration_minutes as number) / 60).toFixed(1),
       notes: log.notes,
       loggedAt: log.logged_at,
     }));

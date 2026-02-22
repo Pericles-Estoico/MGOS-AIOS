@@ -8,8 +8,17 @@ import {
   calculateScale,
 } from '@/utils/burndown-calculator';
 
+interface StatusHistoryEntry {
+  id: string;
+  operation: string;
+  old_value?: Record<string, unknown>;
+  new_value?: Record<string, unknown>;
+  created_by?: string;
+  created_at: string;
+}
+
 interface BurndownChartProps {
-  tasks: Array<{ id: string; status_history?: any[] }>;
+  tasks: Array<{ id: string; status_history?: StatusHistoryEntry[] }>;
   title?: string;
   showLegend?: boolean;
 }
