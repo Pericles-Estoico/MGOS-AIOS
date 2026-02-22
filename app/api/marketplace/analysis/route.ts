@@ -65,6 +65,17 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching analysis plans:', error);
+      // Fallback: retornar array vazio se tabela não existir
+      if (error.code === 'PGRST116' || error.message?.includes('does not exist')) {
+        return NextResponse.json({
+          plans: [],
+          total: 0,
+          page,
+          limit,
+          pendingCount: 0,
+          error: 'Tabela de análises ainda não foi criada no banco'
+        });
+      }
       return NextResponse.json(
         { error: 'Erro ao buscar análises' },
         { status: 500 }

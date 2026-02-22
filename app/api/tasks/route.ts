@@ -77,6 +77,14 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Erro ao buscar tarefas do Supabase:', error);
+      // Fallback: retornar array vazio se tabela não existir
+      if (error.code === 'PGRST116' || error.message?.includes('relation "public.tasks" does not exist')) {
+        return Response.json({
+          data: [],
+          count: 0,
+          error: 'Tabela de tarefas ainda não foi criada no banco'
+        });
+      }
       return Response.json(
         { error: 'Erro ao buscar tarefas' },
         { status: 500 }
