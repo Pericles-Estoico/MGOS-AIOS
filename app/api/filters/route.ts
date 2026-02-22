@@ -13,15 +13,15 @@ interface SessionWithAccessToken {
 
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
+    const session = (await getServerSession(authOptions)) as SessionWithAccessToken;
+    if (!session?.user?.id) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
     const includeShared = searchParams.get('include_shared') === 'true';
 
-    const supabase = createSupabaseServerClient((session as SessionWithAccessToken).accessToken);
+    const supabase = createSupabaseServerClient(session.accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },
@@ -63,8 +63,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
+    const session = (await getServerSession(authOptions)) as SessionWithAccessToken;
+    if (!session?.user?.id) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createSupabaseServerClient((session as SessionWithAccessToken).accessToken);
+    const supabase = createSupabaseServerClient(session.accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },

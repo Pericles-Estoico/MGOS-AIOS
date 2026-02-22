@@ -30,7 +30,7 @@ export class TaskManager {
       status: 'pending' as TaskStatus,
     };
 
-    const { data, error } = await (supabase as unknown as any)
+    const { data, error } = await supabase
       .from('marketplace_tasks')
       .insert([taskData])
       .select()
@@ -76,7 +76,7 @@ export class TaskManager {
       ...(reason && { rejectionReason: reason }),
     };
 
-    const { data, error } = await (supabase as unknown as any)
+    const { data, error } = await supabase
       .from('marketplace_tasks')
       .update(updateData)
       .in('id', taskIds)
@@ -93,7 +93,7 @@ export class TaskManager {
     const supabase = createSupabaseServerClient(this.accessToken);
     if (!supabase) throw new Error('Supabase not configured');
 
-    const { data, error } = await (supabase as unknown as any)
+    const { data, error } = await supabase
       .from('marketplace_tasks')
       .update({
         assignedTo: request.assignedTo,
@@ -115,7 +115,7 @@ export class TaskManager {
     const supabase = createSupabaseServerClient(this.accessToken);
     if (!supabase) throw new Error('Supabase not configured');
 
-    const { data, error } = await (supabase as unknown as any)
+    const { data, error } = await supabase
       .from('marketplace_tasks')
       .update({
         status: 'completed' as TaskStatus,

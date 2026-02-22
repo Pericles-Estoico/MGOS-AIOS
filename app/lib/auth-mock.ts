@@ -1,4 +1,6 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
+import type { NextAuthOptions, Session } from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
 
 // Mock user database
 const mockUsers = {
@@ -18,7 +20,7 @@ const mockUsers = {
   },
 };
 
-export const authOptions: any = {
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -26,7 +28,7 @@ export const authOptions: any = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Senha', type: 'password' },
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         // Check if email is in mock users
         if (!credentials?.email) {
           return null;
@@ -44,16 +46,15 @@ export const authOptions: any = {
             id: mockUser.id,
             email: mockUser.email,
             name: mockUser.name,
-            role: mockUser.role as any,
+            role: mockUser.role,
           };
         }
 
         // Allow any other email for testing with any password
         return {
           id: Math.random().toString(36).substr(2, 9),
-          email: credentials.email,
-          name: credentials.email.split('@')[0],
-          role: 'user' as any,
+          email: credentials.email as string,
+          name: (credentials.email as string).split('@')[0],
         };
       },
     }),
@@ -62,16 +63,16 @@ export const authOptions: any = {
     signIn: '/login',
   },
   callbacks: {
-    async jwt({ token, user }: any) {
+    async jwt({ token, user }: { token: JWT; user?: { id?: string; email?: string; name?: string; role?: string } }) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
-        token.role = ((user as unknown as Record<string, unknown>).role || 'user') as any;
+        token.role = user.role || 'user';
       }
       return token;
     },
-    async session({ session, token }: any) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.email = token.email;

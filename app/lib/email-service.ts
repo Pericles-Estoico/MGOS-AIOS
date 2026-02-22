@@ -25,7 +25,7 @@ const supabase = new Proxy({} as SupabaseClient, {
       console.warn('⚠️  Supabase not configured for email');
       return undefined;
     }
-    return (client as any)[prop];
+    return (client as unknown as Record<string, unknown>)[prop as string];
   },
 });
 
@@ -44,7 +44,7 @@ interface EmailData {
   recipientEmail: string;
   subject: string;
   templateName: string;
-  templateData?: Record<string, any>;
+  templateData?: Record<string, unknown>;
 }
 
 /**
@@ -250,7 +250,7 @@ async function getEmailTemplate(
  */
 function renderTemplate(
   template: { subject: string; html: string; text?: string },
-  data: Record<string, any>
+  data: Record<string, unknown>
 ): { subject: string; html: string; text?: string } {
   let subject = template.subject;
   let html = template.html;

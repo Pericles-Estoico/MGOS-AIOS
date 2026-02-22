@@ -5,8 +5,6 @@ import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
-  TrendingUp,
-  BarChart3,
   Clock,
   CheckCircle2,
   AlertCircle,

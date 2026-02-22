@@ -139,8 +139,10 @@ async function callOpenAI(options: {
 }): Promise<AgentCallResponse> {
   const response = await openaiClient.chat.completions.create({
     model: process.env.OPENAI_MODEL || 'gpt-4o',
-    system: options.systemPrompt,
-    messages: options.messages,
+    messages: [
+      { role: 'system', content: options.systemPrompt },
+      ...options.messages,
+    ],
     temperature: options.temperature,
     max_tokens: options.maxTokens,
   });
@@ -166,8 +168,10 @@ async function* streamOpenAI(options: {
 }): AsyncGenerator<string, void, unknown> {
   const stream = await openaiClient.chat.completions.create({
     model: process.env.OPENAI_MODEL || 'gpt-4o',
-    system: options.systemPrompt,
-    messages: options.messages,
+    messages: [
+      { role: 'system', content: options.systemPrompt },
+      ...options.messages,
+    ],
     temperature: options.temperature,
     max_tokens: options.maxTokens,
     stream: true,

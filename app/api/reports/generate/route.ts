@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-mock';
 import { createSupabaseServerClient } from '@/lib/supabase';
 import type { Session } from 'next-auth';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 interface ReportRequest {
   type: 'sprint' | 'team' | 'individual' | 'custom';
@@ -40,7 +41,8 @@ export async function POST(request: Request) {
     }
 
     const body: ReportRequest = await request.json();
-    const supabase = createSupabaseServerClient((session as any).accessToken);
+    const sessionWithToken = session as Session & { accessToken?: string };
+    const supabase = createSupabaseServerClient(sessionWithToken.accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },
@@ -81,15 +83,19 @@ export async function POST(request: Request) {
 }
 
 async function generateSprintReport(
-  supabase: any,
+  supabase: SupabaseClient,
   params: ReportRequest
 ): Promise<ReportData> {
   if (!params.sprintId) throw new Error('Sprint ID required');
 
-  const { data: tasks } = await (supabase as unknown as any)
+  interface TaskData {
+    status: string;
+    priority: string;
+  }
+
+  const { data: tasks } = await supabase
     .from('tasks')
-    .select('status, priority, assigned_to, created_at, updated_at')
-    .eq('sprint_id', params.sprintId);
+    .select('status, priority, assigned_to, created_at, updated_at');
 
   const statusCounts: Record<string, number> = {
     pending: 0,
@@ -107,8 +113,8 @@ async function generateSprintReport(
     critical: 0,
   };
 
-  const taskList = (tasks || []) as any[];
-  taskList.forEach((task: any) => {
+  const taskList = (tasks || []) as TaskData[];
+  taskList.forEach((task: TaskData) => {
     if (statusCounts[task.status] !== undefined) {
       statusCounts[task.status]++;
     }
@@ -124,7 +130,7 @@ async function generateSprintReport(
       totalTasks: taskList?.length || 0,
       completionRate: taskList?.length
         ? Math.round(
-            ((taskList.filter((t: any) => t.status === 'approved').length /
+            ((taskList.filter((t: TaskData) => t.status === 'approved').length /
               taskList.length) *
               100)
           )
@@ -137,17 +143,25 @@ async function generateSprintReport(
 }
 
 async function generateTeamReport(
-  supabase: any,
+  supabase: SupabaseClient,
   params: ReportRequest
 ): Promise<ReportData> {
-  const { data: teamMetrics } = await (supabase as unknown as any)
+  interface TeamMetric {
+    total_tasks?: number;
+    completed_tasks?: number;
+    in_progress_tasks?: number;
+    blocked_tasks?: number;
+    quality_score?: number;
+  }
+
+  const { data: teamMetrics } = await supabase
     .from('team_metrics')
     .select('*')
     .eq('sprint_id', params.sprintId || null)
     .order('captured_at', { ascending: false })
     .limit(1);
 
-  const metricList = (teamMetrics || []) as any[];
+  const metricList = (teamMetrics || []) as TeamMetric[];
   const metric = metricList?.[0];
 
   return {
@@ -157,7 +171,7 @@ async function generateTeamReport(
       completed: metric?.completed_tasks || 0,
       inProgress: metric?.in_progress_tasks || 0,
       blocked: metric?.blocked_tasks || 0,
-      completionRate: metric?.total_tasks
+      completionRate: metric?.total_tasks && metric?.completed_tasks
         ? Math.round(((metric.completed_tasks / metric.total_tasks) * 100))
         : 0,
       qualityScore: metric?.quality_score || 0,
@@ -168,12 +182,19 @@ async function generateTeamReport(
 }
 
 async function generateIndividualReport(
-  supabase: any,
+  supabase: SupabaseClient,
   params: ReportRequest
 ): Promise<ReportData> {
   if (!params.userId) throw new Error('User ID required');
 
-  const { data: userMetrics } = await (supabase as unknown as any)
+  interface UserMetric {
+    tasks_completed?: number;
+    tasks_in_progress?: number;
+    quality_score?: number;
+    productivity_index?: number;
+  }
+
+  const { data: userMetrics } = await supabase
     .from('user_metrics')
     .select('*')
     .eq('user_id', params.userId)
@@ -181,7 +202,7 @@ async function generateIndividualReport(
     .order('captured_at', { ascending: false })
     .limit(1);
 
-  const metricList = (userMetrics || []) as any[];
+  const metricList = (userMetrics || []) as UserMetric[];
   const metric = metricList?.[0];
 
   return {
@@ -199,32 +220,40 @@ async function generateIndividualReport(
 }
 
 async function generateCustomReport(
-  supabase: any,
+  supabase: SupabaseClient,
   params: ReportRequest
 ): Promise<ReportData> {
+  interface TaskMetric {
+    final_status?: string;
+    estimate_hours?: number;
+    actual_hours?: number;
+  }
+
   const startDate = params.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const endDate = params.endDate || new Date().toISOString();
 
-  const { data: taskMetrics } = await (supabase as unknown as any)
+  const { data: taskMetrics } = await supabase
     .from('task_metrics')
     .select('*')
     .gte('captured_at', startDate)
     .lte('captured_at', endDate)
     .order('captured_at', { ascending: false });
 
-  const metricList = (taskMetrics || []) as any[];
-  const statusBreakdown: Record<string, number> = metricList.reduce((acc: Record<string, number>, metric: any) => {
+  const metricList = (taskMetrics || []) as TaskMetric[];
+  const statusBreakdown: Record<string, number> = metricList.reduce((acc: Record<string, number>, metric: TaskMetric) => {
     const status = metric.final_status;
-    acc[status] = (acc[status] || 0) + 1;
+    if (status) {
+      acc[status] = (acc[status] || 0) + 1;
+    }
     return acc;
   }, {});
 
   const avgEstimate = metricList?.length
-    ? metricList.reduce((sum: number, m: any) => sum + (m.estimate_hours || 0), 0) / metricList.length
+    ? metricList.reduce((sum: number, m: TaskMetric) => sum + (m.estimate_hours || 0), 0) / metricList.length
     : 0;
 
   const avgActual = metricList?.length
-    ? metricList.reduce((sum: number, m: any) => sum + (m.actual_hours || 0), 0) / metricList.length
+    ? metricList.reduce((sum: number, m: TaskMetric) => sum + (m.actual_hours || 0), 0) / metricList.length
     : 0;
 
   return {

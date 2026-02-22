@@ -18,7 +18,7 @@ interface CacheEntry<T> {
 }
 
 class MetricsCache {
-  private cache = new Map<string, CacheEntry<any>>();
+  private cache = new Map<string, CacheEntry<unknown>>();
   private readonly TTL_MS = 5 * 60 * 1000; // 5 minutes
 
   set<T>(key: string, data: T): void {
@@ -167,13 +167,24 @@ export async function calculatePerUserMetrics(
   const supabase = getSupabaseClient();
 
   try {
+    interface UserMetricsRow {
+      user_id: string;
+      display_name?: string;
+      task_count?: number;
+      avg_completion_time?: string;
+      total_hours?: string;
+      approval_rate?: string;
+      rejection_rate?: string;
+      last_completed?: string;
+    }
+
     // Query 1: Get per-user metrics (counts, avg time, rates)
     const { data, error } = await supabase
       .rpc('calculate_per_user_metrics', {
         date_start: dateRange.start.toISOString(),
         date_end: dateRange.end.toISOString(),
         user_id_filter: specificUserId || null,
-      } as any)
+      })
       .select('*');
 
     if (error) {
@@ -181,7 +192,7 @@ export async function calculatePerUserMetrics(
       throw error;
     }
 
-    const metrics: PerUserMetrics[] = ((data || []) as unknown[]).map((row: any) => ({
+    const metrics: PerUserMetrics[] = ((data || []) as UserMetricsRow[]).map((row: UserMetricsRow) => ({
       userId: row.user_id,
       displayName: row.display_name,
       taskCount: row.task_count || 0,
@@ -211,13 +222,26 @@ export async function calculateTeamMetrics(dateRange: DateRange): Promise<TeamMe
 
   const supabase = getSupabaseClient();
 
+  interface BurndownItem {
+    date: string;
+    tasks_completed?: number;
+  }
+
+  interface TeamMetricsRow {
+    total_tasks?: number;
+    avg_daily_completion?: number;
+    burndown_trend?: BurndownItem[];
+    team_avg_time?: number;
+    overall_success_rate?: number;
+  }
+
   try {
     // Query: Get team-level metrics and burndown trend
     const { data, error } = await supabase
       .rpc('calculate_team_metrics', {
         date_start: dateRange.start.toISOString(),
         date_end: dateRange.end.toISOString(),
-      } as any)
+      })
       .select('*');
 
     if (error) {
@@ -225,11 +249,11 @@ export async function calculateTeamMetrics(dateRange: DateRange): Promise<TeamMe
       throw error;
     }
 
-    const row = (((data || []) as unknown[])?.[0] || {}) as Record<string, unknown>;
+    const row = (((data || []) as TeamMetricsRow[])?.[0] || {}) as TeamMetricsRow;
 
     // Parse burndown trend from JSON array
     const burndownTrend = Array.isArray(row.burndown_trend)
-      ? row.burndown_trend.map((item: any) => ({
+      ? row.burndown_trend.map((item: BurndownItem) => ({
           date: item.date,
           tasksCompleted: item.tasks_completed || 0,
         }))
@@ -268,7 +292,7 @@ export async function calculateQAMetrics(dateRange: DateRange): Promise<QAMetric
       .rpc('calculate_qa_metrics', {
         date_start: dateRange.start.toISOString(),
         date_end: dateRange.end.toISOString(),
-      } as any)
+      })
       .select('*');
 
     if (error) {

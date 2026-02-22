@@ -8,8 +8,19 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 
+interface NotificationPreference {
+  id?: string;
+  email_notifications?: boolean;
+  slack_notifications?: boolean;
+  push_notifications?: boolean;
+  notification_frequency?: 'immediate' | 'daily' | 'weekly';
+  quiet_hours_enabled?: boolean;
+  quiet_hours_start?: string;
+  quiet_hours_end?: string;
+}
+
 interface NotificationPreferencesProps {
-  onSave?: (prefs: any) => void;
+  onSave?: (prefs: NotificationPreference) => void;
   onError?: (error: string) => void;
 }
 
@@ -18,7 +29,7 @@ export function NotificationPreferences({
   onError,
 }: NotificationPreferencesProps) {
   const { data: session } = useSession();
-  const [preferences, setPreferences] = useState<any | null>(null);
+  const [preferences, setPreferences] = useState<NotificationPreference | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [timezones, setTimezones] = useState<string[]>([]);

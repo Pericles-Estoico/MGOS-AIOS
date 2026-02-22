@@ -60,7 +60,13 @@ export async function GET(
     }
 
     // Map Supabase task to marketplace task format
-    const marketplaceChannelMap: Record<string, any> = {
+    interface ChannelConfig {
+      name: string;
+      icon: string;
+      color: string;
+    }
+
+    const marketplaceChannelMap: Record<string, ChannelConfig> = {
       amazon: { name: 'Amazon', icon: '🛒', color: 'from-orange-400 to-orange-600' },
       mercadolivre: { name: 'MercadoLivre', icon: '🎯', color: 'from-yellow-400 to-yellow-600' },
       shopee: { name: 'Shopee', icon: '🏪', color: 'from-red-400 to-red-600' },
@@ -193,7 +199,13 @@ export async function PATCH(
     }
 
     // Map marketplace status to internal status
-    const statusMap: Record<string, any> = {
+    interface StatusUpdate {
+      status: string;
+      admin_approved: boolean;
+      notes?: string;
+    }
+
+    const statusMap: Record<string, StatusUpdate> = {
       approved: { status: 'pending', admin_approved: true },
       rejected: { status: 'rejected', admin_approved: false },
       in_progress: { status: 'in_progress', admin_approved: true },
@@ -202,7 +214,7 @@ export async function PATCH(
 
     const updateData = statusMap[status] || {};
     if (notes) {
-      (updateData as Record<string, any>).notes = notes;
+      updateData.notes = notes;
     }
 
     // Update task

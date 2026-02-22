@@ -8,8 +8,19 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 
+interface UserProfileData {
+  id?: string;
+  name?: string;
+  email?: string;
+  avatar?: string;
+  theme?: string;
+  language?: string;
+  timezone?: string;
+  role?: string;
+}
+
 interface UserProfileProps {
-  onSave?: (profile: any) => void;
+  onSave?: (profile: UserProfileData) => void;
   onError?: (error: string) => void;
 }
 
@@ -18,7 +29,7 @@ export function UserProfile({
   onError,
 }: UserProfileProps) {
   const { data: session } = useSession();
-  const [profile, setProfile] = useState<any | null>(null);
+  const [profile, setProfile] = useState<UserProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [changes, setChanges] = useState<Record<string, unknown>>({});

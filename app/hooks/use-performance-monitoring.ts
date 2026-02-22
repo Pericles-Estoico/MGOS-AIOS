@@ -1,5 +1,24 @@
 import { useEffect } from 'react';
 
+interface PerformanceEntryWithTiming {
+  renderTime?: number;
+  loadTime?: number;
+}
+
+interface LayoutShiftEntry {
+  hadRecentInput?: boolean;
+  value: number;
+}
+
+interface FirstInputEntry {
+  processingDuration?: number;
+}
+
+interface NavigationTiming {
+  responseStart?: number;
+  requestStart?: number;
+}
+
 export interface PerformanceMetric {
   name: string;
   value: number;
@@ -42,7 +61,7 @@ export function usePerformanceMonitoring(onMetric?: (metric: PerformanceMetric) 
         try {
           const lcpObserver = new PerformanceObserver((list) => {
             const entries = list.getEntries();
-            const lastEntry = entries[entries.length - 1] as any;
+            const lastEntry = entries[entries.length - 1] as PerformanceEntryWithTiming;
             metrics.lcp = lastEntry.renderTime || lastEntry.loadTime || 0;
 
             if (onMetric && metrics.lcp) {
@@ -64,7 +83,8 @@ export function usePerformanceMonitoring(onMetric?: (metric: PerformanceMetric) 
           const clsObserver = new PerformanceObserver((list) => {
             let cls = 0;
             for (const entry of list.getEntries()) {
-              cls += (entry as any).hadRecentInput ? 0 : (entry as any).value;
+              const layoutEntry = entry as unknown as LayoutShiftEntry;
+              cls += layoutEntry.hadRecentInput ? 0 : layoutEntry.value;
             }
             metrics.cls = (metrics.cls || 0) + cls;
 
@@ -87,7 +107,8 @@ export function usePerformanceMonitoring(onMetric?: (metric: PerformanceMetric) 
           const fidObserver = new PerformanceObserver((list) => {
             const entries = list.getEntries();
             for (const entry of entries) {
-              const processingDuration = (entry as any).processingDuration || 0;
+              const fidEntry = entry as FirstInputEntry;
+              const processingDuration = fidEntry.processingDuration || 0;
               if (processingDuration > 0) {
                 metrics.fid = processingDuration;
 
@@ -110,7 +131,7 @@ export function usePerformanceMonitoring(onMetric?: (metric: PerformanceMetric) 
 
       // Get Time to First Byte from navigation timing
       if ('performance' in window && 'getEntriesByType' in performance) {
-        const navigationTiming = performance.getEntriesByType('navigation')[0] as any;
+        const navigationTiming = performance.getEntriesByType('navigation')[0] as NavigationTiming;
         if (navigationTiming && navigationTiming.responseStart && navigationTiming.requestStart) {
           metrics.ttfb = navigationTiming.responseStart - navigationTiming.requestStart;
 

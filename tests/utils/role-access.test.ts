@@ -48,8 +48,13 @@ describe('Team Dashboard Access - AC-2.6.1', () => {
   });
 });
 
+interface StatusTask {
+  id: string;
+  status: string;
+}
+
 describe('Task Status Filtering - AC-2.6.1', () => {
-  const filterByStatus = (tasks: any[], status: string) => {
+  const filterByStatus = (tasks: StatusTask[], status: string) => {
     return tasks.filter(t => t.status === status);
   };
 

@@ -64,8 +64,14 @@ describe('Pagination Logic - AC-2.1.1, AC-2.5.1, AC-2.6.1', () => {
   });
 });
 
+interface Task {
+  due_date?: string;
+  priority?: 'low' | 'medium' | 'high' | 'critical';
+  [key: string]: unknown;
+}
+
 describe('Sorting - AC-2.6.1', () => {
-  const sortTasks = (tasks: any[], sortBy: string, ascending = true) => {
+  const sortTasks = (tasks: Task[], sortBy: string, ascending = true) => {
     return [...tasks].sort((a, b) => {
       if (sortBy === 'due_date') {
         const aDate = new Date(a.due_date).getTime();

@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-mock';
 import { createSupabaseServerClient } from '@/lib/supabase';
 import { notifyQAReviewAction } from '@/lib/notification-triggers';
+import type { Session } from 'next-auth';
 
 export async function GET(request: Request) {
   try {
@@ -23,7 +24,8 @@ export async function GET(request: Request) {
     const executorFilter = searchParams.get('executor');
     const search = searchParams.get('search');
 
-    const supabase = createSupabaseServerClient((session as any).accessToken);
+    const sessionWithToken = session as Session & { accessToken?: string };
+    const supabase = createSupabaseServerClient(sessionWithToken.accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },
@@ -117,7 +119,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createSupabaseServerClient((session as any).accessToken);
+    const sessionWithToken = session as Session & { accessToken?: string };
+    const supabase = createSupabaseServerClient(sessionWithToken.accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },

@@ -6,6 +6,25 @@ import { Bell, Filter, RefreshCw, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
+interface Opportunity {
+  title: string;
+  description?: string;
+  potential_revenue?: number;
+  implementation_effort?: string;
+}
+
+interface Phase {
+  number: number;
+  name: string;
+  tasks?: string[];
+}
+
+interface Metric {
+  name: string;
+  target?: number | string;
+  current?: number | string;
+}
+
 interface AnalysisPlan {
   id: string;
   title: string;
@@ -13,9 +32,9 @@ interface AnalysisPlan {
   status: 'pending' | 'approved' | 'rejected' | 'executing' | 'done';
   plan_data: {
     summary: string;
-    opportunities: any[];
-    phases: any[];
-    metrics: any[];
+    opportunities: Opportunity[];
+    phases: Phase[];
+    metrics: Metric[];
   };
   created_at: string;
   approved_at?: string;

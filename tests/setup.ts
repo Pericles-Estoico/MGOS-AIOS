@@ -1,4 +1,4 @@
-import { expect, afterEach, vi } from 'vitest';
+import { afterEach, vi } from 'vitest';
 
 // Mock next-auth
 vi.mock('next-auth/react', () => ({
@@ -29,9 +29,11 @@ vi.mock('next/navigation', () => ({
 
 // Mock next/link
 vi.mock('next/link', () => ({
-  default: ({ children, href }: any) => (
-    <a href={href}>{children}</a>
-  ),
+  default: ({ children, href }: { children: unknown; href: string }) =>
+    ({
+      children,
+      href,
+    }),
 }));
 
 // Setup global test utilities

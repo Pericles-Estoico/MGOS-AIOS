@@ -16,8 +16,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
+    const session = (await getServerSession(authOptions)) as SessionWithAccessToken;
+    if (!session?.user?.id) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -25,7 +25,7 @@ export async function PUT(
     const body = await request.json();
     const { name, description, filters, is_shared, is_default } = body;
 
-    const supabase = createSupabaseServerClient((session as SessionWithAccessToken).accessToken);
+    const supabase = createSupabaseServerClient(session.accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },
@@ -86,14 +86,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
+    const session = (await getServerSession(authOptions)) as SessionWithAccessToken;
+    if (!session?.user?.id) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = await params;
 
-    const supabase = createSupabaseServerClient((session as SessionWithAccessToken).accessToken);
+    const supabase = createSupabaseServerClient(session.accessToken);
     if (!supabase) {
       return Response.json(
         { error: 'Database connection not available' },

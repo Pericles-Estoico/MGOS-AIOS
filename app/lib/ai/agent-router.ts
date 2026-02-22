@@ -33,7 +33,7 @@ export async function routeMessage(
   const relevantAgents = identifyRelevantAgents(userMessage);
 
   // If Nexo is the primary respondent, delegate to specialists
-  let agentResponses: Record<string, string> = {};
+  const agentResponses: Record<string, string> = {};
 
   if (relevantAgents.includes('nexo')) {
     // Get Nexo's routing decision
