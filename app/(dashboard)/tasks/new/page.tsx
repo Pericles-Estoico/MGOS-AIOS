@@ -45,13 +45,13 @@ export default function NewTaskPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || 'Failed to create task');
+        setError(data.error || 'Erro ao criar tarefa');
         return;
       }
 
       router.push('/tasks');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
     } finally {
       setLoading(false);
     }

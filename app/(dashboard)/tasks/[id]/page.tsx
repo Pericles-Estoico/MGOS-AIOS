@@ -221,7 +221,7 @@ export default function TaskDetailPage({ params }: Props) {
             </div>
 
             <div className="prose max-w-none">
-              <p className="text-gray-700">{task.description || 'No description provided'}</p>
+              <p className="text-gray-700">{task.description || 'Nenhuma descrição fornecida'}</p>
             </div>
 
             {task.due_date && (
