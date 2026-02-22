@@ -15,9 +15,9 @@ export default function NewTaskPage() {
   if (session && session.user.role && !['admin', 'head'].includes(session.user.role)) {
     return (
       <div className="bg-red-50 border border-red-200 p-6 rounded-lg">
-        <p className="text-red-700">You do not have permission to create tasks</p>
+        <p className="text-red-700">Você não tem permissão para criar tarefas</p>
         <Link href="/tasks" className="text-red-600 hover:underline mt-2 block">
-          ← Back to Tasks
+          ← Voltar para Tarefas
         </Link>
       </div>
     );
@@ -60,22 +60,22 @@ export default function NewTaskPage() {
   return (
     <div>
       <Link href="/tasks" className="text-blue-600 hover:underline mb-6 block">
-        ← Back to Tasks
+        ← Voltar para Tarefas
       </Link>
 
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Create New Task</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">Criar Nova Tarefa</h1>
 
       <div className="bg-white rounded-lg shadow p-6 max-w-2xl">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-            {error}
+            ❌ Erro: {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-              Title <span>*</span>
+              Título <span className="text-red-500">*</span>
             </label>
             <input
               id="title"
@@ -84,13 +84,13 @@ export default function NewTaskPage() {
               required
               disabled={loading}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              placeholder="Task title"
+              placeholder="Título da tarefa"
             />
           </div>
 
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-              Description
+              Descrição
             </label>
             <textarea
               id="description"
@@ -98,14 +98,14 @@ export default function NewTaskPage() {
               disabled={loading}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               rows={4}
-              placeholder="Task description and acceptance criteria"
+              placeholder="Descrição da tarefa e critérios de aceitação"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
-                Priority *
+                Prioridade <span className="text-red-500">*</span>
               </label>
               <select
                 id="priority"
@@ -114,17 +114,17 @@ export default function NewTaskPage() {
                 disabled={loading}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Select priority</option>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="critical">Critical</option>
+                <option value="">Selecione a prioridade</option>
+                <option value="low">Baixa</option>
+                <option value="medium">Média</option>
+                <option value="high">Alta</option>
+                <option value="critical">Crítica</option>
               </select>
             </div>
 
             <div>
               <label htmlFor="due_date" className="block text-sm font-medium text-gray-700 mb-2">
-                Due Date
+                Data de Vencimento
               </label>
               <input
                 id="due_date"
@@ -138,7 +138,7 @@ export default function NewTaskPage() {
 
           <div>
             <label htmlFor="assigned_to" className="block text-sm font-medium text-gray-700 mb-2">
-              Assign To (User ID)
+              Atribuir Para (ID do Usuário)
             </label>
             <input
               id="assigned_to"
@@ -146,7 +146,7 @@ export default function NewTaskPage() {
               type="text"
               disabled={loading}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              placeholder="User UUID (optional)"
+              placeholder="UUID do usuário (opcional)"
             />
           </div>
 
@@ -156,14 +156,14 @@ export default function NewTaskPage() {
               disabled={loading}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition"
             >
-              {loading ? 'Creating...' : 'Create Task'}
+              {loading ? 'Criando...' : '✅ Criar Tarefa'}
             </button>
 
             <Link
               href="/tasks"
               className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
             >
-              Cancel
+              Cancelar
             </Link>
           </div>
         </form>
