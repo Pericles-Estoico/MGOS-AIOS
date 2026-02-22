@@ -77,12 +77,35 @@ export async function GET(
     }
 
     // Fetch all tasks for this channel
-    const { data: tasks } = await supabase
+    const { data: tasks, error: tasksError } = await supabase
       .from('tasks')
       .select('id, title, status, priority, created_at, updated_at, admin_approved')
       .eq('source_type', 'ai_generated')
       .eq('channel', channel)
       .order('created_at', { ascending: false });
+
+    // Fallback if tasks table doesn't exist
+    if (tasksError?.code === 'PGRST116' || tasksError?.message?.includes('does not exist')) {
+      return NextResponse.json({
+        data: {
+          channel,
+          name: AGENT_NAMES[channel] || 'Unknown',
+          tasksGenerated: 0,
+          tasksApproved: 0,
+          tasksCompleted: 0,
+          tasksRejected: 0,
+          approvalRate: 0,
+          completionRate: 0,
+          avgCompletionTime: 0,
+          recentTasks: [],
+          agentPerformance: {
+            agent: AGENT_NAMES[channel] || 'Unknown',
+            tasksCreated: 0,
+            successRate: 0,
+          },
+        }
+      });
+    }
 
     const tasksGenerated = tasks?.length || 0;
     const tasksApproved = tasks?.filter(t => t.admin_approved && t.status !== 'rejected').length || 0;
