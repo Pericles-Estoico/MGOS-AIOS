@@ -13,8 +13,8 @@ interface SessionWithAccessToken {
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
+    const session = (await getServerSession(authOptions)) as unknown as SessionWithAccessToken | null;
+    if (!session || !session.user?.id) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createSupabaseServerClient((session as SessionWithAccessToken).accessToken);
+    const supabase = createSupabaseServerClient(session.accessToken);
 
     if (!supabase) {
       return Response.json(

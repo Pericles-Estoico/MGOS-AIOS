@@ -7,10 +7,11 @@ export const metadata = {
 };
 
 export default async function TimeLogsPage() {
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(authOptions)) as unknown as Record<string, unknown> | null;
 
   // Restrict access to admin only
-  if (session?.user?.role !== 'admin') {
+  const user = (session?.user as unknown as Record<string, unknown>) || {};
+  if (user.role !== 'admin') {
     redirect('/dashboard');
   }
 

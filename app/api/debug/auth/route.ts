@@ -21,7 +21,7 @@ export async function GET() {
       },
       currentSession: session,
       authOptions: {
-        providers: authOptions.providers.map((p) => (p as unknown as Record<string, unknown>).id || (p as unknown as Record<string, unknown>).name),
+        providers: (authOptions.providers as unknown as Array<Record<string, unknown>>).map((p: Record<string, unknown>) => p.id || p.name),
         pages: authOptions.pages,
         hasCallbacks: !!authOptions.callbacks,
       },
