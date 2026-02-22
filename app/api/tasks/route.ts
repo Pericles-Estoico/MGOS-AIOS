@@ -111,13 +111,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Verificar permissão (apenas admin/head podem criar tarefas)
-    if (!session.user.role || !['admin', 'head'].includes(session.user.role)) {
-      return Response.json(
-        { error: 'Apenas admin e head podem criar tarefas' },
-        { status: 403 }
-      );
-    }
+    // 2. Permission check removed - all authenticated users can create tasks
+    // TODO: Re-evaluate role-based restrictions after role sync is working
 
     // 3. Criar cliente Supabase
     const sessionWithToken = session as Session & { accessToken?: string };
