@@ -315,3 +315,334 @@ export async function scheduleAutonomousLoop(intervalHours: number = 6): Promise
     }
   }, interval);
 }
+
+// ============================================================================
+// ANALYSIS PLAN INTERFACE & FUNCTIONS
+// ============================================================================
+
+export interface AnalysisOpportunity {
+  id: number;
+  priority: 'alta' | 'media' | 'baixa';
+  title: string;
+  what: string;
+  why: string;
+  how: string;
+  agent: string;
+  expectedImpact: string;
+  metric: string;
+}
+
+export interface AnalysisPhase {
+  number: number;
+  name: string;
+  weeks: string;
+  tasks: string[];
+  investment: string;
+  expectedImpact: string;
+}
+
+export interface AnalysisMetric {
+  label: string;
+  baseline: string;
+  goal: string;
+  phase: string;
+}
+
+export interface AnalysisPlan {
+  summary: string;
+  channels: string[];
+  opportunities: AnalysisOpportunity[];
+  phases: AnalysisPhase[];
+  metrics: AnalysisMetric[];
+}
+
+export interface AnalysisPlanResponse {
+  planId: string;
+  status: 'pending' | 'approved' | 'rejected';
+  channels: string[];
+  summary: string;
+  createdAt: string;
+}
+
+/**
+ * Run strategic analysis for specified marketplace channels
+ * Calls specialized agent for each channel and aggregates results
+ */
+export async function runAnalysisPlan(
+  channels: string[],
+  isScheduled: boolean = false
+): Promise<AnalysisPlanResponse> {
+  const supabase = createSupabaseServerClient();
+  if (!supabase) {
+    throw new Error('Supabase client not initialized');
+  }
+
+  const startTime = new Date();
+  const aggregatedPlan: AnalysisPlan = {
+    summary: '',
+    channels,
+    opportunities: [],
+    phases: [],
+    metrics: [],
+  };
+
+  // Map channels to agents
+  const agentChannelMap: Record<string, AgentRole> = {
+    amazon: 'alex',
+    mercadolivre: 'marina',
+    shopee: 'sunny',
+    shein: 'tren',
+    tiktok: 'viral',
+    'tiktok-shop': 'viral',
+    kaway: 'premium',
+  };
+
+  // Run analysis for each channel
+  const analysisResults: Record<string, string> = {};
+  for (const channel of channels) {
+    const agent = agentChannelMap[channel];
+    if (!agent) {
+      console.warn(`No agent mapped for channel: ${channel}`);
+      continue;
+    }
+
+    try {
+      const agentName = getAgentName(agent);
+      const analysisPrompt = getAgentPrompt(agent);
+
+      const strategicPrompt = `${analysisPrompt}
+
+MODO ANÁLISE ESTRATÉGICA - Você está gerando um plano estratégico profundo.
+
+Contexto:
+- Esta é uma ANÁLISE ESTRATÉGICA PROFUNDA, não tarefas operacionais
+- Você deve gerar 3-5 oportunidades de alto impacto com ROI claro
+- Cada oportunidade deve incluir: O que fazer, Por que, Como, Métrica de sucesso
+- Adicione 3 fases de implementação (curto/médio/longo prazo)
+- Identifique 4-5 métricas de sucesso com baseline e goal
+
+Formato esperado (JSON estruturado):
+{
+  "summary": "Resumo executivo de 2-3 frases",
+  "opportunities": [
+    {
+      "id": 1,
+      "priority": "alta|media|baixa",
+      "title": "Título conciso",
+      "what": "O que fazer",
+      "why": "Por que é importante",
+      "how": "Como executar",
+      "agent": "${agentName}",
+      "expectedImpact": "% de impacto esperado",
+      "metric": "KPI de medição"
+    },
+    ...
+  ],
+  "phases": [
+    {
+      "number": 1,
+      "name": "Nome da Fase",
+      "weeks": "Semanas 1-4",
+      "tasks": ["Tarefa 1", "Tarefa 2"],
+      "investment": "Descrição de investimento",
+      "expectedImpact": "% de impacto"
+    },
+    ...
+  ],
+  "metrics": [
+    {
+      "label": "Visibilidade",
+      "baseline": "Valor atual",
+      "goal": "Meta",
+      "phase": "Fase X"
+    },
+    ...
+  ]
+}`;
+
+      const response = await callAgent({
+        systemPrompt: strategicPrompt,
+        userMessage: `Gere um plano estratégico completo para otimização de ${channel} em moda bebê e infantil. Inclua oportunidades de alto impacto, fases de implementação e métricas de sucesso.`,
+        provider: 'openai',
+        maxTokens: 3000,
+      });
+
+      analysisResults[channel] = response.content;
+    } catch (error) {
+      console.error(`Error analyzing channel ${channel}:`, error);
+      analysisResults[channel] = `Erro ao analisar ${channel}`;
+    }
+  }
+
+  // Parse and aggregate results
+  for (const [channel, content] of Object.entries(analysisResults)) {
+    try {
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+
+        // Merge opportunities
+        if (Array.isArray(parsed.opportunities)) {
+          aggregatedPlan.opportunities.push(
+            ...parsed.opportunities.map((opp: any, idx: number) => ({
+              ...opp,
+              id: aggregatedPlan.opportunities.length + idx + 1,
+            }))
+          );
+        }
+
+        // Merge phases (aggregate by phase number)
+        if (Array.isArray(parsed.phases)) {
+          for (const phase of parsed.phases) {
+            const existingPhase = aggregatedPlan.phases.find(
+              p => p.number === phase.number
+            );
+            if (existingPhase) {
+              existingPhase.tasks = [...new Set([...existingPhase.tasks, ...phase.tasks])];
+            } else {
+              aggregatedPlan.phases.push(phase);
+            }
+          }
+        }
+
+        // Merge metrics
+        if (Array.isArray(parsed.metrics)) {
+          aggregatedPlan.metrics.push(...parsed.metrics);
+        }
+
+        // Use first summary available
+        if (!aggregatedPlan.summary && parsed.summary) {
+          aggregatedPlan.summary = parsed.summary;
+        }
+      }
+    } catch (error) {
+      console.error(`Error parsing analysis for ${channel}:`, error);
+    }
+  }
+
+  // Ensure we have a summary
+  if (!aggregatedPlan.summary) {
+    aggregatedPlan.summary = `Plano estratégico gerado para ${channels.join(', ')} focando em moda bebê e infantil.`;
+  }
+
+  // Sort opportunities by priority
+  const priorityOrder = { alta: 0, media: 1, baixa: 2 };
+  aggregatedPlan.opportunities.sort(
+    (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]
+  );
+
+  // Sort phases by number
+  aggregatedPlan.phases.sort((a, b) => a.number - b.number);
+
+  try {
+    // Save plan to database
+    const { data, error } = await supabase
+      .from('marketplace_plans')
+      .insert({
+        title: `Análise ${channels.join(' + ')} - ${new Date().toLocaleDateString('pt-BR')}`,
+        description: aggregatedPlan.summary,
+        channels,
+        plan_data: aggregatedPlan,
+        status: 'pending',
+        created_by_agent: isScheduled ? 'scheduler' : 'nexo',
+        is_scheduled: isScheduled,
+        created_at: startTime.toISOString(),
+        updated_at: startTime.toISOString(),
+      })
+      .select('id')
+      .single();
+
+    if (error) {
+      console.error('Error saving analysis plan:', error);
+      throw error;
+    }
+
+    return {
+      planId: data.id,
+      status: 'pending',
+      channels,
+      summary: aggregatedPlan.summary,
+      createdAt: startTime.toISOString(),
+    };
+  } catch (error) {
+    console.error('Error creating analysis plan:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create Phase 1 tasks from approved analysis plan
+ */
+export async function createPhase1Tasks(planId: string): Promise<string[]> {
+  const supabase = createSupabaseServerClient();
+  if (!supabase) {
+    throw new Error('Supabase client not initialized');
+  }
+
+  try {
+    // Fetch the plan
+    const { data: plan, error: fetchError } = await supabase
+      .from('marketplace_plans')
+      .select('*')
+      .eq('id', planId)
+      .single();
+
+    if (fetchError || !plan) {
+      throw new Error(`Plan not found: ${planId}`);
+    }
+
+    const planData = plan.plan_data as AnalysisPlan;
+    const phase1 = planData.phases.find(p => p.number === 1);
+
+    if (!phase1) {
+      throw new Error('No Phase 1 found in analysis plan');
+    }
+
+    const dueDateString = new Date(
+      Date.now() + 7 * 24 * 60 * 60 * 1000
+    )
+      .toISOString()
+      .split('T')[0];
+
+    // Create tasks for Phase 1
+    const tasksToInsert = phase1.tasks.map((taskTitle, idx) => ({
+      title: taskTitle,
+      description: `Tarefa da Fase 1 do plano de análise ${plan.title}`,
+      channel: plan.channels[0], // Primary channel
+      priority: idx === 0 ? 'high' : 'medium',
+      status: 'pending',
+      source_type: 'analysis_approved',
+      admin_approved: false,
+      estimated_hours: 8,
+      due_date: dueDateString,
+      created_at: new Date().toISOString(),
+    }));
+
+    const { data: insertedTasks, error: insertError } = await supabase
+      .from('tasks')
+      .insert(tasksToInsert)
+      .select('id');
+
+    if (insertError) {
+      console.error('Error creating Phase 1 tasks:', insertError);
+      throw insertError;
+    }
+
+    const taskIds = insertedTasks?.map(t => t.id) || [];
+
+    // Update plan with task tracking
+    await supabase
+      .from('marketplace_plans')
+      .update({
+        phase1_tasks_created: true,
+        phase1_created_at: new Date().toISOString(),
+        phase1_task_ids: taskIds,
+      })
+      .eq('id', planId);
+
+    return taskIds;
+  } catch (error) {
+    console.error('Error creating Phase 1 tasks:', error);
+    throw error;
+  }
+}

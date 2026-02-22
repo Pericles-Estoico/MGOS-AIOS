@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { signOut } from 'next-auth/react';
 import type { Session } from 'next-auth';
+import { useState, useEffect } from 'react';
 import {
   BarChart3,
   CheckSquare,
@@ -30,21 +31,49 @@ interface SidebarProps {
 export default function Sidebar({ user, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const [pendingAnalyses, setPendingAnalyses] = useState(0);
+
+  // Fetch pending analyses count
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        const response = await fetch('/api/marketplace/analysis?status=pending&limit=1');
+        const data = await response.json();
+        setPendingAnalyses(data.pendingCount || 0);
+      } catch (error) {
+        console.error('Error fetching pending analyses:', error);
+      }
+    };
+
+    if (['admin', 'head'].includes(user?.role as string)) {
+      fetchPendingCount();
+      // Refresh every 30 seconds
+      const interval = setInterval(fetchPendingCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user?.role]);
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
 
-  const navLink = (href: string, label: string, icon: React.ReactNode) => (
+  const navLink = (href: string, label: string, icon: React.ReactNode, badge?: number) => (
     <Link
       href={href}
       onClick={onClose}
-      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition justify-between ${
         isActive(href)
           ? 'bg-teal-50 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400 font-medium'
           : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
       }`}
     >
-      <div className="flex-shrink-0">{icon}</div>
-      <span className="hidden md:inline">{label}</span>
+      <div className="flex items-center gap-3 flex-1">
+        <div className="flex-shrink-0">{icon}</div>
+        <span className="hidden md:inline">{label}</span>
+      </div>
+      {badge ? (
+        <span className="bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-auto">
+          {badge}
+        </span>
+      ) : null}
     </Link>
   );
 
@@ -106,6 +135,7 @@ export default function Sidebar({ user, onClose }: SidebarProps) {
             <p className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Marketplace</p>
             {navLink('/marketplace', 'Marketplace Master', <Globe className="w-5 h-5" />)}
             {navLink('/marketplace/chat', 'Chat com Nexo', <MessageCircle className="w-5 h-5" />)}
+            {navLink('/marketplace/analysis', 'Análises', <Search className="w-5 h-5" />, pendingAnalyses > 0 ? pendingAnalyses : undefined)}
           </>
         )}
 

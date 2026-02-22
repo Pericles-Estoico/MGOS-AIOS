@@ -12,7 +12,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
-  Zap
+  Zap,
+  Bell,
+  Search
 } from 'lucide-react';
 
 interface ChannelStatus {
@@ -52,6 +54,7 @@ export default function MarketplacePage() {
   const [stats, setStats] = useState<MarketplaceStats | null>(null);
   const [channelStatus, setChannelStatus] = useState<ChannelStatus[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [pendingAnalyses, setPendingAnalyses] = useState(0);
 
   // Redirect if not admin
   useEffect(() => {
@@ -78,6 +81,13 @@ export default function MarketplacePage() {
         if (!channelsResponse.ok) throw new Error('Erro ao buscar stats dos canais');
         const channelsData = await channelsResponse.json();
         setChannelStatus(channelsData.channels || []);
+
+        // Fetch pending analyses
+        const analysisResponse = await fetch('/api/marketplace/analysis?status=pending&limit=1');
+        if (analysisResponse.ok) {
+          const analysisData = await analysisResponse.json();
+          setPendingAnalyses(analysisData.pendingCount || 0);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erro desconhecido');
       } finally {
@@ -239,6 +249,31 @@ export default function MarketplacePage() {
         </div>
       </div>
 
+      {/* Pending Analysis Plans */}
+      {pendingAnalyses > 0 && (
+        <div className="mb-8">
+          <Link
+            href="/marketplace/analysis"
+            className="block bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-orange-200 rounded-lg p-6 hover:shadow-lg transition"
+          >
+            <div className="flex items-center gap-4">
+              <div className="bg-orange-100 rounded-full p-3">
+                <Bell className="w-6 h-6 text-orange-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-gray-900 text-lg">Planos Aguardando Aprovação</h3>
+                <p className="text-gray-700 text-sm mt-1">
+                  {pendingAnalyses} plano{pendingAnalyses > 1 ? 's' : ''} estratégico{pendingAnalyses > 1 ? 's' : ''} gerado{pendingAnalyses > 1 ? 's' : ''} e aguardando sua análise
+                </p>
+              </div>
+              <div className="bg-orange-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold">
+                {pendingAnalyses}
+              </div>
+            </div>
+          </Link>
+        </div>
+      )}
+
       {/* Quick Actions */}
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-bold text-gray-900 mb-4">Ações Rápidas</h3>
@@ -273,6 +308,17 @@ export default function MarketplacePage() {
             <div>
               <p className="font-semibold text-gray-900">Analytics</p>
               <p className="text-sm text-gray-600">Métricas e relatórios</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/marketplace/analysis"
+            className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition flex items-center gap-3"
+          >
+            <Search className="w-5 h-5 text-purple-500" />
+            <div>
+              <p className="font-semibold text-gray-900">Análises Estratégicas</p>
+              <p className="text-sm text-gray-600">Planos de otimização</p>
             </div>
           </Link>
         </div>
