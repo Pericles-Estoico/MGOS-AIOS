@@ -81,8 +81,11 @@ export async function GET(request: NextRequest) {
       if (error.code === 'PGRST116' || error.message?.includes('relation "public.tasks" does not exist')) {
         return Response.json({
           data: [],
-          count: 0,
-          error: 'Tabela de tarefas ainda não foi criada no banco'
+          pagination: {
+            total: 0,
+            limit,
+            offset
+          }
         });
       }
       return Response.json(

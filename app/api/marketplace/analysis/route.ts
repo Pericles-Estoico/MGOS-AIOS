@@ -72,8 +72,7 @@ export async function GET(request: NextRequest) {
           total: 0,
           page,
           limit,
-          pendingCount: 0,
-          error: 'Tabela de análises ainda não foi criada no banco'
+          pendingCount: 0
         });
       }
       return NextResponse.json(
