@@ -793,6 +793,7 @@ Formato esperado (JSON estruturado):
 
 /**
  * Create Phase 1 tasks from approved analysis plan
+ * Includes fallback: if Phase 1 not found, auto-generate from opportunities
  */
 export async function createPhase1Tasks(planId: string): Promise<string[]> {
   const supabase = createSupabaseServerClient();
@@ -813,10 +814,50 @@ export async function createPhase1Tasks(planId: string): Promise<string[]> {
     }
 
     const planData = plan.plan_data as AnalysisPlan;
-    const phase1 = planData.phases.find(p => p.number === 1);
 
+    // Log plan data for debugging
+    console.log(`📊 Plan Data for ${planId}:`, {
+      phases: planData.phases?.length || 0,
+      opportunities: planData.opportunities?.length || 0,
+      channels: planData.channels,
+    });
+
+    // Try to find Phase 1
+    let phase1 = planData.phases?.find(p => p.number === 1);
+
+    // FALLBACK: If Phase 1 not found, auto-generate from opportunities
     if (!phase1) {
-      throw new Error('No Phase 1 found in analysis plan');
+      console.warn(
+        `⚠️ Phase 1 not found in plan. Phases: ${JSON.stringify(planData.phases || [])}. Auto-generating from opportunities...`
+      );
+
+      // Auto-generate Phase 1 from high-priority opportunities
+      const highPriorityOpps = (planData.opportunities || [])
+        .filter(opp => opp.priority === 'alta')
+        .slice(0, 5); // Take top 5
+
+      if (highPriorityOpps.length === 0) {
+        throw new Error(
+          'Cannot create Phase 1: No Phase 1 found and no high-priority opportunities to generate tasks'
+        );
+      }
+
+      // Create Phase 1 from opportunities
+      phase1 = {
+        number: 1,
+        name: 'Fase 1 - Otimizações Rápidas',
+        weeks: 'Semanas 1-4',
+        tasks: highPriorityOpps.map(opp => `${opp.title}: ${opp.what}`),
+        investment: 'Equipe interna, ferramentas básicas',
+        expectedImpact: '15-20% de melhoria em KPIs principais',
+      };
+
+      console.log(`✅ Auto-generated Phase 1 with ${phase1.tasks.length} tasks`);
+    }
+
+    // Validate Phase 1 has tasks
+    if (!phase1.tasks || phase1.tasks.length === 0) {
+      throw new Error('Phase 1 has no tasks to create');
     }
 
     const dueDateString = new Date(
@@ -839,17 +880,20 @@ export async function createPhase1Tasks(planId: string): Promise<string[]> {
       created_at: new Date().toISOString(),
     }));
 
+    console.log(`📝 Creating ${tasksToInsert.length} Phase 1 tasks...`);
+
     const { data: insertedTasks, error: insertError } = await supabase
       .from('tasks')
       .insert(tasksToInsert)
       .select('id');
 
     if (insertError) {
-      console.error('Error creating Phase 1 tasks:', insertError);
+      console.error('❌ Error creating Phase 1 tasks:', insertError);
       throw insertError;
     }
 
     const taskIds = insertedTasks?.map(t => t.id) || [];
+    console.log(`✅ Created ${taskIds.length} Phase 1 tasks: ${taskIds.join(', ')}`);
 
     // Update plan with task tracking
     await supabase
@@ -863,7 +907,7 @@ export async function createPhase1Tasks(planId: string): Promise<string[]> {
 
     return taskIds;
   } catch (error) {
-    console.error('Error creating Phase 1 tasks:', error);
+    console.error('❌ Error creating Phase 1 tasks:', error);
     throw error;
   }
 }
