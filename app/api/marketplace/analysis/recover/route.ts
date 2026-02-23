@@ -20,9 +20,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Authorization check (admin only)
+    // Authorization check (admin only, or localhost dev mode)
     const userRole = session.user?.role as string;
-    if (userRole !== 'admin') {
+    const isLocalhost = request.headers.get('host')?.includes('localhost');
+    const isDev = process.env.NODE_ENV === 'development';
+
+    if (userRole !== 'admin' && !(isLocalhost && isDev)) {
       return NextResponse.json(
         { error: 'Apenas admin pode recuperar análises' },
         { status: 403 }
