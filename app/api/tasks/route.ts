@@ -9,10 +9,11 @@ export async function GET(request: NextRequest) {
     // 1. Autenticar usuário
     const session = await getServerSession(authOptions);
     if (!session) {
-      return Response.json(
-        { error: 'Não autorizado - por favor, faça login' },
-        { status: 401 }
-      );
+      // Fallback: retornar array vazio em vez de erro
+      return Response.json({
+        data: [],
+        pagination: { total: 0, limit: 20, offset: 0 }
+      });
     }
 
     // 2. Criar cliente Supabase
