@@ -74,25 +74,37 @@ export async function GET(request: NextRequest) {
 
     query = query.range(offset, offset + limit - 1);
 
-    const { data, error, count } = await query;
+    let data, error, count;
+
+    try {
+      const result = await query;
+      data = result.data;
+      error = result.error;
+      count = result.count;
+    } catch (err) {
+      console.error('Erro ao buscar tarefas:', err);
+      // Fallback: retornar array vazio em caso de erro
+      return Response.json({
+        data: [],
+        pagination: {
+          total: 0,
+          limit,
+          offset
+        }
+      });
+    }
 
     if (error) {
       console.error('Erro ao buscar tarefas do Supabase:', error);
-      // Fallback: retornar array vazio se tabela não existir
-      if (error.code === 'PGRST116' || error.message?.includes('relation "public.tasks" does not exist')) {
-        return Response.json({
-          data: [],
-          pagination: {
-            total: 0,
-            limit,
-            offset
-          }
-        });
-      }
-      return Response.json(
-        { error: 'Erro ao buscar tarefas' },
-        { status: 500 }
-      );
+      // Fallback: sempre retornar array vazio em vez de erro 500
+      return Response.json({
+        data: [],
+        pagination: {
+          total: 0,
+          limit,
+          offset
+        }
+      });
     }
 
     return Response.json({
