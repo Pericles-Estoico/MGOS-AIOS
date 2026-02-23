@@ -32,11 +32,9 @@ const REDIS_CONFIG = {
   },
 };
 
-// Connection pooling settings
-const POOL_CONFIG = {
-  maxSize: isDevelopment ? 50 : 100,
-  minSize: isDevelopment ? 5 : 20,
-};
+// Connection pooling settings (documented for reference)
+// Pool size: 50 connections (dev), 100 (prod)
+// Min size: 5 (dev), 20 (prod)
 
 // Retry configuration with exponential backoff
 const RETRY_CONFIG = {

@@ -3,7 +3,7 @@
  * Tests connection pooling, health checks, retry logic, and metrics
  */
 
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import {
   getRedisClient,
   checkRedisHealth,
@@ -104,7 +104,6 @@ describe('Redis Client', () => {
     it('should increment error count on failures', () => {
       resetMetrics();
       const initialMetrics = getRedisMetrics();
-      const initialErrors = initialMetrics.errors;
 
       // This would require actually causing an error
       // For now, verify the metric exists
@@ -120,7 +119,7 @@ describe('Redis Client', () => {
       try {
         const pong = await client.ping();
         expect(pong).toBe('PONG');
-      } catch (error) {
+      } catch {
         // Redis might not be running
         console.warn('⚠️ PING command failed - Redis may not be running');
       }
@@ -136,7 +135,7 @@ describe('Redis Client', () => {
 
         // Clean up
         await client.del('test-key');
-      } catch (error) {
+      } catch {
         console.warn('⚠️ SET/GET commands failed - Redis may not be running');
       }
     });
@@ -154,7 +153,7 @@ describe('Redis Client', () => {
         await new Promise((resolve) => setTimeout(resolve, 1100));
         const value2 = await client.get('expiring-key');
         expect(value2).toBeNull();
-      } catch (error) {
+      } catch {
         console.warn('⚠️ SETEX command failed - Redis may not be running');
       }
     });

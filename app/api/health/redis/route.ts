@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkRedisHealth, getRedisMetrics } from '@/lib/redis-client';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Check Redis connectivity
     const healthCheck = await checkRedisHealth();

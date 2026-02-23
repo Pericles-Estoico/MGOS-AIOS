@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
-import { createPhase1Tasks } from '@/lib/ai/agent-loop';
+import { createPhase1Tasks } from '@/app/lib/ai/agent-loop';
+import { enqueuePhase1Job } from '@/lib/queue/phase1-queue';
 
 /**
  * GET /api/marketplace/analysis/[id]
@@ -153,22 +154,50 @@ export async function PATCH(
         );
       }
 
-      // Create Phase 1 tasks automatically
-      let taskIds: string[] = [];
+      // Enqueue Phase 1 tasks asynchronously
+      let jobId: string = '';
       try {
-        taskIds = await createPhase1Tasks(params.id);
-        console.log(`✅ Fase 1 tarefas criadas: ${taskIds.length}`);
+        // Extract plan data for queue
+        const planData = plan.plan_data || {};
+        const opportunities = planData.opportunities || [];
+        const channels = planData.channels || plan.channels || [];
+
+        jobId = await enqueuePhase1Job({
+          planId: params.id,
+          channels,
+          opportunities,
+          metadata: {
+            createdBy: userId,
+            approvedAt: new Date(),
+            reason: reason || 'User approval',
+          },
+        });
+
+        console.log(`✅ Phase 1 job enqueued: ${jobId} for plan ${params.id}`);
       } catch (taskError) {
-        console.error('Error creating Phase 1 tasks:', taskError);
-        // Don't fail the approval if tasks creation fails
+        console.error('Error enqueueing Phase 1 tasks:', taskError);
+        // Return 202 anyway - job may have been enqueued despite error
+        if (!jobId) {
+          return NextResponse.json(
+            {
+              error: 'Erro ao enfileirar tarefas',
+              details: taskError instanceof Error ? taskError.message : 'Unknown error',
+            },
+            { status: 500 }
+          );
+        }
       }
 
-      return NextResponse.json({
-        status: 'approved',
-        message: 'Plano aprovado com sucesso',
-        phase1TasksCreated: taskIds.length,
-        taskIds,
-      });
+      // Return 202 Accepted with job ID for polling
+      return NextResponse.json(
+        {
+          status: 'approved',
+          message: 'Plano aprovado. Tarefas sendo processadas...',
+          jobId,
+          pollUrl: `/api/marketplace/jobs/${jobId}`,
+        },
+        { status: 202 }
+      );
     } else {
       // Reject plan
       if (!reason) {
