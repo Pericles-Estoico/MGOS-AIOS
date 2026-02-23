@@ -52,7 +52,7 @@ export async function GET() {
           },
           roleInfo: {
             currentRole: 'executor',
-            validRoles: ['ceo', 'lider', 'executor'],
+            validRoles: ['admin', 'executor', 'viewer'],
             canCreateTasks: false
           },
         });
@@ -80,8 +80,8 @@ export async function GET() {
           },
           roleInfo: {
             currentRole: session.user.role || 'executor',
-            validRoles: ['ceo', 'lider', 'executor'],
-            canCreateTasks: session.user.role === 'ceo' || session.user.role === 'lider'
+            validRoles: ['admin', 'executor', 'viewer'],
+            canCreateTasks: session.user.role === 'admin' || session.user.role === 'executor'
           },
         });
       }
@@ -98,7 +98,7 @@ export async function GET() {
         roleInfo: {
           currentRole: user.role,
           validRoles: ['ceo', 'lider', 'executor'],
-          canCreateTasks: user.role === 'ceo' || user.role === 'lider'
+          canCreateTasks: user.role === 'admin' || user.role === 'executor'
         },
         availableActions: {
           setRole: {
