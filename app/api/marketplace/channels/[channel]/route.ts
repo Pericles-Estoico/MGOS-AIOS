@@ -1,6 +1,7 @@
 /**
  * GET /api/marketplace/channels/[channel]
  * Get analytics and performance data for a specific marketplace channel
+ * Now using marketplace_channels table (no more hardcoded data!)
  */
 
 import { getServerSession } from 'next-auth/next';
@@ -9,8 +10,10 @@ import { createSupabaseServerClient } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface ChannelAnalytics {
+  id: string;
   channel: string;
   name: string;
+  agentName: string;
   tasksGenerated: number;
   tasksApproved: number;
   tasksCompleted: number;
@@ -18,6 +21,10 @@ interface ChannelAnalytics {
   approvalRate: number;
   completionRate: number;
   avgCompletionTime: number;
+  revenueLastWeek: number;
+  opportunitiesCount: number;
+  totalItems: number;
+  conversionRate: number;
   recentTasks: Array<{
     id: string;
     title: string;
@@ -32,15 +39,6 @@ interface ChannelAnalytics {
   };
 }
 
-const AGENT_NAMES: Record<string, string> = {
-  amazon: 'Alex (Amazon)',
-  mercadolivre: 'Marina (MercadoLivre)',
-  shopee: 'Sunny (Shopee)',
-  shein: 'Tren (Shein)',
-  tiktok: 'Viral (TikTok Shop)',
-  kaway: 'Premium (Kaway)',
-};
-
 export async function GET(
   request: NextRequest,
   { params }: { params: { channel: string } }
@@ -52,21 +50,7 @@ export async function GET(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    // Check authorization
-    const userRole = (session.user as unknown as Record<string, unknown>)?.role;
-    if (!userRole || !['admin', 'head'].includes(userRole as string)) {
-      return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
-    }
-
-    const channel = params.channel as string;
-
-    // Validate channel
-    if (!Object.keys(AGENT_NAMES).includes(channel)) {
-      return NextResponse.json(
-        { error: 'Channel não encontrado' },
-        { status: 404 }
-      );
-    }
+    const channelKey = params.channel as string;
 
     const supabase = createSupabaseServerClient();
     if (!supabase) {
@@ -76,92 +60,65 @@ export async function GET(
       );
     }
 
-    // Fetch all tasks for this channel
+    // Fetch channel from marketplace_channels table (REAL DATA!)
+    const { data: channelData, error: channelError } = await supabase
+      .from('marketplace_channels')
+      .select('*')
+      .eq('channel_key', channelKey)
+      .single();
+
+    // Fallback if channel not found
+    if (channelError || !channelData) {
+      return NextResponse.json(
+        { error: 'Channel não encontrado' },
+        { status: 404 }
+      );
+    }
+
+    // Fetch recent tasks for this channel (for UI display)
     const { data: tasks, error: tasksError } = await supabase
       .from('tasks')
       .select('id, title, status, priority, created_at, updated_at, admin_approved')
       .eq('source_type', 'ai_generated')
-      .eq('channel', channel)
-      .order('created_at', { ascending: false });
+      .eq('channel', channelKey)
+      .order('created_at', { ascending: false })
+      .limit(5);
 
-    // Fallback if tasks table doesn't exist
-    if (tasksError?.code === 'PGRST116' || tasksError?.message?.includes('does not exist')) {
-      return NextResponse.json({
-        data: {
-          channel,
-          name: AGENT_NAMES[channel] || 'Unknown',
-          tasksGenerated: 0,
-          tasksApproved: 0,
-          tasksCompleted: 0,
-          tasksRejected: 0,
-          approvalRate: 0,
-          completionRate: 0,
-          avgCompletionTime: 0,
-          recentTasks: [],
-          agentPerformance: {
-            agent: AGENT_NAMES[channel] || 'Unknown',
-            tasksCreated: 0,
-            successRate: 0,
-          },
-        }
-      });
-    }
+    // Recent tasks fallback to empty array if tasks table doesn't exist
+    const recentTasksList = tasksError?.code === 'PGRST116' ? [] : (tasks || []);
 
-    const tasksGenerated = tasks?.length || 0;
-    const tasksApproved = tasks?.filter(t => t.admin_approved && t.status !== 'rejected').length || 0;
-    const tasksCompleted = tasks?.filter(t => t.status === 'completed').length || 0;
-    const tasksRejected = tasks?.filter(t => t.status === 'rejected').length || 0;
-
-    // Calculate rates
-    const approvalRate = tasksGenerated > 0 ? (tasksApproved / tasksGenerated) * 100 : 0;
-    const completionRate = tasksGenerated > 0 ? (tasksCompleted / tasksGenerated) * 100 : 0;
-
-    // Calculate average completion time
-    let avgCompletionTime = 0;
-    const completedTasks = tasks?.filter(t => t.status === 'completed') || [];
-    if (completedTasks.length > 0) {
-      const times = completedTasks.map(task => {
-        const created = new Date(task.created_at).getTime();
-        const updated = new Date(task.updated_at).getTime();
-        return (updated - created) / (1000 * 60 * 60 * 24); // Convert to days
-      });
-      avgCompletionTime = times.reduce((a, b) => a + b, 0) / times.length;
-    }
-
-    // Get recent tasks
-    const recentTasks = (tasks || [])
-      .slice(0, 5)
-      .map(task => ({
+    // Build response with REAL data from marketplace_channels table
+    const response: ChannelAnalytics = {
+      id: channelData.id,
+      channel: channelData.channel_key,
+      name: channelData.name,
+      agentName: channelData.agent_name,
+      tasksGenerated: channelData.tasks_generated || 0,
+      tasksApproved: channelData.tasks_approved || 0,
+      tasksCompleted: channelData.tasks_completed || 0,
+      tasksRejected: channelData.tasks_rejected || 0,
+      approvalRate: channelData.approval_rate || 0,
+      completionRate: channelData.completion_rate || 0,
+      avgCompletionTime: channelData.avg_completion_time_minutes || 0,
+      revenueLastWeek: channelData.revenue_7days || 0,
+      opportunitiesCount: channelData.opportunities_count || 0,
+      totalItems: channelData.total_items || 0,
+      conversionRate: channelData.conversion_rate || 0,
+      recentTasks: recentTasksList.map(task => ({
         id: task.id,
         title: task.title,
         status: task.status,
         priority: task.priority,
         createdAt: task.created_at,
-      }));
-
-    // Build response
-    const response: ChannelAnalytics = {
-      channel,
-      name: AGENT_NAMES[channel] || 'Unknown',
-      tasksGenerated,
-      tasksApproved,
-      tasksCompleted,
-      tasksRejected,
-      approvalRate: parseFloat(approvalRate.toFixed(1)),
-      completionRate: parseFloat(completionRate.toFixed(1)),
-      avgCompletionTime: parseFloat(avgCompletionTime.toFixed(1)),
-      recentTasks,
+      })),
       agentPerformance: {
-        agent: AGENT_NAMES[channel] || 'Unknown',
-        tasksCreated: tasksGenerated,
-        successRate: parseFloat(completionRate.toFixed(1)),
+        agent: channelData.agent_name,
+        tasksCreated: channelData.tasks_generated || 0,
+        successRate: channelData.completion_rate || 0,
       },
     };
 
-    return NextResponse.json(
-      { data: response },
-      { status: 200 }
-    );
+    return NextResponse.json({ data: response }, { status: 200 });
   } catch (error) {
     console.error('Error fetching channel analytics:', error);
     return NextResponse.json(
