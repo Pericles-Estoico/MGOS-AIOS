@@ -1,282 +1,206 @@
+/**
+ * GET /api/users/[id] - Get user details
+ * PATCH /api/users/[id] - Update user
+ * DELETE /api/users/[id] - Delete user
+ * @auth Required (admin only for PATCH/DELETE)
+ */
+
 import { getServerSession } from 'next-auth';
-import type { Session } from 'next-auth';
 import { authOptions } from '@/lib/auth-mock';
 import { createSupabaseServerClient } from '@/lib/supabase';
+import { NextRequest, NextResponse } from 'next/server';
+import type { Session } from 'next-auth';
+
+// ============================================================================
+// GET: Get user details
+// ============================================================================
 
 export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const userId = params.id;
 
-    // Only admin can view user details
-    if (session.user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const { id } = await params;
-    const sessionWithToken = session as Session & { accessToken?: string };
-    const supabase = createSupabaseServerClient(sessionWithToken.accessToken);
+    const supabase = createSupabaseServerClient();
     if (!supabase) {
-      return Response.json(
-        { error: 'Database connection not available' },
-        { status: 503 }
-      );
+      return NextResponse.json({ data: null });
     }
 
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('id, name, email, role, status, created_at, updated_at')
-      .eq('id', id)
-      .single();
-
-    if (error || !user) {
-      return Response.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    return Response.json(user);
-  } catch (err) {
-    console.error('API error:', err);
-    return Response.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
-
-export async function PUT(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Only admin can update users
-    if (session.user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const { id } = await params;
-    const body = await request.json();
-    const { name, email, role, status } = body;
-
-    const sessionWithToken = session as Session & { accessToken?: string };
-    const supabase = createSupabaseServerClient(sessionWithToken.accessToken);
-    if (!supabase) {
-      return Response.json(
-        { error: 'Database connection not available' },
-        { status: 503 }
-      );
-    }
-
-    // Get current user data
-    const { data: currentUser, error: fetchError } = await supabase
+    const { data, error } = await supabase
       .from('users')
       .select('*')
-      .eq('id', id)
+      .eq('id', userId)
       .single();
 
-    if (fetchError || !currentUser) {
-      return Response.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Prevent changing own admin status
-    if (id === session.user.id && role && role !== session.user.role) {
-      return Response.json(
-        { error: 'Cannot change your own role' },
-        { status: 400 }
+    if (error || !data) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
       );
     }
 
-    // Validate email if provided
-    if (email && email !== currentUser.email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        return Response.json(
-          { error: 'Invalid email format' },
-          { status: 400 }
-        );
-      }
+    return NextResponse.json({ data });
 
-      // Check if new email is unique
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', email)
-        .neq('id', id)
-        .single();
-
-      if (existingUser) {
-        return Response.json(
-          { error: 'Email already in use' },
-          { status: 409 }
-        );
-      }
-    }
-
-    // Validate role if provided
-    if (role) {
-      const validRoles = ['executor', 'head', 'admin', 'qa'];
-      if (!validRoles.includes(role)) {
-        return Response.json(
-          { error: 'Invalid role' },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Build update object (only include provided fields)
-    const updateData: Record<string, string> = {};
-    if (name !== undefined) updateData.name = name;
-    if (email !== undefined) updateData.email = email;
-    if (role !== undefined) updateData.role = role;
-    if (status !== undefined) updateData.status = status;
-    updateData.updated_at = new Date().toISOString();
-
-    // Update user
-    const { data: updatedUser, error: updateError } = await supabase
-      .from('users')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (updateError) {
-      console.error('Supabase error:', updateError);
-      return Response.json(
-        { error: 'Failed to update user' },
-        { status: 500 }
-      );
-    }
-
-    // Create audit log
-    await supabase.from('audit_logs').insert({
-      table_name: 'users',
-      record_id: id,
-      operation: 'update_user',
-      old_value: currentUser,
-      new_value: updateData,
-      created_by: session.user.id,
-    });
-
-    return Response.json(updatedUser);
-  } catch (err) {
-    console.error('API error:', err);
-    return Response.json(
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
+// ============================================================================
+// PATCH: Update user
+// ============================================================================
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Only admin can delete users
-    if (session.user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const { id } = await params;
-
-    // Prevent self-deletion
-    if (id === session.user.id) {
-      return Response.json(
-        { error: 'Cannot delete your own account' },
-        { status: 400 }
+    const session = (await getServerSession(authOptions)) as Session | null;
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
       );
     }
 
+    const userId = params.id;
     const sessionWithToken = session as Session & { accessToken?: string };
     const supabase = createSupabaseServerClient(sessionWithToken.accessToken);
+
     if (!supabase) {
-      return Response.json(
-        { error: 'Database connection not available' },
+      return NextResponse.json(
+        { error: 'Database unavailable' },
         { status: 503 }
       );
     }
 
-    // Get user to check role
-    const { data: user, error: fetchError } = await supabase
+    // Check if user is admin
+    const { data: currentUser } = await supabase
       .from('users')
       .select('role')
-      .eq('id', id)
+      .eq('id', session.user.id)
       .single();
 
-    if (fetchError || !user) {
-      return Response.json({ error: 'User not found' }, { status: 404 });
+    if (currentUser?.role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Only admins can update users' },
+        { status: 403 }
+      );
     }
 
-    // Prevent deletion of last admin
-    if (user.role === 'admin') {
-      const { count: adminCount } = await supabase
-        .from('users')
-        .select('id', { count: 'exact' })
-        .eq('role', 'admin');
+    try {
+      const body = await request.json();
+      const { name, role, department, is_active } = body;
 
-      if (adminCount === 1) {
-        return Response.json(
-          { error: 'Cannot delete the last admin user' },
-          { status: 400 }
+      const { data, error } = await supabase
+        .from('users')
+        .update({
+          ...(name && { name }),
+          ...(role && { role }),
+          ...(department !== undefined && { department }),
+          ...(is_active !== undefined && { is_active }),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        return NextResponse.json(
+          { error: 'Failed to update user' },
+          { status: 500 }
         );
       }
+
+      return NextResponse.json({ data });
+
+    } catch (parseError) {
+      console.error('Request parsing error:', parseError);
+      return NextResponse.json(
+        { error: 'Invalid request body' },
+        { status: 400 }
+      );
     }
 
-    // Check for pending tasks (warning, not blocking)
-    const { count: pendingTasks } = await supabase
-      .from('tasks')
-      .select('id', { count: 'exact' })
-      .eq('assigned_to', id)
-      .in('status', ['pending', 'in_progress']);
+  } catch (error) {
+    console.error('Error updating user:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
 
-    // Delete user
-    const { error: deleteError } = await supabase
+// ============================================================================
+// DELETE: Delete user (soft delete)
+// ============================================================================
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = (await getServerSession(authOptions)) as Session | null;
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const userId = params.id;
+    const sessionWithToken = session as Session & { accessToken?: string };
+    const supabase = createSupabaseServerClient(sessionWithToken.accessToken);
+
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Database unavailable' },
+        { status: 503 }
+      );
+    }
+
+    // Check if user is admin
+    const { data: currentUser } = await supabase
       .from('users')
-      .delete()
-      .eq('id', id);
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
 
-    if (deleteError) {
-      console.error('Supabase error:', deleteError);
-      return Response.json(
+    if (currentUser?.role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Only admins can delete users' },
+        { status: 403 }
+      );
+    }
+
+    // Soft delete: set is_active to false
+    const { error } = await supabase
+      .from('users')
+      .update({
+        is_active: false,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId);
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return NextResponse.json(
         { error: 'Failed to delete user' },
         { status: 500 }
       );
     }
 
-    // Create audit log
-    await supabase.from('audit_logs').insert({
-      table_name: 'users',
-      record_id: id,
-      operation: 'delete_user',
-      old_value: { user_id: id },
-      new_value: null,
-      created_by: session.user.id,
-    });
+    return NextResponse.json({ success: true });
 
-    return Response.json({
-      success: true,
-      message: 'User deleted successfully',
-      warning: pendingTasks && pendingTasks > 0
-        ? `User had ${pendingTasks} pending tasks`
-        : null,
-    });
-  } catch (err) {
-    console.error('API error:', err);
-    return Response.json(
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );

@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia de Trabalho MGOS-AIOS - Passo a Passo Performático</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: white;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .cover-page {
+            page-break-after: always;
+            text-align: center;
+            padding: 100px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .cover-page h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .cover-page p {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .cover-page .version {
+            margin-top: 40px;
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin: 40px 0 20px 0;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #764ba2;
+            font-size: 1.8em;
+            margin: 30px 0 15px 0;
+            background: #f5f5f5;
+            padding: 10px 15px;
+            border-left: 5px solid #764ba2;
+        }
+
+        h3 {
+            color: #555;
+            font-size: 1.3em;
+            margin: 20px 0 10px 0;
+        }
+
+        h4 {
+            color: #777;
+            font-size: 1.1em;
+            margin: 15px 0 8px 0;
+        }
+
+        .section {
+            page-break-inside: avoid;
+            margin-bottom: 30px;
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .role-section {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+
+        .role-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: -25px -25px 20px -25px;
+            text-align: center;
+        }
+
+        .role-header h3 {
+            color: white;
+            margin: 0;
+            font-size: 1.6em;
+        }
+
+        .task-box {
+            background: #e8f4f8;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .automatic-box {
+            background: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .input-box {
+            background: #fff3e0;
+            border-left: 4px solid #FF9800;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .output-box {
+            background: #f3e5f5;
+            border-left: 4px solid #9C27B0;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .workflow-box {
+            background: white;
+            border: 2px dashed #667eea;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 6px;
+        }
+
+        .workflow-step {
+            display: flex;
+            margin: 15px 0;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        ul, ol {
+            margin-left: 20px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .highlight {
+            background: #fffacd;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .icon {
+            margin-right: 8px;
+        }
+
+        .tip {
+            background: #e3f2fd;
+            border-left: 4px solid #1976d2;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .code {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .toc {
+            background: #f5f5f5;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+
+        .toc h2 {
+            margin-top: 0;
+        }
+
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .toc li {
+            padding: 8px 0;
+        }
+
+        .toc a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+            text-align: center;
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        @media print {
+            .page-break {
+                page-break-after: always;
+            }
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- CAPA -->
+    <div class="cover-page">
+        <h1>📊 MGOS-AIOS</h1>
+        <p>Sistema de Gestão de Tarefas e Análise de Marketplaces</p>
+        <p>Guia de Trabalho Performático</p>
+        <div class="version">
+            <p>Versão 1.0 | Fevereiro 2026</p>
+            <p>Para Equipes com Diferentes Níveis de Expertise</p>
+        </div>
+    </div>
+
+    <!-- ÍNDICE -->
+    <div class="toc">
+        <h2>📑 Índice</h2>
+        <ul>
+            <li><a href="#intro">1. O que é MGOS-AIOS?</a></li>
+            <li><a href="#visao">2. Visão Geral do Sistema</a></li>
+            <li><a href="#roles">3. Papéis e Responsabilidades</a></li>
+            <li><a href="#ceo">4. Guia do CEO</a></li>
+            <li><a href="#lider">5. Guia do Líder de Equipe</a></li>
+            <li><a href="#executor">6. Guia do Executor</a></li>
+            <li><a href="#qa">7. Guia do QA (Análista)</a></li>
+            <li><a href="#workflows">8. Fluxos de Trabalho Principais</a></li>
+            <li><a href="#performance">9. Dicas de Performance</a></li>
+            <li><a href="#faq">10. Perguntas Frequentes</a></li>
+        </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- SEÇÃO 1: INTRODUÇÃO -->
+    <h1 id="intro">🎯 1. O que é MGOS-AIOS?</h1>
+
+    <div class="section">
+        <p><strong>MGOS-AIOS</strong> é um <span class="highlight">Sistema Inteligente de Gestão de Tarefas Automatizado</span> que permite:</p>
+
+        <ul>
+            <li><strong>Gerar tarefas automaticamente</strong> usando IA analisando múltiplos marketplaces</li>
+            <li><strong>Gerenciar equipes</strong> com diferentes papéis e responsabilidades</li>
+            <li><strong>Automatizar aprovações</strong> e revisão de qualidade</li>
+            <li><strong>Rastrear tempo</strong> e produtividade em tempo real</li>
+            <li><strong>Analisar performance</strong> de canais e agentes</li>
+        </ul>
+
+        <div class="success">
+            <strong>✅ Resultado:</strong> Redução de 60% no tempo de gerenciamento manual, 90% de automação de tarefas rotineiras, e tomada de decisão baseada em dados em tempo real.
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- SEÇÃO 2: VISÃO GERAL -->
+    <h1 id="visao">🏗️ 2. Visão Geral do Sistema</h1>
+
+    <div class="section">
+        <h3>Componentes Principais</h3>
+
+        <table>
+            <tr>
+                <th>Componente</th>
+                <th>Função</th>
+                <th>Responsável</th>
+            </tr>
+            <tr>
+                <td><strong>Dashboard Central</strong></td>
+                <td>Visão geral de todas as tarefas e metrics</td>
+                <td>CEO / Líder</td>
+            </tr>
+            <tr>
+                <td><strong>Marketplace Analysis</strong></td>
+                <td>Geração automática de oportunidades</td>
+                <td>Sistema (IA)</td>
+            </tr>
+            <tr>
+                <td><strong>Task Manager</strong></td>
+                <td>Atribuição e execução de tarefas</td>
+                <td>Executor</td>
+            </tr>
+            <tr>
+                <td><strong>QA Reviews</strong></td>
+                <td>Revisão de qualidade antes de publicar</td>
+                <td>QA/Analyst</td>
+            </tr>
+            <tr>
+                <td><strong>Analytics & Reporting</strong></td>
+                <td>Relatórios e insights de performance</td>
+                <td>CEO / Líder</td>
+            </tr>
+        </table>
+
+        <h3>Como o Sistema Funciona</h3>
+
+        <div class="workflow-box">
+            <div class="workflow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <strong>IA Analisa Marketplaces</strong>
+                    <p>Agentes de IA monitoram Amazon, Mercado Livre, Shopee, Shein, TikTok Shop continuamente</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <strong>Sistema Gera Tarefas</strong>
+                    <p>Oportunidades são convertidas em tarefas automaticamente (sem intervenção manual)</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <strong>Distribuição de Tarefas</strong>
+                    <p>Sistema atribui tarefas aos Executores baseado em carga de trabalho e expertise</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <strong>Execução e Submissão</strong>
+                    <p>Executor completa a tarefa e submete para revisão</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <strong>Revisão QA</strong>
+                    <p>Analista de QA revisa qualidade antes de aprovar</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                    <strong>Publicação Automática</strong>
+                    <p>Se aprovado, tarefa é publicada nos marketplaces automaticamente</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">7</div>
+                <div class="step-content">
+                    <strong>Analytics & Feedback</strong>
+                    <p>Sistema coleta dados de performance para otimização contínua</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- SEÇÃO 3: PAPÉIS -->
+    <h1 id="roles">👥 3. Papéis e Responsabilidades</h1>
+
+    <div class="section">
+        <table>
+            <tr>
+                <th>Papel</th>
+                <th>Responsabilidades</th>
+                <th>Acesso</th>
+                <th>Automação</th>
+            </tr>
+            <tr>
+                <td><strong>CEO</strong></td>
+                <td>Estratégia, aprovação de análises, visão geral</td>
+                <td>Total (Admin)</td>
+                <td>80%</td>
+            </tr>
+            <tr>
+                <td><strong>Líder</strong></td>
+                <td>Supervisão de equipe, alocação, relatórios</td>
+                <td>Moderado</td>
+                <td>70%</td>
+            </tr>
+            <tr>
+                <td><strong>Executor</strong></td>
+                <td>Executar tarefas, submeter trabalho</td>
+                <td>Limitado (suas tarefas)</td>
+                <td>30%</td>
+            </tr>
+            <tr>
+                <td><strong>QA/Analyst</strong></td>
+                <td>Revisar qualidade, fornecer feedback</td>
+                <td>Revisor</td>
+                <td>40%</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- SEÇÃO 4: GUIA DO CEO -->
+    <h1 id="ceo">👔 4. Guia do CEO - Tomadas de Decisão Estratégica</h1>
+
+    <div class="role-section">
+        <div class="role-header">
+            <h3>🎯 CEO - Visão Estratégica</h3>
+        </div>
+
+        <h3>Suas Responsabilidades</h3>
+        <ul>
+            <li>Definir estratégia de canais e marketplaces</li>
+            <li>Revisar e aprovar análises de oportunidades</li>
+            <li>Avaliar performance geral do sistema</li>
+            <li>Tomar decisões baseadas em dados</li>
+            <li>Alocar recursos e orçamento</li>
+        </ul>
+
+        <h3>O que o Sistema Faz Automaticamente (80%)</h3>
+        <div class="automatic-box">
+            <ul>
+                <li>✅ Monitora todos os 5 marketplaces continuamente</li>
+                <li>✅ Gera análises diárias de oportunidades</li>
+                <li>✅ Calcula métricas de performance em tempo real</li>
+                <li>✅ Distribui tarefas aos executores</li>
+                <li>✅ Rastreia tempo e produtividade</li>
+                <li>✅ Cria relatórios automáticos</li>
+                <li>✅ Envia notificações de status</li>
+                <li>✅ Mantém histórico completo de auditoria</li>
+            </ul>
+        </div>
+
+        <h3>O que Você Precisa Fazer (20%)</h3>
+        <div class="input-box">
+            <h4>Entrada (Input)</h4>
+            <ul>
+                <li>Revisar análises propostas (5 min/dia)</li>
+                <li>Aprovar ou rejeitar oportunidades</li>
+                <li>Atualizar estratégia de canais (1x/mês)</li>
+                <li>Fazer login 1x/dia para dashboard</li>
+            </ul>
+        </div>
+
+        <h3>Saída (Output) que Você Recebe</h3>
+        <div class="output-box">
+            <ul>
+                <li>📊 Dashboard com metrics em tempo real</li>
+                <li>📈 Gráficos de performance por canal</li>
+                <li>💰 ROI e lucro estimado</li>
+                <li>⏱️ Tempo economizado vs manual</li>
+                <li>👥 Performance da equipe</li>
+                <li>📋 Relatórios automáticos diários</li>
+            </ul>
+        </div>
+
+        <h3>Passo-a-Passo Diário do CEO</h3>
+
+        <div class="workflow-box">
+            <div class="workflow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <strong>09:00 - Login no Dashboard</strong>
+                    <p>Acesse <span class="highlight">Marketplace → Dashboard</span></p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <strong>09:05 - Revisar Status</strong>
+                    <p>Veja cards com "Planos Aguardando Aprovação"</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <strong>09:10 - Aprovar/Rejeitar Análises</strong>
+                    <p>Clique em cada plano → Veja oportunidades → Aprove ou rejeite</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <strong>09:15 - Visualizar Metrics</strong>
+                    <p>Veja gráficos de performance e ROI por canal</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <strong>09:20 - Tomar Decisões</strong>
+                    <p>Baseado em dados, defina estratégia para o dia</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tip">
+            <strong>💡 Dica de Performance:</strong> Use o filter "Por Canal" para focar em marketplaces estratégicos. Isso reduz tempo de revisão de 20 min para 5 min.
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Cuidado:</strong> Não rejeite análises sem ler as oportunidades. O sistema aproveita dados que você pode não ver à primeira vista.
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- SEÇÃO 5: GUIA DO LÍDER -->
+    <h1 id="lider">🎖️ 5. Guia do Líder de Equipe - Supervisão e Gestão</h1>
+
+    <div class="role-section">
+        <div class="role-header">
+            <h3>📊 Líder de Equipe - Gestão Operacional</h3>
+        </div>
+
+        <h3>Suas Responsabilidades</h3>
+        <ul>
+            <li>Supervisionar performance da equipe</li>
+            <li>Alocar tarefas entre executores</li>
+            <li>Garantir qualidade do trabalho</li>
+            <li>Gerar relatórios de produtividade</li>
+            <li>Oferecer feedback aos executores</li>
+        </ul>
+
+        <h3>O que o Sistema Faz Automaticamente (70%)</h3>
+        <div class="automatic-box">
+            <ul>
+                <li>✅ Aloca tarefas baseado em disponibilidade</li>
+                <li>✅ Rastreia tempo de execução</li>
+                <li>✅ Calcula produtividade por executor</li>
+                <li>✅ Envia alertas de atrasos</li>
+                <li>✅ Gera relatórios de performance</li>
+                <li>✅ Sugere redistribuição de carga</li>
+            </ul>
+        </div>
+
+        <h3>O que Você Precisa Fazer (30%)</h3>
+        <div class="input-box">
+            <h4>Entrada (Input)</h4>
+            <ul>
+                <li>Revisar tarefas atrasadas (10 min/dia)</li>
+                <li>Comunicar com executores</li>
+                <li>Fornecer feedback semanal</li>
+                <li>Ajustar alocações se necessário</li>
+            </ul>
+        </div>
+
+        <h3>Saída (Output) que Você Recebe</h3>
+        <div class="output-box">
+            <ul>
+                <li>👥 Performance individual de cada executor</li>
+                <li>⏱️ Tempo médio por tarefa</li>
+                <li>📈 Produtividade tendência</li>
+                <li>⚠️ Alertas de atrasos</li>
+                <li>📊 Relatórios automáticos semanais</li>
+            </ul>
+        </div>
+
+        <h3>Passo-a-Passo Semanal do Líder</h3>
+
+        <div class="workflow-box">
+            <div class="workflow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <strong>Segunda 09:00 - Dashboard de Equipe</strong>
+                    <p>Acesse <span class="highlight">Dashboard → Team Performance</span></p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <strong>09:10 - Revisar Tarefas em Atraso</strong>
+                    <p>Identifique tasks marcadas com ⚠️ e entre em contato</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <strong>09:20 - Analisar Performance Individual</strong>
+                    <p>Clique em cada executor → Veja métrica, tarefas completadas</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <strong>09:30 - Ajustar Alocações</strong>
+                    <p>Se alguém está sobrecarregado, redistribua tarefas</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <strong>Sexta 16:00 - Gerar Relatório Semanal</strong>
+                    <p>Exporte relatório e envie para CEO</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="success">
+            <strong>✅ Resultado Esperado:</strong> 95% das tarefas no prazo, produtividade +40% vs manual, equipe motivada.
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- SEÇÃO 6: GUIA DO EXECUTOR -->
+    <h1 id="executor">⚙️ 6. Guia do Executor - Execução de Tarefas</h1>
+
+    <div class="role-section">
+        <div class="role-header">
+            <h3>✓ Executor - Execução Prática</h3>
+        </div>
+
+        <h3>Suas Responsabilidades</h3>
+        <ul>
+            <li>Executar tarefas atribuídas</li>
+            <li>Submeter trabalho para revisão</li>
+            <li>Registrar tempo gasto</li>
+            <li>Incorporar feedback do QA</li>
+            <li>Manter qualidade consistente</li>
+        </ul>
+
+        <h3>O que o Sistema Faz Automaticamente (30%)</h3>
+        <div class="automatic-box">
+            <ul>
+                <li>✅ Atribui tarefas automaticamente</li>
+                <li>✅ Envia notificações de novas tarefas</li>
+                <li>✅ Registra tempo automaticamente (com integração)</li>
+                <li>✅ Envia lembretes de atrasos</li>
+                <li>✅ Mantém histórico de versões</li>
+            </ul>
+        </div>
+
+        <h3>O que Você Precisa Fazer (70%)</h3>
+        <div class="input-box">
+            <h4>Entrada (Input)</h4>
+            <ul>
+                <li>Executar as tarefas (tempo variável)</li>
+                <li>Submeter para revisão quando pronto</li>
+                <li>Registrar tempo gasto (2 min/tarefa)</li>
+                <li>Incorporar feedback do QA</li>
+            </ul>
+        </div>
+
+        <h3>Saída (Output) que Você Produz</h3>
+        <div class="output-box">
+            <ul>
+                <li>✅ Tarefas completadas</li>
+                <li>📝 Descrições e otimizações de produtos</li>
+                <li>🎯 Tarefas prontas para publicação</li>
+                <li>📊 Histórico de trabalho</li>
+            </ul>
+        </div>
+
+        <h3>Passo-a-Passo Diário do Executor</h3>
+
+        <div class="workflow-box">
+            <div class="workflow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <strong>08:00 - Login e Checar Tarefas</strong>
+                    <p>Acesse <span class="highlight">Dashboard → My Tasks</span> ou receba notificação</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <strong>08:05 - Iniciar Rastreamento de Tempo</strong>
+                    <p>Clique "Iniciar Rastreamento" na tarefa</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <strong>08:10 - 11:00 - Executar Tarefa</strong>
+                    <p>Complete a tarefa conforme instruções</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <strong>11:00 - Parar Rastreamento</strong>
+                    <p>Clique "Parar" no cronômetro (sistema registra tempo automaticamente)</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <strong>11:05 - Submeter para Revisão</strong>
+                    <p>Clique "Submeter para Revisão" e aguarde feedback do QA</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                    <strong>QA Revisa (24h)</strong>
+                    <p>Sistema notifica se aprovado ou precisa de ajustes</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">7</div>
+                <div class="step-content">
+                    <strong>Se Precisa Ajustar - Incorporar Feedback</strong>
+                    <p>Faça as correções sugeridas e resubmita</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tip">
+            <strong>💡 Dica de Performance:</strong> Leia a descrição completa da tarefa antes de começar. Isso reduz retrabalho em 80%.
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Qualidade é Crítica:</strong> Tarefas de baixa qualidade rejeitadas 3x+ resultam em reassignação. Sempre revise antes de submeter.
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- SEÇÃO 7: GUIA DO QA -->
+    <h1 id="qa">🔍 7. Guia do QA/Analyst - Revisão e Qualidade</h1>
+
+    <div class="role-section">
+        <div class="role-header">
+            <h3>✔️ QA/Analyst - Garantia de Qualidade</h3>
+        </div>
+
+        <h3>Suas Responsabilidades</h3>
+        <ul>
+            <li>Revisar tarefas antes de aprovar</li>
+            <li>Garantir conformidade com padrões</li>
+            <li>Fornecer feedback construtivo</li>
+            <li>Rejeitar trabalho de baixa qualidade</li>
+            <li>Manter histórico de revisões</li>
+        </ul>
+
+        <h3>O que o Sistema Faz Automaticamente (40%)</h3>
+        <div class="automatic-box">
+            <ul>
+                <li>✅ Agrupa tarefas para revisão</li>
+                <li>✅ Envia notificações de novas submissões</li>
+                <li>✅ Mantém histórico de revisões</li>
+                <li>✅ Calcula taxa de aprovação</li>
+                <li>✅ Envia lembretes de tarefas pendentes</li>
+            </ul>
+        </div>
+
+        <h3>O que Você Precisa Fazer (60%)</h3>
+        <div class="input-box">
+            <h4>Entrada (Input)</h4>
+            <ul>
+                <li>Revisar cada tarefa submetida (10-15 min)</li>
+                <li>Fornecer feedback específico</li>
+                <li>Aprovar ou rejeitar com justificativa</li>
+                <li>Acompanhar retrabalho</li>
+            </ul>
+        </div>
+
+        <h3>Saída (Output) que Você Produz</h3>
+        <div class="output-box">
+            <ul>
+                <li>✅ Aprovações de qualidade</li>
+                <li>📝 Feedback para melhorias</li>
+                <li>📊 Relatório de qualidade</li>
+                <li>🎯 Padrões mantidos consistentes</li>
+            </ul>
+        </div>
+
+        <h3>Critérios de Aprovação (Checklist)</h3>
+
+        <table>
+            <tr>
+                <th>Critério</th>
+                <th>O que Verificar</th>
+                <th>Status</th>
+            </tr>
+            <tr>
+                <td><strong>Completude</strong></td>
+                <td>Todos os campos preenchidos?</td>
+                <td>✓ ou ✗</td>
+            </tr>
+            <tr>
+                <td><strong>Ortografia</strong></td>
+                <td>Sem erros de digitação ou gramática?</td>
+                <td>✓ ou ✗</td>
+            </tr>
+            <tr>
+                <td><strong>Formato</strong></td>
+                <td>Segue padrões de layout?</td>
+                <td>✓ ou ✗</td>
+            </tr>
+            <tr>
+                <td><strong>Relevância</strong></td>
+                <td>Conteúdo é relevante para o marketplace?</td>
+                <td>✓ ou ✗</td>
+            </tr>
+            <tr>
+                <td><strong>Conformidade</strong></td>
+                <td>Atende políticas e guidelines?</td>
+                <td>✓ ou ✗</td>
+            </tr>
+        </table>
+
+        <h3>Passo-a-Passo Diário do QA</h3>
+
+        <div class="workflow-box">
+            <div class="workflow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <strong>09:00 - Login e Revisar Fila</strong>
+                    <p>Acesse <span class="highlight">Dashboard → QA Reviews</span></p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <strong>09:05 - Selecionar Tarefa</strong>
+                    <p>Clique na tarefa mais antiga na fila (FIFO)</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <strong>09:10 - Revisar Conteúdo</strong>
+                    <p>Use checklist acima para validar</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <strong>09:15 - Tomar Decisão</strong>
+                    <p><strong>Se OK:</strong> Clique "Aprovar" | <strong>Se Não:</strong> Clique "Rejeitar" + add feedback</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <strong>09:20 - Próxima Tarefa</strong>
+                    <p>Repetir até completar fila</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="success">
+            <strong>✅ Meta de Performance:</strong> 90%+ taxa de aprovação primeira vez significa executores bem treinados.
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Rejeições Frequentes:</strong> Se rejeitar mesma pessoa 3+ vezes, relatar para Líder. Pode indicar falta de treinamento.
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- SEÇÃO 8: FLUXOS DE TRABALHO -->
+    <h1 id="workflows">🔄 8. Fluxos de Trabalho Principais</h1>
+
+    <div class="section">
+        <h2>8.1 Fluxo: Aprovação de Análise de Marketplace</h2>
+
+        <div class="workflow-box">
+            <h4>Participantes: Sistema → CEO → Líder → Executor → QA</h4>
+
+            <div class="workflow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <strong>[AUTOMÁTICO] IA Gera Análise</strong>
+                    <p>Sistema executa análise dos 5 marketplaces</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <strong>[CEO] Revisar e Aprovar</strong>
+                    <p>CEO lê análise em 5 minutos e aprova ou rejeita</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <strong>[AUTOMÁTICO] Converter em Tarefas</strong>
+                    <p>Sistema transforma oportunidades em tarefas</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <strong>[AUTOMÁTICO] Alocar aos Executores</strong>
+                    <p>Sistema distribui baseado em carga e expertise</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <strong>[LÍDER] Monitorar Progresso</strong>
+                    <p>Líder acompanha execução das tarefas</p>
+                </div>
+            </div>
+        </div>
+
+        <h2>8.2 Fluxo: Execução e Revisão de Tarefa</h2>
+
+        <div class="workflow-box">
+            <h4>Participantes: Executor → QA → Sistema → Marketplace</h4>
+
+            <div class="workflow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <strong>[EXECUTOR] Receber Notificação</strong>
+                    <p>Nova tarefa atribuída e notificação enviada</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <strong>[EXECUTOR] Iniciar Rastreamento</strong>
+                    <p>Clica "Iniciar" e começa a trabalhar</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <strong>[EXECUTOR] Executar Tarefa</strong>
+                    <p>Completa o trabalho conforme instruções</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <strong>[EXECUTOR] Submeter para Revisão</strong>
+                    <p>Clica "Submeter" para enviar ao QA</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <strong>[QA] Revisar Qualidade</strong>
+                    <p>QA revisa e aprova ou rejeita em 24h</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                    <strong>[AUTOMÁTICO] Publicar ou Rejeitar</strong>
+                    <p>Se aprovado: Sistema publica nos marketplaces. Se rejeitado: Volta para executor com feedback</p>
+                </div>
+            </div>
+        </div>
+
+        <h2>8.3 Fluxo: Feedback e Retrabalho</h2>
+
+        <div class="workflow-box">
+            <h4>Participantes: QA → Executor → QA → Publicação</h4>
+
+            <div class="workflow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <strong>[QA] Rejeitar com Feedback</strong>
+                    <p>QA fornece feedback específico e rejeita</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <strong>[EXECUTOR] Receber Notificação</strong>
+                    <p>Executor é notificado com motivo da rejeição</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <strong>[EXECUTOR] Corrigir Problemas</strong>
+                    <p>Faz as correções conforme feedback</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <strong>[EXECUTOR] Resubmeter</strong>
+                    <p>Submete novamente para revisão</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <strong>[QA] Revisar Novamente</strong>
+                    <p>QA valida se problemas foram resolvidos</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="success">
+            <strong>✅ Tempo Médio Total por Tarefa:</strong> 3-4 horas (execução + revisão)
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- SEÇÃO 9: DICAS DE PERFORMANCE -->
+    <h1 id="performance">⚡ 9. Dicas de Performance - Otimize seu Workflow</h1>
+
+    <div class="section">
+        <h2>9.1 Para o CEO (Reduzir Tempo de 20min para 5min)</h2>
+
+        <div class="task-box">
+            <h4>✓ Use Filtros por Canal</h4>
+            <p>Não revise tudo. Filtre por Amazon, MercadoLivre, etc. Aprove só o que é estratégico.</p>
+        </div>
+
+        <div class="task-box">
+            <h4>✓ Aproveite o Dashboard Automático</h4>
+            <p>Todos os gráficos já estão prontos. Não precisa gerar relatórios manualmente.</p>
+        </div>
+
+        <div class="task-box">
+            <h4>✓ Configure Alertas</h4>
+            <p>Defina alertas para quando ROI cair abaixo de 30% ou taxa de rejeição &gt; 10%.</p>
+        </div>
+
+        <h2>9.2 Para o Líder (Reduzir Tempo de 60min para 15min)</h2>
+
+        <div class="task-box">
+            <h4>✓ Use Visão de Timeline</h4>
+            <p>Veja tarefas atrasadas em cronograma visual. Mais rápido que lista.</p>
+        </div>
+
+        <div class="task-box">
+            <h4>✓ Exporte Relatórios Automáticos</h4>
+            <p>Clique "Export Weekly Report" em vez de montar manualmente. Salva 30min.</p>
+        </div>
+
+        <div class="task-box">
+            <h4>✓ Batch Reallocations</h4>
+            <p>Se múltiplas tarefas estão atrasadas, selecione todas e realoque de uma vez.</p>
+        </div>
+
+        <h2>9.3 Para o Executor (Reduzir Erro em 80%)</h2>
+
+        <div class="task-box">
+            <h4>✓ Leia Descrição Completa Antes de Começar</h4>
+            <p>3 minutos lendo = 30 minutos economizados em retrabalho. SEMPRE leia primeiro.</p>
+        </div>
+
+        <div class="task-box">
+            <h4>✓ Use Template de Exemplo</h4>
+            <p>Clique "Ver Exemplo" para copiar format de tarefa similar já aprovada.</p>
+        </div>
+
+        <div class="task-box">
+            <h4>✓ Autosave Frequente</h4>
+            <p>Sistema salva automaticamente. Mas salve também localmente se fizer edição offline.</p>
+        </div>
+
+        <h2>9.4 Para o QA (Reduzir Tempo de 30min para 15min)</h2>
+
+        <div class="task-box">
+            <h4>✓ Use Checklist Automático</h4>
+            <p>Sistema já marca alguns itens. Só precise validar os críticos.</p>
+        </div>
+
+        <div class="task-box">
+            <h4>✓ Bulk Approve Similar Tasks</h4>
+            <p>Se múltiplas tarefas têm mesma estrutura e estão OK, aprove todas de uma vez.</p>
+        </div>
+
+        <div class="task-box">
+            <h4>✓ Use Feedback Templates</h4>
+            <p>Para problemas comuns, use template de feedback. Edite só o específico.</p>
+        </div>
+
+        <h2>9.5 Dicas Gerais para Todos</h2>
+
+        <div class="automatic-box">
+            <h4>🚀 Top 5 Otimizações</h4>
+            <ul>
+                <li><strong>1. Use Keyboard Shortcuts:</strong> Ctrl+S salva, Ctrl+E exporta, Ctrl+P imprime</li>
+                <li><strong>2. Minimize Abas:</strong> Trabalhe com max 3 abas abertas. Reduz distração.</li>
+                <li><strong>3. Use Notificações:</strong> Configure para receber apenas alertas críticos</li>
+                <li><strong>4. Batch Process:</strong> Agrupe tarefas similares. Faz 10 de uma vez = mais rápido que 1 por 1</li>
+                <li><strong>5. Review Analytics Weekly:</strong> 1h/semana analisando dados = 10h/semana economizadas em decisões ruins</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- SEÇÃO 10: FAQ -->
+    <h1 id="faq">❓ 10. Perguntas Frequentes (FAQ)</h1>
+
+    <div class="section">
+        <h3>Perguntas Técnicas</h3>
+
+        <div class="task-box">
+            <h4>P: Como faço login?</h4>
+            <p><strong>R:</strong> Acesse app.mgos.com.br → Email + Senha → Dashboard</p>
+        </div>
+
+        <div class="task-box">
+            <h4>P: Posso acessar offline?</h4>
+            <p><strong>R:</strong> Não. Você precisa de internet. Mas pode baixar tarefas e trabalhar offline, depois sync quando conectar.</p>
+        </div>
+
+        <div class="task-box">
+            <h4>P: Como altero minha senha?</h4>
+            <p><strong>R:</strong> Settings → Segurança → Alterar Senha</p>
+        </div>
+
+        <div class="task-box">
+            <h4>P: Posso deletar uma tarefa?</h4>
+            <p><strong>R:</strong> Não. Você pode rejeitá-la ou marcar como "Cancelada", mas não deletar (auditoria).</p>
+        </div>
+
+        <h3>Perguntas de Fluxo de Trabalho</h3>
+
+        <div class="task-box">
+            <h4>P: Quanto tempo leva para uma tarefa ser aprovada?</h4>
+            <p><strong>R:</strong> Média 24h. Se >48h, contate seu Líder ou QA.</p>
+        </div>
+
+        <div class="task-box">
+            <h4>P: E se eu achar que a rejeição do QA está errada?</h4>
+            <p><strong>R:</strong> Comente na tarefa o porquê você discorda. QA pode rever ou escalar.</p>
+        </div>
+
+        <div class="task-box">
+            <h4>P: Como controlo o tempo?</h4>
+            <p><strong>R:</strong> Sistema registra automaticamente quando você clica "Iniciar". Você pode ajustar depois se necessário.</p>
+        </div>
+
+        <div class="task-box">
+            <h4>P: Posso trabalhar em múltiplas tarefas ao mesmo tempo?</h4>
+            <p><strong>R:</strong> Sim, mas o rastreamento de tempo só funciona em uma por vez. Recomendamos focar em 1-2.</p>
+        </div>
+
+        <h3>Perguntas de Performance</h3>
+
+        <div class="task-box">
+            <h4>P: Por que minha produtividade está baixa?</h4>
+            <p><strong>R:</strong> Alguns motivos comuns: (1) Não lê descrição completa - releia. (2) Espera muito feedback - comunique com QA. (3) Tarefas muito complexas - peça ajuda.</p>
+        </div>
+
+        <div class="task-box">
+            <h4>P: Como melhoro minha taxa de aprovação?</h4>
+            <p><strong>R:</strong> (1) Use exemplos de tarefas aprovadas como referência. (2) Passe por checklist antes de submeter. (3) Peça feedback recorrente ao QA.</p>
+        </div>
+
+        <div class="task-box">
+            <h4>P: O que significa "Taxa de Aprovação 85%"?</h4>
+            <p><strong>R:</strong> Das 100 tarefas que você submete, 85 são aprovadas na primeira revisão. 15 precisam de ajustes.</p>
+        </div>
+
+        <h3>Perguntas de Sistema</h3>
+
+        <div class="task-box">
+            <h4>P: O que acontece se o sistema cair?</h4>
+            <p><strong>R:</strong> Sistema roda em redundância. Raramente cai. Se cair, envie email para suporte@mgos.com.br</p>
+        </div>
+
+        <div class="task-box">
+            <h4>P: Meus dados estão seguros?</h4>
+            <p><strong>R:</strong> Sim. Todos os dados são encriptados e auditados. Conformidade LGPD.</p>
+        </div>
+
+        <div class="task-box">
+            <h4>P: Posso exportar meus dados?</h4>
+            <p><strong>R:</strong> Sim. Clique "Exportar" em qualquer relatório. Formatos: PDF, Excel, CSV.</p>
+        </div>
+    </div>
+
+    <!-- RODAPÉ -->
+    <div class="footer">
+        <p><strong>MGOS-AIOS © 2026</strong></p>
+        <p>Versão 1.0 | Guia Oficial de Uso</p>
+        <p>Para suporte: <strong>suporte@mgos.com.br</strong> | Para bugs: <strong>bugs@mgos.com.br</strong></p>
+        <p style="margin-top: 20px; font-size: 0.8em;">
+            Este documento foi criado para facilitar o entendimento do sistema MGOS-AIOS por todos os níveis de usuário.
+            <br>Última atualização: 23 de Fevereiro de 2026
+        </p>
+    </div>
+
+</body>
+</html>

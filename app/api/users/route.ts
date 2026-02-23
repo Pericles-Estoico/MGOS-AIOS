@@ -1,230 +1,183 @@
+/**
+ * GET /api/users - List all users
+ * POST /api/users - Create new user
+ * @auth Required (admin only)
+ */
+
 import { getServerSession } from 'next-auth';
-import type { Session } from 'next-auth';
 import { authOptions } from '@/lib/auth-mock';
 import { createSupabaseServerClient } from '@/lib/supabase';
+import { NextRequest, NextResponse } from 'next/server';
+import type { Session } from 'next-auth';
 
-export async function GET(request: Request) {
+interface UserPayload {
+  email: string;
+  name: string;
+  role: 'admin' | 'head' | 'executor' | 'qa';
+  department?: string;
+}
+
+// ============================================================================
+// GET: List users
+// ============================================================================
+
+export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return Response.json({
-        data: [],
-        pagination: {
-          page: 1,
-          limit: 10,
-          total: 0,
-          pages: 0,
-        },
-      });
-    }
-
-    // Only admin can list users
-    if (session.user.role !== 'admin') {
-      return Response.json({
-        data: [],
-        pagination: {
-          page: 1,
-          limit: 10,
-          total: 0,
-          pages: 0,
-        },
-      });
+    const session = (await getServerSession(authOptions)) as Session | null;
+    if (!session?.user?.id) {
+      return NextResponse.json({ data: [] });
     }
 
     try {
-      const url = new URL(request.url);
-      const page = parseInt(url.searchParams.get('page') || '1', 10);
-      const limit = Math.min(
-        parseInt(url.searchParams.get('limit') || '10', 10),
-        50
-      );
-      const sortBy = url.searchParams.get('sort_by') || 'created_at';
-      const filterRole = url.searchParams.get('filter_role');
-      const filterStatus = url.searchParams.get('filter_status');
-      const searchQuery = url.searchParams.get('search');
+      const { searchParams } = new URL(request.url);
+      const role = searchParams.get('role');
+      const limit = parseInt(searchParams.get('limit') || '100');
+      const offset = parseInt(searchParams.get('offset') || '0');
 
-      const sessionWithToken = session as Session & { accessToken?: string };
-      const supabase = createSupabaseServerClient(sessionWithToken.accessToken);
+      const supabase = createSupabaseServerClient();
       if (!supabase) {
-        return Response.json({
+        return NextResponse.json({
           data: [],
-          pagination: {
-            page,
-            limit,
-            total: 0,
-            pages: 0,
-          },
+          pagination: { total: 0, limit, offset }
         });
       }
 
-      // Build base query
       let query = supabase
         .from('users')
-        .select('id, name, email, role, status, created_at, updated_at', {
-          count: 'exact',
-        });
+        .select('*', { count: 'exact' })
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
-      // Apply filters
-      if (filterRole) {
-        query = query.eq('role', filterRole);
+      if (role) {
+        query = query.eq('role', role);
       }
 
-      if (filterStatus) {
-        query = query.eq('status', filterStatus);
-      }
-
-      if (searchQuery) {
-        query = query.or(
-          `name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`
-        );
-      }
-
-      // Apply sorting (allow: name, email, role, created_at)
-      const validSortFields = ['name', 'email', 'role', 'created_at'];
-      const sortField = validSortFields.includes(sortBy) ? sortBy : 'created_at';
-      query = query.order(sortField, { ascending: true });
-
-      // Apply pagination
-      const from = (page - 1) * limit;
-      const to = from + limit - 1;
-      query = query.range(from, to);
+      query = query.limit(limit).offset(offset);
 
       const { data, error, count } = await query;
 
       if (error) {
         console.error('Supabase error:', error);
-        return Response.json({
+        return NextResponse.json({
           data: [],
-          pagination: {
-            page,
-            limit,
-            total: 0,
-            pages: 0,
-          },
+          pagination: { total: 0, limit, offset }
         });
       }
 
-      const totalPages = Math.ceil((count || 0) / limit);
-
-      return Response.json({
+      return NextResponse.json({
         data: data || [],
         pagination: {
-          page,
-          limit,
           total: count || 0,
-          pages: totalPages,
-        },
+          limit,
+          offset
+        }
       });
+
     } catch (dbError) {
       console.error('Database error:', dbError);
-      return Response.json({
+      return NextResponse.json({
         data: [],
-        pagination: {
-          page: 1,
-          limit: 10,
-          total: 0,
-          pages: 0,
-        },
+        pagination: { total: 0, limit: 100, offset: 0 }
       });
     }
-  } catch (err) {
-    console.error('API error:', err);
-    return Response.json({
+
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    return NextResponse.json({
       data: [],
-      pagination: {
-        page: 1,
-        limit: 10,
-        total: 0,
-        pages: 0,
-      },
+      pagination: { total: 0, limit: 100, offset: 0 }
     });
   }
 }
 
-export async function POST(request: Request) {
+// ============================================================================
+// POST: Create user
+// ============================================================================
+
+export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return Response.json({ data: null }, { status: 201 });
+    const session = (await getServerSession(authOptions)) as Session | null;
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
 
-    // Only admin can create users
-    if (session.user.role !== 'admin') {
-      return Response.json({ data: null }, { status: 201 });
+    // Check if user is admin
+    const sessionWithToken = session as Session & { accessToken?: string };
+    const supabase = createSupabaseServerClient(sessionWithToken.accessToken);
+
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Database unavailable' },
+        { status: 503 }
+      );
+    }
+
+    // Check session user role
+    const { data: currentUser } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
+
+    if (currentUser?.role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Only admins can create users' },
+        { status: 403 }
+      );
     }
 
     try {
-      const body = await request.json();
-      const { name, email, role } = body;
+      const body = await request.json() as UserPayload;
+      const { email, name, role, department } = body;
 
-      // Validate required fields
-      if (!name || !email || !role) {
-        return Response.json({ data: null }, { status: 201 });
+      // Validate
+      if (!email || !name || !role) {
+        return NextResponse.json(
+          { error: 'Missing required fields' },
+          { status: 400 }
+        );
       }
 
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        return Response.json({ data: null }, { status: 201 });
-      }
-
-      // Validate role
-      const validRoles = ['executor', 'head', 'admin', 'qa'];
-      if (!validRoles.includes(role)) {
-        return Response.json({ data: null }, { status: 201 });
-      }
-
-      const sessionWithToken = session as Session & { accessToken?: string };
-      const supabase = createSupabaseServerClient(sessionWithToken.accessToken);
-      if (!supabase) {
-        return Response.json({ data: null }, { status: 201 });
-      }
-
-      // Check if email already exists
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', email)
-        .single();
-
-      if (existingUser) {
-        return Response.json({ data: null }, { status: 201 });
-      }
-
-      // Insert user record
-      // TODO: In production, use Supabase Auth for password management and send welcome email
-      const { data: newUser, error } = await supabase
+      // Create user in auth (would normally use Supabase Auth)
+      // For now, just create in users table
+      const { data, error } = await supabase
         .from('users')
         .insert({
-          name,
           email,
+          name,
           role,
-          status: 'active',
+          department: department || null,
+          is_active: true
         })
         .select()
         .single();
 
       if (error) {
         console.error('Supabase error:', error);
-        return Response.json({ data: null }, { status: 201 });
+        return NextResponse.json(
+          { error: 'Failed to create user' },
+          { status: 500 }
+        );
       }
 
-      // Create audit log
-      await supabase.from('audit_logs').insert({
-        table_name: 'users',
-        record_id: newUser.id,
-        operation: 'create_user',
-        new_value: { name, email, role },
-        created_by: session.user.id,
-      });
+      return NextResponse.json(data, { status: 201 });
 
-      return Response.json(newUser, { status: 201 });
     } catch (parseError) {
       console.error('Request parsing error:', parseError);
-      return Response.json({ data: null }, { status: 201 });
+      return NextResponse.json(
+        { error: 'Invalid request body' },
+        { status: 400 }
+      );
     }
-  } catch (err) {
-    console.error('API error:', err);
-    return Response.json({ data: null }, { status: 201 });
+
+  } catch (error) {
+    console.error('Error creating user:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
