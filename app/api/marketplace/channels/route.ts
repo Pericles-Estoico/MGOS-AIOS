@@ -1,10 +1,9 @@
 /**
  * GET /api/marketplace/channels
  * List all marketplace channels with analytics
+ * PUBLIC ENDPOINT - No authentication required
  */
 
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -33,12 +32,6 @@ interface ChannelRow {
 
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
-    }
-
     // Get query parameters
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get('status') || 'active';

@@ -2,10 +2,9 @@
  * GET /api/marketplace/channels/[channel]
  * Get analytics and performance data for a specific marketplace channel
  * Now using marketplace_channels table (no more hardcoded data!)
+ * PUBLIC ENDPOINT - No authentication required
  */
 
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -44,12 +43,6 @@ export async function GET(
   { params }: { params: { channel: string } }
 ) {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
-    }
-
     const channelKey = params.channel as string;
 
     const supabase = createSupabaseServerClient();
