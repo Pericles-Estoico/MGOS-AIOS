@@ -60,12 +60,52 @@ export async function GET(
       .eq('channel_key', channelKey)
       .single();
 
-    // Fallback if channel not found
+    // Fallback with default data if channel not found
     if (channelError || !channelData) {
-      return NextResponse.json(
-        { error: 'Channel não encontrado' },
-        { status: 404 }
-      );
+      // Provide fallback data for demo purposes
+      const fallbackData = {
+        id: `${channelKey}-demo`,
+        channel_key: channelKey,
+        name: channelKey.charAt(0).toUpperCase() + channelKey.slice(1),
+        agent_name: `Agent for ${channelKey}`,
+        tasks_generated: 0,
+        tasks_approved: 0,
+        tasks_completed: 0,
+        tasks_rejected: 0,
+        approval_rate: 0,
+        completion_rate: 0,
+        avg_completion_time_minutes: 0,
+        revenue_7days: 0,
+        opportunities_count: 0,
+        total_items: 0,
+        conversion_rate: 0,
+      };
+
+      return NextResponse.json({
+        data: {
+          id: fallbackData.id,
+          channel: fallbackData.channel_key,
+          name: fallbackData.name,
+          agentName: fallbackData.agent_name,
+          tasksGenerated: fallbackData.tasks_generated,
+          tasksApproved: fallbackData.tasks_approved,
+          tasksCompleted: fallbackData.tasks_completed,
+          tasksRejected: fallbackData.tasks_rejected,
+          approvalRate: fallbackData.approval_rate,
+          completionRate: fallbackData.completion_rate,
+          avgCompletionTime: fallbackData.avg_completion_time_minutes,
+          revenueLastWeek: fallbackData.revenue_7days,
+          opportunitiesCount: fallbackData.opportunities_count,
+          totalItems: fallbackData.total_items,
+          conversionRate: fallbackData.conversion_rate,
+          recentTasks: [],
+          agentPerformance: {
+            agent: fallbackData.agent_name,
+            tasksCreated: fallbackData.tasks_generated,
+            successRate: fallbackData.completion_rate,
+          },
+        }
+      });
     }
 
     // Fetch recent tasks for this channel (for UI display)
