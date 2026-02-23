@@ -535,7 +535,7 @@ Formato esperado (JSON estruturado):
   aggregatedPlan.phases.sort((a, b) => a.number - b.number);
 
   try {
-    // Save plan to database
+    // Save plan to database with initial 'pending' status
     const { data, error } = await supabase
       .from('marketplace_plans')
       .insert({
@@ -557,12 +557,49 @@ Formato esperado (JSON estruturado):
       throw error;
     }
 
+    const planId = data.id;
+
+    // AUTO-APPROVE: Immediately create Phase 1 tasks and mark as approved
+    let phase1TaskIds: string[] = [];
+    let finalStatus = 'pending'; // Default fallback
+
+    try {
+      console.log(`📊 Auto-approving analysis ${planId}...`);
+
+      // Create Phase 1 tasks
+      phase1TaskIds = await createPhase1Tasks(planId);
+
+      // Update plan to 'approved' status
+      const { error: approveError } = await supabase
+        .from('marketplace_plans')
+        .update({
+          status: 'approved',
+          approved_by: 'system-auto',
+          approved_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', planId);
+
+      if (approveError) {
+        console.warn(`⚠️ Error updating plan to approved:`, approveError);
+      } else {
+        finalStatus = 'approved';
+        console.log(`✅ Analysis auto-approved: ${phase1TaskIds.length} Phase 1 tasks created`);
+      }
+    } catch (autoApproveError) {
+      console.warn(`⚠️ Auto-approve failed (non-fatal):`, autoApproveError);
+      // Don't fail the analysis creation if auto-approve fails
+      // User can approve manually later
+    }
+
     return {
-      planId: data.id,
-      status: 'pending',
+      planId,
+      status: finalStatus,
       channels,
       summary: aggregatedPlan.summary,
       createdAt: startTime.toISOString(),
+      phase1TasksCreated: phase1TaskIds.length,
+      taskIds: phase1TaskIds,
     };
   } catch (error) {
     console.error('Error creating analysis plan:', error);
