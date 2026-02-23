@@ -1,6 +1,34 @@
 version: '3.8'
 
 services:
+  # Redis - Job queue and cache (Story 4.1)
+  redis:
+    image: redis:7-alpine
+    container_name: mgos-redis-dev
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    environment:
+      REDIS_PASSWORD: ''
+    command:
+      - redis-server
+      - --appendonly
+      - 'yes'
+      - --appendfsync
+      - 'everysec'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks:
+      - mgos-network
+    restart: unless-stopped
+    labels:
+      - 'com.example.description=Redis for MGOS job queue and caching'
+
   mgos-aios:
     build: .
     ports:
@@ -19,3 +47,16 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - mgos-network
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  mgos-network:
+    driver: bridge
