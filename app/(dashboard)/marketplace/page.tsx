@@ -8,13 +8,15 @@ import {
   Globe,
   Package,
   TrendingUp,
-  Users,
   CheckCircle2,
   AlertCircle,
   Clock,
   Zap,
   Bell,
-  Search
+  Search,
+  Upload,
+  X,
+  Loader
 } from 'lucide-react';
 
 interface ChannelStatus {
@@ -55,6 +57,12 @@ export default function MarketplacePage() {
   const [channelStatus, setChannelStatus] = useState<ChannelStatus[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pendingAnalyses, setPendingAnalyses] = useState(0);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [dragActive, setDragActive] = useState(false);
 
   // Redirect if not admin
   useEffect(() => {
@@ -99,6 +107,86 @@ export default function MarketplacePage() {
       fetchMarketplaceData();
     }
   }, [session?.user]);
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      setUploadFile(files[0]);
+      setUploadError(null);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      setUploadFile(files[0]);
+      setUploadError(null);
+    }
+  };
+
+  const toggleChannel = (channel: string) => {
+    setSelectedChannels((prev) =>
+      prev.includes(channel)
+        ? prev.filter((c) => c !== channel)
+        : [...prev, channel]
+    );
+  };
+
+  const handleAnalyzeUpload = async () => {
+    if (!uploadFile || selectedChannels.length === 0) {
+      setUploadError('Selecione um arquivo e pelo menos um canal');
+      return;
+    }
+
+    setUploading(true);
+    setUploadError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', uploadFile);
+      formData.append('channels', JSON.stringify(selectedChannels));
+
+      const response = await fetch('/api/marketplace/analysis/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.details || errorData.error || 'Erro ao fazer upload'
+        );
+      }
+
+      const result = await response.json();
+
+      // Clear state and close modal
+      setUploadFile(null);
+      setSelectedChannels([]);
+      setShowUploadModal(false);
+
+      // Redirect to analysis page
+      router.push(`/marketplace/analysis?planId=${result.planId}`);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Erro desconhecido');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -321,8 +409,193 @@ export default function MarketplacePage() {
               <p className="text-sm text-gray-600">Planos de otimização</p>
             </div>
           </Link>
+
+          <button
+            onClick={() => setShowUploadModal(true)}
+            className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition flex items-center gap-3 text-left"
+          >
+            <Upload className="w-5 h-5 text-violet-500" />
+            <div>
+              <p className="font-semibold text-gray-900">Upload Análise</p>
+              <p className="text-sm text-gray-600">PDFs e dados externos</p>
+            </div>
+          </button>
         </div>
       </div>
+
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="bg-violet-100 rounded-full p-2">
+                    <Upload className="w-5 h-5 text-violet-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Upload de Análise
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      PDF, TXT, CSV ou JSON (máx. 10MB)
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowUploadModal(false);
+                    setUploadFile(null);
+                    setUploadError(null);
+                    setSelectedChannels([]);
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Error Message */}
+              {uploadError && (
+                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-3">
+                  <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold">Erro</p>
+                    <p className="text-sm">{uploadError}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Drag and Drop Zone */}
+              <div
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition mb-6 ${
+                  dragActive
+                    ? 'border-blue-500 bg-blue-50'
+                    : uploadFile
+                    ? 'border-green-400 bg-green-50'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                <input
+                  type="file"
+                  id="file-upload"
+                  onChange={handleFileSelect}
+                  accept=".pdf,.txt,.csv,.json"
+                  className="hidden"
+                />
+                <label htmlFor="file-upload" className="cursor-pointer">
+                  {uploadFile ? (
+                    <div className="space-y-2">
+                      <div className="text-4xl">✅</div>
+                      <p className="font-semibold text-green-700">
+                        {uploadFile.name}
+                      </p>
+                      <p className="text-sm text-green-600">
+                        {(uploadFile.size / 1024 / 1024).toFixed(2)}MB
+                      </p>
+                      <p className="text-xs text-green-600">
+                        Clique para alterar arquivo
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="text-4xl">📁</div>
+                      <p className="font-semibold text-gray-900">
+                        Arraste o arquivo aqui ou clique para selecionar
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        PDF, TXT, CSV ou JSON • Máximo 10MB
+                      </p>
+                    </div>
+                  )}
+                </label>
+              </div>
+
+              {/* Channel Selection */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-900 mb-3">
+                  Selecionar Canais para Análise
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { id: 'amazon', label: 'Amazon', icon: '🛒' },
+                    { id: 'mercadolivre', label: 'MercadoLivre', icon: '🎯' },
+                    { id: 'shopee', label: 'Shopee', icon: '🏪' },
+                    { id: 'shein', label: 'SHEIN', icon: '👗' },
+                    { id: 'tiktok-shop', label: 'TikTok Shop', icon: '📱' },
+                    { id: 'kaway', label: 'Kaway', icon: '💎' },
+                  ].map((channel) => (
+                    <button
+                      key={channel.id}
+                      onClick={() => toggleChannel(channel.id)}
+                      className={`p-3 border-2 rounded-lg transition flex items-center gap-2 ${
+                        selectedChannels.includes(channel.id)
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <div
+                        className={`w-5 h-5 border-2 rounded flex items-center justify-center transition ${
+                          selectedChannels.includes(channel.id)
+                            ? 'border-blue-500 bg-blue-500'
+                            : 'border-gray-300'
+                        }`}
+                      >
+                        {selectedChannels.includes(channel.id) && (
+                          <span className="text-white text-sm font-bold">✓</span>
+                        )}
+                      </div>
+                      <span className="text-lg">{channel.icon}</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {channel.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowUploadModal(false);
+                    setUploadFile(null);
+                    setUploadError(null);
+                    setSelectedChannels([]);
+                  }}
+                  disabled={uploading}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleAnalyzeUpload}
+                  disabled={
+                    uploading || !uploadFile || selectedChannels.length === 0
+                  }
+                  className="flex-1 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {uploading ? (
+                    <>
+                      <Loader className="w-4 h-4 animate-spin" />
+                      Analisando...
+                    </>
+                  ) : (
+                    <>
+                      🚀 Analisar com Nexo
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
