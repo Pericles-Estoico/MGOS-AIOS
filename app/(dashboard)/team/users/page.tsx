@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Search, Trash2, Edit2, Check, X } from 'lucide-react';
-import { Button } from '@/app/components/ui/button';
-import { Input } from '@/app/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface User {
   id: string;

@@ -155,14 +155,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    if (taskStats.by_status.failed > 0) {
-      recommendations.push({
-        severity: 'HIGH',
-        issue: 'Failed tasks detected',
-        count: taskStats.by_status.failed,
-        action: 'Review failed tasks for root cause',
-      });
-    }
+    // No failed status in schema - all tasks are in one of: a_fazer, fazendo, enviado_qa, aprovado, concluido
 
     return NextResponse.json(
       {

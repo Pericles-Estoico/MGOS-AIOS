@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
         query = query.eq('role', role);
       }
 
-      query = query.limit(limit).offset(offset);
+      query = query.range(offset, offset + limit - 1);
 
       const { data, error, count } = await query;
 

@@ -593,7 +593,7 @@ Formato esperado (JSON estruturado):
 
     // AUTO-APPROVE: Immediately create Phase 1 tasks and mark as approved
     let phase1TaskIds: string[] = [];
-    let finalStatus = 'pending'; // Default fallback
+    let finalStatus: 'pending' | 'approved' | 'rejected' = 'pending'; // Default fallback
 
     try {
       console.log(`📊 Auto-approving analysis ${planId}...`);

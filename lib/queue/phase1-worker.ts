@@ -7,7 +7,7 @@ import { Worker, Job } from 'bullmq';
 import type { Redis } from 'ioredis';
 import { getRedisClient } from '@/lib/redis-client';
 import { Phase1Job } from '@/lib/queue/phase1-queue';
-import { createPhase1Tasks } from '@/app/lib/ai/agent-loop';
+import { createPhase1Tasks } from '@/lib/ai/agent-loop';
 
 /**
  * Singleton worker instance

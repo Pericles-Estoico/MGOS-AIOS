@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
-import { createPhase1Tasks } from '@/app/lib/ai/agent-loop';
+import { createPhase1Tasks } from '@/lib/ai/agent-loop';
 import { enqueuePhase1Job } from '@/lib/queue/phase1-queue';
 
 /**

@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Apply pagination
-      query = query.limit(limit).offset(offset);
+      query = query.range(offset, offset + limit - 1);
 
       const { data, error, count } = await query;
 
