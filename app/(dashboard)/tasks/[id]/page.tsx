@@ -47,22 +47,27 @@ interface Task {
   }>;
 }
 
-const statusColors = {
-  pending: 'bg-gray-100 text-gray-700',
-  in_progress: 'bg-blue-100 text-blue-700',
-  submitted: 'bg-yellow-100 text-yellow-700',
-  qa_review: 'bg-purple-100 text-purple-700',
-  approved: 'bg-green-100 text-green-700',
-  rejected: 'bg-red-100 text-red-700',
-  completed: 'bg-green-100 text-green-700', // Legacy alias
-  blocked: 'bg-red-100 text-red-700', // Legacy alias
+// Status colors matching DB values from 01-schema.sql
+const statusColors: Record<string, string> = {
+  a_fazer: 'bg-gray-100 text-gray-700',
+  fazendo: 'bg-blue-100 text-blue-700',
+  enviado_qa: 'bg-yellow-100 text-yellow-700',
+  aprovado: 'bg-green-100 text-green-700',
+  concluido: 'bg-emerald-100 text-emerald-700',
 };
 
-const priorityColors = {
+const statusLabels: Record<string, string> = {
+  a_fazer: 'A Fazer',
+  fazendo: 'Fazendo',
+  enviado_qa: 'Enviado para QA',
+  aprovado: 'Aprovado',
+  concluido: 'Concluído',
+};
+
+const priorityColors: Record<string, string> = {
   low: 'text-green-600',
   medium: 'text-yellow-600',
   high: 'text-orange-600',
-  critical: 'text-red-600',
 };
 
 type Props = {
@@ -212,10 +217,10 @@ export default function TaskDetailPage({ params }: Props) {
             {taskId && <TaskPresence taskId={taskId} />}
 
             <div className="flex gap-2 mb-6 mt-4">
-              <span className={`px-3 py-1 text-sm font-medium rounded ${statusColors[task.status as keyof typeof statusColors] || 'bg-gray-100'}`}>
-                {task.status}
+              <span className={`px-3 py-1 text-sm font-medium rounded ${statusColors[task.status] || 'bg-gray-100'}`}>
+                {statusLabels[task.status] || task.status}
               </span>
-              <span className={`px-3 py-1 text-sm font-medium ${priorityColors[task.priority as keyof typeof priorityColors]}`}>
+              <span className={`px-3 py-1 text-sm font-medium ${priorityColors[task.priority] || 'text-gray-600'}`}>
                 {task.priority} priority
               </span>
             </div>
@@ -242,7 +247,7 @@ export default function TaskDetailPage({ params }: Props) {
             </div>
 
             {/* Start Work Button */}
-            {session?.user?.role === 'executor' && task.status === 'pending' && (
+            {session?.user?.role === 'executor' && task.status === 'a_fazer' && (
               <button
                 onClick={handleStartWork}
                 disabled={startingTask}

@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth';
 import type { Session } from 'next-auth';
-import { authOptions } from '@/lib/auth-mock';
+import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
 
 export async function GET() {
@@ -41,8 +41,9 @@ export async function GET() {
             .select('id, status', { count: 'exact' })
             .eq('sprint_id', sprint.id);
 
+          // DB status values from 01-schema.sql: 'aprovado' and 'concluido' are completion states
           const completedCount = (tasks || []).filter(
-            (t) => t.status === 'approved'
+            (t) => t.status === 'aprovado' || t.status === 'concluido'
           ).length;
 
           return {

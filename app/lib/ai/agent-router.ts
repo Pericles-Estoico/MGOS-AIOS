@@ -376,7 +376,7 @@ function getChannelName(agent: string): string {
     marina: 'mercadolivre',
     sunny: 'shopee',
     tren: 'shein',
-    viral: 'tiktok',
+    viral: 'tiktokshop',
     premium: 'kaway',
     nexo: 'general',
   };

@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth';
 import type { Session } from 'next-auth';
-import { authOptions } from '@/lib/auth-mock';
+import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
 import { notifyTaskAssigned } from '@/lib/notification-triggers';
 
@@ -52,7 +52,7 @@ export async function POST(
     }
 
     // Validation: cannot reassign completed tasks
-    if (task.status === 'approved') {
+    if (task.status === 'aprovado' || task.status === 'concluido') {
       return Response.json(
         { error: 'Cannot reassign completed task' },
         { status: 400 }
@@ -97,19 +97,14 @@ export async function POST(
       reassigned_by: session.user.id,
     });
 
-    // Create audit log
+    // Create audit log with correct column names
     await supabase.from('audit_logs').insert({
-      table_name: 'tasks',
-      record_id: id,
-      action: 'reassign_task',
-      changes: {
-        assigned_to: {
-          old: old_assignee_id,
-          new: new_assignee_id,
-        },
-        reason,
-      },
-      user_id: session.user.id,
+      entity_type: 'tasks',
+      entity_id: id,
+      action: 'REASSIGN',
+      changed_by: session.user.id,
+      old_values: { assigned_to: old_assignee_id },
+      new_values: { assigned_to: new_assignee_id, reason },
     });
 
     // Send notification to newly assigned user

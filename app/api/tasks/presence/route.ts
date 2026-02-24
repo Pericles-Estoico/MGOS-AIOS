@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth';
 import type { Session } from 'next-auth';
-import { authOptions } from '@/lib/auth-mock';
+import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
 
 export async function POST(request: Request) {

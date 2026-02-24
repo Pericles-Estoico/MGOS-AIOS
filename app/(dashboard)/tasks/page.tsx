@@ -4,21 +4,21 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
-import { AITaskIndicator, ChannelTag } from '@/components/marketplace-intel-badge';
+// Note: AITaskIndicator and ChannelTag removed — source_type/channel columns do not exist in the DB schema
 
 interface Task {
   id: string;
   title: string;
   description?: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'blocked';
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  // Status values match DB CHECK constraint in 01-schema.sql
+  status: 'a_fazer' | 'fazendo' | 'enviado_qa' | 'aprovado' | 'concluido';
+  // Priority values match DB CHECK constraint in 01-schema.sql
+  priority: 'low' | 'medium' | 'high';
   due_date?: string;
   assigned_to?: string;
   created_by?: string;
   created_at: string;
-  source_type?: 'manual' | 'ai_generated';
-  channel?: string;
-  admin_approved?: boolean;
+  updated_at?: string;
 }
 
 interface TasksResponse {
@@ -30,18 +30,28 @@ interface TasksResponse {
   };
 }
 
-const statusColors = {
-  pending: 'bg-gray-100 text-gray-700',
-  in_progress: 'bg-cyan-100 text-cyan-700',
-  completed: 'bg-emerald-100 text-emerald-700',
-  blocked: 'bg-red-100 text-red-700',
+// Status colors matching DB values from 01-schema.sql
+const statusColors: Record<string, string> = {
+  a_fazer: 'bg-gray-100 text-gray-700',
+  fazendo: 'bg-cyan-100 text-cyan-700',
+  enviado_qa: 'bg-yellow-100 text-yellow-700',
+  aprovado: 'bg-emerald-100 text-emerald-700',
+  concluido: 'bg-green-100 text-green-700',
 };
 
-const priorityColors = {
+// Status labels in Portuguese
+const statusLabels: Record<string, string> = {
+  a_fazer: 'A Fazer',
+  fazendo: 'Fazendo',
+  enviado_qa: 'Em Revisão QA',
+  aprovado: 'Aprovado',
+  concluido: 'Concluído',
+};
+
+const priorityColors: Record<string, string> = {
   low: 'text-green-600',
   medium: 'text-yellow-600',
   high: 'text-orange-600',
-  critical: 'text-red-600',
 };
 
 export default function TasksPage() {
@@ -50,7 +60,6 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
-  const [sourceFilter, setSourceFilter] = useState<'all' | 'manual' | 'ai_generated'>('all');
   const limit = 20;
 
   useEffect(() => {
@@ -81,11 +90,7 @@ export default function TasksPage() {
     fetchTasks();
   }, [page]);
 
-  // Filter tasks by source
-  const filteredTasks = tasks.filter((task) => {
-    if (sourceFilter === 'all') return true;
-    return (task.source_type || 'manual') === sourceFilter;
-  });
+  const filteredTasks = tasks;
 
   return (
     <div>
@@ -99,17 +104,6 @@ export default function TasksPage() {
           )}
         </div>
         <div className="flex items-center gap-3">
-          {/* Source Filter */}
-          <select
-            value={sourceFilter}
-            onChange={(e) => setSourceFilter(e.target.value as 'all' | 'manual' | 'ai_generated')}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-          >
-            <option value="all">Todas as Tarefas</option>
-            <option value="manual">Manual</option>
-            <option value="ai_generated">🤖 IA Geradas</option>
-          </select>
-
           {session?.user?.role && ['admin', 'head'].includes(session.user.role) && (
             <Link
               href="/tasks/new"
@@ -153,12 +147,6 @@ export default function TasksPage() {
               <div className="flex justify-between items-start gap-4">
                 <div className="flex-1">
                   <div className="flex items-start gap-3">
-                    {task.source_type === 'ai_generated' && (
-                      <AITaskIndicator
-                        approved={task.admin_approved}
-                        channelInitial={task.channel?.[0].toUpperCase() || 'A'}
-                      />
-                    )}
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-gray-900 hover:text-teal-600 transition-colors">
                         {task.title}
@@ -168,15 +156,12 @@ export default function TasksPage() {
                   </div>
 
                   <div className="flex gap-2 mt-3 flex-wrap">
-                    <span className={`px-2 py-1 text-xs font-medium rounded ${statusColors[task.status]}`}>
-                      {task.status}
+                    <span className={`px-2 py-1 text-xs font-medium rounded ${statusColors[task.status] || 'bg-gray-100 text-gray-700'}`}>
+                      {statusLabels[task.status] || task.status}
                     </span>
-                    <span className={`px-2 py-1 text-xs font-medium ${priorityColors[task.priority]}`}>
+                    <span className={`px-2 py-1 text-xs font-medium ${priorityColors[task.priority] || 'text-gray-600'}`}>
                       {task.priority}
                     </span>
-                    {task.source_type === 'ai_generated' && task.channel && (
-                      <ChannelTag channel={task.channel} size="sm" />
-                    )}
                     {task.due_date && (
                       <span className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded">
                         {new Date(task.due_date).toLocaleDateString('pt-BR')}

@@ -1,5 +1,5 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-mock';
+import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
 
 interface SessionWithAccessToken {
@@ -176,13 +176,13 @@ export async function POST(request: Request) {
         });
       }
 
-      // Audit log
+      // Audit log with correct column names
       await supabase.from('audit_logs').insert({
+        entity_type: 'notification_preferences',
+        entity_id: session.user?.id,
         action: 'UPDATE_PREFERENCES',
-        table_name: 'notification_preferences',
-        record_id: session.user?.id,
-        user_id: session.user?.id,
-        changes: {
+        changed_by: session.user?.id,
+        new_values: {
           email_task_assigned,
           email_qa_feedback,
           email_burndown_warning,

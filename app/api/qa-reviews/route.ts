@@ -1,5 +1,5 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-mock';
+import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
 import { notifyQAReviewAction } from '@/lib/notification-triggers';
 import type { Session } from 'next-auth';
@@ -55,7 +55,7 @@ export async function GET(request: Request) {
         });
       }
 
-      // Build query for submitted tasks
+      // Build query for tasks awaiting QA review (status: 'enviado_qa')
       let query = supabase
         .from('tasks')
         .select(
@@ -66,12 +66,12 @@ export async function GET(request: Request) {
           assigned_to,
           priority,
           created_at,
-          submitted_at,
+          updated_at,
           users:assigned_to(name, email)
           `,
           { count: 'exact' }
         )
-        .eq('status', 'submitted');
+        .eq('status', 'enviado_qa');
 
       if (priorityFilter && priorityFilter !== 'all') {
         query = query.eq('priority', priorityFilter);
@@ -86,7 +86,7 @@ export async function GET(request: Request) {
       }
 
       const { data: tasks, error: tasksError, count } = await query
-        .order('submitted_at', { ascending: false })
+        .order('updated_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
       if (tasksError) {
@@ -196,14 +196,16 @@ export async function POST(request: Request) {
         return Response.json({ data: null }, { status: 201 });
       }
 
-      // Update task status based on action
+      // Update task status based on QA action
+      // Schema statuses: 'a_fazer' | 'fazendo' | 'enviado_qa' | 'aprovado' | 'concluido'
       let newStatus = task.status;
       if (action === 'approved') {
-        newStatus = 'approved';
+        newStatus = 'aprovado';
       } else if (action === 'rejected') {
-        newStatus = 'rejected';
+        // Send back to 'fazendo' so executor can fix and resubmit
+        newStatus = 'fazendo';
       } else if (action === 'requested_changes') {
-        newStatus = 'in_progress';
+        newStatus = 'fazendo';
       }
 
       const { error: updateError } = await supabase
@@ -219,19 +221,14 @@ export async function POST(request: Request) {
         return Response.json({ data: null }, { status: 201 });
       }
 
-      // Create audit log
+      // Create audit log with correct column names
       await supabase.from('audit_logs').insert({
-        table_name: 'tasks',
-        record_id: task_id,
-        action: `qa_${action}`,
-        changes: {
-          status: {
-            old: task.status,
-            new: newStatus,
-          },
-          feedback,
-        },
-        user_id: session.user.id,
+        entity_type: 'tasks',
+        entity_id: task_id,
+        action: `QA_${action.toUpperCase()}`,
+        changed_by: session.user.id,
+        old_values: { status: task.status },
+        new_values: { status: newStatus, feedback },
       });
 
       // Send notification email

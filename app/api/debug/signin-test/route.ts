@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { authOptions } from '@/lib/auth-mock';
+import { authOptions } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {

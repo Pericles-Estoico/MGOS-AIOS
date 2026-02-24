@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth';
 import type { Session } from 'next-auth';
-import { authOptions } from '@/lib/auth-mock';
+import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
 
 export async function POST(
@@ -75,14 +75,14 @@ export async function POST(
       );
     }
 
-    // Create audit log
+    // Create audit log with correct column names
     await supabase.from('audit_logs').insert({
-      table_name: 'tasks',
-      record_id: id,
-      operation: 'extend_due_date',
-      old_value: { due_date: task.due_date },
-      new_value: { due_date },
-      created_by: session.user.id,
+      entity_type: 'tasks',
+      entity_id: id,
+      action: 'EXTEND_DUE_DATE',
+      changed_by: session.user.id,
+      old_values: { due_date: task.due_date },
+      new_values: { due_date },
     });
 
     return Response.json(updated, { status: 200 });

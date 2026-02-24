@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth';
 import type { Session } from 'next-auth';
-import { authOptions } from '@/lib/auth-mock';
+import { authOptions } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase';
 
@@ -48,9 +48,7 @@ export async function GET(request: NextRequest) {
         assigned_to,
         created_by,
         created_at,
-        updated_at,
-        source_type,
-        channel
+        updated_at
         `,
         { count: 'exact' }
       );
@@ -165,9 +163,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!priority || !['low', 'medium', 'high', 'critical'].includes(priority)) {
+    if (!priority || !['low', 'medium', 'high'].includes(priority)) {
       return Response.json(
-        { error: 'Prioridade inválida' },
+        { error: 'Prioridade inválida. Use: low, medium ou high.' },
         { status: 400 }
       );
     }
@@ -176,7 +174,7 @@ export async function POST(request: NextRequest) {
     const taskData = {
       title: title.trim(),
       description: description?.trim() || '',
-      status: 'pending',
+      status: 'a_fazer',
       priority,
       due_date: due_date || null,
       assigned_to: assigned_to || null,
@@ -202,12 +200,12 @@ export async function POST(request: NextRequest) {
     await supabase
       .from('audit_logs')
       .insert({
-        table_name: 'tasks',
-        record_id: newTask.id,
-        operation: 'create',
-        old_value: null,
-        new_value: newTask,
-        created_by: session.user.id,
+        entity_type: 'tasks',
+        entity_id: newTask.id,
+        action: 'INSERT',
+        changed_by: session.user.id,
+        old_values: null,
+        new_values: newTask,
       });
 
     return Response.json(newTask, { status: 201 });

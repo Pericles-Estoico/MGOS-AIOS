@@ -109,7 +109,6 @@ export default function NewTaskPage() {
                 <option value="low">Baixa</option>
                 <option value="medium">Média</option>
                 <option value="high">Alta</option>
-                <option value="critical">Crítica</option>
               </select>
             </div>
 

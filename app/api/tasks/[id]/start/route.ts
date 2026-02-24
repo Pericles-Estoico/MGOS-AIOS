@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth';
 import type { Session } from 'next-auth';
-import { authOptions } from '@/lib/auth-mock';
+import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
 
 export async function POST(
@@ -52,19 +52,19 @@ export async function POST(
       );
     }
 
-    // 6. Validate task is in pending status
-    if (task.status !== 'pending') {
+    // 6. Validate task is in 'a_fazer' status (schema value for "to do")
+    if (task.status !== 'a_fazer') {
       return Response.json(
-        { error: `Task is already ${task.status}, cannot start again` },
+        { error: `Tarefa está com status "${task.status}", não pode ser iniciada novamente` },
         { status: 400 }
       );
     }
 
-    // 7. Update task status to in_progress
+    // 7. Update task status to 'fazendo' (schema value for "in progress")
     const { data: updatedTask, error: updateError } = await supabase
       .from('tasks')
       .update({
-        status: 'in_progress',
+        status: 'fazendo',
         updated_at: new Date().toISOString(),
       })
       .eq('id', taskId)
@@ -79,15 +79,14 @@ export async function POST(
       );
     }
 
-    // 8. Create audit log entry
+    // 8. Create audit log entry with correct column names
     await supabase.from('audit_logs').insert({
-      table_name: 'tasks',
-      record_id: taskId,
-      operation: 'start_task',
-      old_value: { status: 'pending' },
-      new_value: { status: 'in_progress' },
-      created_by: session.user.id,
-      created_at: new Date().toISOString(),
+      entity_type: 'tasks',
+      entity_id: taskId,
+      action: 'STATUS_CHANGE',
+      changed_by: session.user.id,
+      old_values: { status: 'a_fazer' },
+      new_values: { status: 'fazendo' },
     });
 
     // 9. Return updated task

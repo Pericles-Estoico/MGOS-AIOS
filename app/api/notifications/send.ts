@@ -120,16 +120,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Log notification sent to audit table
+    // Log notification sent to audit table with correct column names
     await supabase
       .from('audit_logs')
       .insert({
-        user_id: userId,
-        operation: `email_${type}_sent`,
-        table_name: 'notifications',
-        record_id: taskId,
-        changes: { type, recipient: userEmail },
-        timestamp: new Date().toISOString(),
+        entity_type: 'notifications',
+        entity_id: taskId,
+        action: `EMAIL_${type.toUpperCase()}_SENT`,
+        changed_by: userId,
+        new_values: { type, recipient: userEmail },
       });
 
     return NextResponse.json({

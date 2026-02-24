@@ -1,5 +1,5 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-mock';
+import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
 
 interface SessionWithAccessToken {
@@ -20,10 +20,10 @@ export async function POST(request: Request) {
 
     try {
       const body = await request.json();
-      const { task_id, file_url, description } = body;
+      const { task_id, file_url, link_url, comment, evidence_type } = body;
 
-      if (!task_id || !file_url) {
-        return Response.json({ data: null }, { status: 201 });
+      if (!task_id || (!file_url && !link_url)) {
+        return Response.json({ data: null, error: 'task_id e file_url ou link_url são obrigatórios' }, { status: 400 });
       }
 
       const supabase = createSupabaseServerClient(session.accessToken);
@@ -36,9 +36,11 @@ export async function POST(request: Request) {
         .from('evidence')
         .insert({
           task_id,
-          file_url,
-          description,
-          created_by: session.user.id,
+          submitted_by: session.user.id,
+          evidence_type: evidence_type || (file_url ? 'file' : 'link'),
+          file_url: file_url || null,
+          link_url: link_url || null,
+          comment: comment || null,
         })
         .select()
         .single();
@@ -82,9 +84,9 @@ export async function GET(request: Request) {
 
       const { data, error } = await supabase
         .from('evidence')
-        .select('id, task_id, file_url, description, created_by, created_at')
+        .select('id, task_id, file_url, link_url, comment, submitted_by, submitted_at, evidence_type')
         .eq('task_id', taskId)
-        .order('created_at', { ascending: false });
+        .order('submitted_at', { ascending: false });
 
       if (error) {
         console.error('Supabase error:', error);

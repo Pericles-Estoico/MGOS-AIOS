@@ -1,5 +1,5 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-mock';
+import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
 import type { Session } from 'next-auth';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -130,7 +130,8 @@ async function generateSprintReport(
       totalTasks: taskList?.length || 0,
       completionRate: taskList?.length
         ? Math.round(
-            ((taskList.filter((t: TaskData) => t.status === 'approved').length /
+            // DB status values from 01-schema.sql: 'aprovado' and 'concluido' are completion states
+            ((taskList.filter((t: TaskData) => t.status === 'aprovado' || t.status === 'concluido').length /
               taskList.length) *
               100)
           )

@@ -1,4 +1,4 @@
-import { authOptions } from '@/lib/auth-mock';
+import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 

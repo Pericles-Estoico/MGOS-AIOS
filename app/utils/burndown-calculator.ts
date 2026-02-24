@@ -48,11 +48,11 @@ export function calculateBurndown(
   tasks.forEach((task) => {
     if (!task.status_history || task.status_history.length === 0) return;
 
-    // Find first "approved" status change
+    // Find first "aprovado" or "concluido" status change (DB values from 01-schema.sql)
     const approved = task.status_history.find(
       (entry) =>
         entry.operation === 'status_change' &&
-        entry.new_value?.status === 'approved'
+        (entry.new_value?.status === 'aprovado' || entry.new_value?.status === 'concluido')
     );
 
     if (approved) {

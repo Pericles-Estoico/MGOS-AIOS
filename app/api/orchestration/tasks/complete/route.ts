@@ -4,7 +4,7 @@
  */
 
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-mock';
+import { authOptions } from '@/lib/auth';
 import { TaskManager } from '@/lib/marketplace-orchestration/task-manager';
 import { NextRequest, NextResponse } from 'next/server';
 import type { Session } from 'next-auth';

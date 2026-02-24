@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth';
 import type { Session } from 'next-auth';
-import { authOptions } from '@/lib/auth-mock';
+import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
 
 export async function GET(
@@ -35,8 +35,8 @@ export async function GET(
           created_by,
           created_at,
           updated_at,
-          evidence(id, file_url, description, created_at, created_by),
-          qa_reviews(id, status, feedback, created_by, created_at)
+          evidence(id, file_url, comment, submitted_at, submitted_by),
+          qa_reviews(id, action, feedback, reviewer_id, created_at)
           `
         )
         .eq('id', id)
@@ -131,10 +131,10 @@ export async function DELETE(
     }
 
     try {
-      // Soft delete
+      // Hard delete (schema has no deleted_at column or 'deleted' status)
       const { error } = await supabase
         .from('tasks')
-        .update({ status: 'deleted', deleted_at: new Date().toISOString() })
+        .delete()
         .eq('id', id);
 
       if (error) {

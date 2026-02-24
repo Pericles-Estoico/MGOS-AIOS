@@ -1,6 +1,13 @@
 import { callAgent } from './agent-client';
 import { getAgentPrompt, getAgentName, type AgentRole } from './agent-prompts';
 import { createSupabaseServerClient } from '@/lib/supabase';
+import {
+  getAgentCircuitBreaker,
+  canAttemptAgentCall,
+  recordAgentSuccess,
+  recordAgentFailure,
+  type MarketplaceAgent,
+} from '@/lib/resilience/agent-circuit-breaker';
 
 export interface LoopExecutionResult {
   timestamp: string;
@@ -131,7 +138,7 @@ function parseTasksFromResponse(content: string, agent: AgentRole): GeneratedTas
     marina: 'mercadolivre',
     sunny: 'shopee',
     tren: 'shein',
-    viral: 'tiktok',
+    viral: 'tiktokshop',
     premium: 'kaway',
     nexo: 'general',
   };
@@ -188,7 +195,7 @@ function extractTasksFromText(content: string, agent: AgentRole): GeneratedTask[
     marina: 'mercadolivre',
     sunny: 'shopee',
     tren: 'shein',
-    viral: 'tiktok',
+    viral: 'tiktokshop',
     premium: 'kaway',
     nexo: 'general',
   };
@@ -410,6 +417,25 @@ export async function runAnalysisPlan(
       const agentName = getAgentName(agent);
       const analysisPrompt = getAgentPrompt(agent);
 
+      // Check circuit breaker state before attempting agent call
+      const channelAsAgent = channel as MarketplaceAgent;
+      if (!canAttemptAgentCall(channelAsAgent)) {
+        const breaker = getAgentCircuitBreaker(channelAsAgent);
+        const metrics = breaker.getMetrics();
+        console.warn(
+          `⚠️ Circuit breaker OPEN for ${channel}. Recovery time remaining: ${metrics.recoveryTimeRemaining}ms`
+        );
+        // Use fallback response
+        analysisResults[channel] = JSON.stringify({
+          summary: `Análise de ${channel} indisponível (serviço em recuperação)`,
+          opportunities: [],
+          phases: [],
+          metrics: [],
+        });
+        recordAgentFailure(channelAsAgent);
+        continue; // Skip to next channel
+      }
+
       const strategicPrompt = `${analysisPrompt}
 
 MODO ANÁLISE ESTRATÉGICA - Você está gerando um plano estratégico profundo.
@@ -467,8 +493,14 @@ Formato esperado (JSON estruturado):
         maxTokens: 3000,
       });
 
+      // Record success on circuit breaker
+      recordAgentSuccess(channelAsAgent);
       analysisResults[channel] = response.content;
     } catch (error) {
+      // Record failure on circuit breaker
+      const channelAsAgent = channel as MarketplaceAgent;
+      recordAgentFailure(channelAsAgent);
+
       console.error(`Error analyzing channel ${channel}:`, error);
       analysisResults[channel] = `Erro ao analisar ${channel}`;
     }

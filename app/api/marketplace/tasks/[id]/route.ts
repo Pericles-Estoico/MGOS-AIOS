@@ -92,13 +92,15 @@ export async function GET(
         category = 'analysis';
       }
 
-      // Determine status for marketplace (approved if admin_approved is true)
+      // Determine status for marketplace (maps DB status to API status)
       let marketplace_status = task.status;
-      if (task.status === 'pending' && !task.admin_approved) {
+      if (task.status === 'a_fazer' && !task.admin_approved) {
         marketplace_status = 'awaiting_approval';
-      } else if (task.status === 'pending' && task.admin_approved) {
+      } else if (task.status === 'a_fazer' && task.admin_approved) {
         marketplace_status = 'approved';
-      } else if (task.status === 'completed') {
+      } else if (task.status === 'fazendo') {
+        marketplace_status = 'in_progress';
+      } else if (task.status === 'concluido') {
         marketplace_status = 'completed';
       }
 
@@ -197,24 +199,19 @@ export async function PATCH(
         );
       }
 
-      // Map marketplace status to internal status
+      // Map marketplace status to internal DB status values (01-schema.sql CHECK constraint)
       interface StatusUpdate {
         status: string;
-        admin_approved: boolean;
-        notes?: string;
       }
 
       const statusMap: Record<string, StatusUpdate> = {
-        approved: { status: 'pending', admin_approved: true },
-        rejected: { status: 'rejected', admin_approved: false },
-        in_progress: { status: 'in_progress', admin_approved: true },
-        completed: { status: 'completed', admin_approved: true },
+        approved: { status: 'a_fazer' },    // Approved by admin → ready to start
+        rejected: { status: 'a_fazer' },    // Rejected → reset to a_fazer (no 'rejected' in schema)
+        in_progress: { status: 'fazendo' }, // Maps to 'fazendo'
+        completed: { status: 'concluido' }, // Maps to 'concluido'
       };
 
-      const updateData = statusMap[status] || {};
-      if (notes) {
-        updateData.notes = notes;
-      }
+      const updateData: StatusUpdate = statusMap[status] || { status: 'a_fazer' };
 
       // Update task
       const { data: updatedTask, error } = await supabase

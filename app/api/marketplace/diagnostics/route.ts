@@ -66,14 +66,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Analyze task status
+    // Analyze task status (maps DB status: a_fazer, fazendo, enviado_qa, aprovado, concluido)
     const taskStats = {
       total: tasks?.length || 0,
       by_status: {
-        pending: (tasks || []).filter(t => t.status === 'pending').length,
-        in_progress: (tasks || []).filter(t => t.status === 'in_progress').length,
-        completed: (tasks || []).filter(t => t.status === 'completed').length,
-        failed: (tasks || []).filter(t => t.status === 'failed').length,
+        pending: (tasks || []).filter(t => t.status === 'a_fazer').length,
+        in_progress: (tasks || []).filter(t => t.status === 'fazendo').length,
+        in_qa: (tasks || []).filter(t => t.status === 'enviado_qa').length,
+        approved: (tasks || []).filter(t => t.status === 'aprovado').length,
+        completed: (tasks || []).filter(t => t.status === 'concluido').length,
       },
       by_source: {
         analysis_approved: (tasks || []).filter(t => t.source_type === 'analysis_approved').length,
@@ -87,11 +88,11 @@ export async function GET(request: NextRequest) {
       taskStats.by_channel[task.channel] = (taskStats.by_channel[task.channel] || 0) + 1;
     });
 
-    // Analyze plan status
+    // Analyze plan status (marketplace_plans table status: draft, approved, rejected)
     const planStats = {
       total: plans?.length || 0,
       by_status: {
-        pending: (plans || []).filter(p => p.status === 'pending').length,
+        pending: (plans || []).filter(p => p.status === 'draft').length,
         approved: (plans || []).filter(p => p.status === 'approved').length,
         rejected: (plans || []).filter(p => p.status === 'rejected').length,
       },
@@ -102,7 +103,7 @@ export async function GET(request: NextRequest) {
     // Identify stuck patterns
     const stuckPatterns = {
       pending_plans_old: (plans || [])
-        .filter(p => p.status === 'pending' && new Date(p.created_at).getTime() < Date.now() - 2 * 60 * 60 * 1000)
+        .filter(p => p.status === 'draft' && new Date(p.created_at).getTime() < Date.now() - 2 * 60 * 60 * 1000)
         .map(p => ({
           id: p.id,
           title: p.title,
@@ -113,7 +114,7 @@ export async function GET(request: NextRequest) {
         })),
 
       tasks_pending_old: (tasks || [])
-        .filter(t => t.status === 'pending' && new Date(t.created_at).getTime() < Date.now() - 4 * 60 * 60 * 1000)
+        .filter(t => t.status === 'a_fazer' && new Date(t.created_at).getTime() < Date.now() - 4 * 60 * 60 * 1000)
         .map(t => ({
           id: t.id,
           title: t.title,
