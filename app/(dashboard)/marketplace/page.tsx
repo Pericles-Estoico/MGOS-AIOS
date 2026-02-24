@@ -611,6 +611,17 @@ export default function MarketplacePage() {
             </div>
           </Link>
 
+          <Link
+            href="/marketplace/knowledge-base"
+            className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition flex items-center gap-3"
+          >
+            <Upload className="w-5 h-5 text-violet-500" />
+            <div>
+              <p className="font-semibold text-gray-900">📚 Knowledge Base</p>
+              <p className="text-sm text-gray-600">Ensine os agentes</p>
+            </div>
+          </Link>
+
           <button
             onClick={() => setShowUploadModal(true)}
             className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition flex items-center gap-3 text-left"
