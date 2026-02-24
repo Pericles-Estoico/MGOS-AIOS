@@ -154,38 +154,50 @@ export async function PATCH(
         );
       }
 
-      // Enqueue Phase 1 tasks asynchronously
+      // Create Phase 1 tasks with fallback
       let jobId: string = '';
+      let taskIds: string[] = [];
+
       try {
-        // Extract plan data for queue
+        // First, try to enqueue job with Redis (async)
         const planData = plan.plan_data || {};
         const opportunities = planData.opportunities || [];
         const channels = planData.channels || plan.channels || [];
 
-        jobId = await enqueuePhase1Job({
-          planId: params.id,
-          channels,
-          opportunities,
-          metadata: {
-            createdBy: userId,
-            approvedAt: new Date(),
-            reason: reason || 'User approval',
-          },
-        });
-
-        console.log(`✅ Phase 1 job enqueued: ${jobId} for plan ${params.id}`);
-      } catch (taskError) {
-        console.error('Error enqueueing Phase 1 tasks:', taskError);
-        // Return 202 anyway - job may have been enqueued despite error
-        if (!jobId) {
-          return NextResponse.json(
-            {
-              error: 'Erro ao enfileirar tarefas',
-              details: taskError instanceof Error ? taskError.message : 'Unknown error',
+        try {
+          jobId = await enqueuePhase1Job({
+            planId: params.id,
+            channels,
+            opportunities,
+            metadata: {
+              createdBy: userId,
+              approvedAt: new Date(),
+              reason: reason || 'User approval',
             },
-            { status: 500 }
-          );
+          });
+          console.log(`✅ Phase 1 job enqueued: ${jobId} for plan ${params.id}`);
+        } catch (queueError) {
+          console.warn('⚠️ Redis queue unavailable, using fallback sync processing:', queueError instanceof Error ? queueError.message : queueError);
+
+          // FALLBACK: Create Phase 1 tasks directly (synchronous)
+          try {
+            taskIds = await createPhase1Tasks(params.id);
+            jobId = `sync-${params.id}-${Date.now()}`;
+            console.log(`✅ Phase 1 tasks created directly (sync fallback): ${taskIds.length} tasks for plan ${params.id}`);
+          } catch (syncError) {
+            console.error('❌ Fallback sync task creation also failed:', syncError);
+            throw syncError;
+          }
         }
+      } catch (taskError) {
+        console.error('❌ Error in Phase 1 task creation:', taskError);
+        return NextResponse.json(
+          {
+            error: 'Erro ao criar tarefas Phase 1',
+            details: taskError instanceof Error ? taskError.message : 'Unknown error',
+          },
+          { status: 500 }
+        );
       }
 
       // Return 202 Accepted with job ID for polling
