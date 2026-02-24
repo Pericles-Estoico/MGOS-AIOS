@@ -75,7 +75,7 @@ export async function initQueueEventListeners(): Promise<void> {
   const queueEvents = getPhase1QueueEvents();
 
   // Job enqueued
-  queueEvents.on('enqueued', (eventData: unknown) => {
+  (queueEvents.on as any)('enqueued', (eventData: unknown) => {
     const event = eventData as Record<string, unknown>;
     const jobId = String(event.jobId ?? '');
     const data = event.data as Record<string, unknown> | undefined;
@@ -151,7 +151,7 @@ export async function initQueueEventListeners(): Promise<void> {
   });
 
   // Job retrying
-  queueEvents.on('retry', (eventData: unknown) => {
+  (queueEvents.on as any)('retry', (eventData: unknown) => {
     const event = eventData as Record<string, unknown>;
     const jobId = String(event.jobId ?? '');
     const attemptsMade = event.attemptsMade;

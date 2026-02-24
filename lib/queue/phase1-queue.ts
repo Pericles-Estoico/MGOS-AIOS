@@ -59,10 +59,6 @@ export function getPhase1Queue(): Queue<Phase1Job> {
         delay: 1000, // Start at 1 second
       },
       /**
-       * Job timeout: 10 seconds per job
-       */
-      timeout: parseInt(process.env.JOB_TIMEOUT_MS || '10000'),
-      /**
        * Remove completed jobs after 1 hour to save Redis memory
        */
       removeOnComplete: {
@@ -73,12 +69,12 @@ export function getPhase1Queue(): Queue<Phase1Job> {
        */
       removeOnFail: false,
     },
-  });
+  } as any) as Queue<Phase1Job>;
 
   // Create dead-letter queue for failed jobs
   getPhase1DLQ();
 
-  return queueInstance;
+  return queueInstance!;
 }
 
 /**
@@ -109,7 +105,7 @@ export async function enqueuePhase1Job(payload: unknown): Promise<string> {
 
   console.log(`✅ Job enqueued: ${job.id} for plan ${validatedJob.planId}`);
 
-  return job.id;
+  return job.id || `phase1-${validatedJob.planId}-${Date.now()}`;
 }
 
 /**
@@ -124,9 +120,9 @@ export async function getJobStatus(jobId: string) {
   }
 
   return {
-    id: job.id,
+    id: job.id || '',
     status: await job.getState(),
-    progress: job.progress(),
+    progress: job.progress as any,
     data: job.data,
     result: job.returnvalue,
     error: job.failedReason,

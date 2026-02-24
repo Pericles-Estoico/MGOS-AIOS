@@ -43,19 +43,19 @@ export async function initPhase1Worker(): Promise<Worker<Phase1Job>> {
         job.updateProgress(30);
 
         // Call existing createPhase1Tasks function
-        // This function already handles database operations and returns created tasks
-        const result = await createPhase1Tasks(planId, channels, opportunities);
+        // This function already handles database operations and returns created task IDs
+        const taskIds = await createPhase1Tasks(planId);
 
         job.updateProgress(90);
 
-        console.log(`✅ Job ${job.id} completed: ${result.tasksCreated} tasks created`);
+        console.log(`✅ Job ${job.id} completed: ${taskIds.length} tasks created`);
         job.updateProgress(100);
 
         // Return result for polling
         return {
           success: true,
-          tasksCreated: result.tasksCreated,
-          taskIds: result.taskIds,
+          tasksCreated: taskIds.length,
+          taskIds: taskIds,
           completedAt: new Date().toISOString(),
         };
       } catch (error) {

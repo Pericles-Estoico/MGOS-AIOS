@@ -205,7 +205,7 @@ export default function UsersPage() {
             </div>
 
             <div className="flex gap-2">
-              <Button type="submit" variant="default">
+              <Button type="submit" variant="primary">
                 <Check className="w-4 h-4 mr-2" />
                 Salvar
               </Button>
