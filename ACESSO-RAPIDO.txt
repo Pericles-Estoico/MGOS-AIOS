@@ -1,0 +1,92 @@
+╔════════════════════════════════════════════════════════════════════╗
+║           📱 ACESSO RÁPIDO - NEXO MARKETPLACE SYSTEM              ║
+║                     Para Guardar no Celular                       ║
+╚════════════════════════════════════════════════════════════════════╝
+
+
+🌐 URL PRINCIPAL (Copie e cole no navegador):
+────────────────────────────────────────────────
+   https://www.sellerops.com.br/marketplace
+
+
+👤 CREDENCIAIS DE ACESSO:
+────────────────────────────────────────────────
+   Email: pericles@vidadeceo.com.br
+   Senha: Estoico123@
+
+
+📍 LINKS IMPORTANTES:
+────────────────────────────────────────────────
+   Dashboard:        https://www.sellerops.com.br/marketplace
+   Análises:         https://www.sellerops.com.br/marketplace/analysis
+   Knowledge Base:   https://www.sellerops.com.br/marketplace/knowledge-base
+   Phase 2 (Métricas): https://www.sellerops.com.br/marketplace/orchestration
+   Phase 3 (Tarefas):  https://www.sellerops.com.br/marketplace/tasks/execution
+   Phase 4 (IA):      https://www.sellerops.com.br/marketplace/orchestration/optimization
+
+
+⚡ AÇÕES RÁPIDAS (Do Dashboard):
+────────────────────────────────────────────────
+   1. Ver Análises Pendentes
+   2. Ver Tarefas em Execução
+   3. Ver Analytics
+   4. Upload de Arquivo Novo
+   5. Ver Knowledge Base
+
+
+🆘 SE NÃO FUNCIONAR:
+────────────────────────────────────────────────
+   1. Limpar cache: Settings → Safari/Chrome → Clear Data
+   2. Fazer logout e login novamente
+   3. Fechar navegador completamente e reabrir
+   4. Abrir em navegador privado/incógnito
+   5. Abrir em outro navegador (Chrome, Safari, Firefox)
+
+
+🔧 DEBUG (Se tudo falhar):
+────────────────────────────────────────────────
+   Abra: https://www.sellerops.com.br/api/debug/mobile-check
+   Se disser "allOk": true = sistema está ok, limpar cache
+   Se disser "allOk": false = avisar desenvolvimento
+
+
+📱 MOBILE (iPhone/Android):
+────────────────────────────────────────────────
+   iPhone: Use Safari (não Chrome)
+   Android: Use Chrome
+   Adicione à home screen para acessar rápido
+
+
+⏰ FUNCIONAMENTO:
+────────────────────────────────────────────────
+   24 horas por dia, 7 dias por semana
+   Se offline, aguarde 5 minutos e tente novamente
+
+
+📞 SUPORTE:
+────────────────────────────────────────────────
+   Documentação: /docs/ACESSO-SIMPLES-PARA-USUARIO.md
+   Debug: https://www.sellerops.com.br/api/debug/mobile-check
+
+
+═══════════════════════════════════════════════════════════════════════
+
+🎯 ROTINA DIÁRIA:
+
+1️⃣  Abra: https://www.sellerops.com.br/marketplace
+2️⃣  Faça login
+3️⃣  Veja o Dashboard NEXO (status dos agentes)
+4️⃣  Clique na seção que precisa (Análises, Tarefas, etc)
+5️⃣  Execute a ação desejada
+6️⃣  Veja resultados em tempo real
+
+═══════════════════════════════════════════════════════════════════════
+
+✅ Salve este arquivo ou tire screenshot!
+📱 Guarde no seu celular para referência rápida
+🔖 Pode imprimir e deixar na mesa
+
+Criado em: 2026-02-24
+Última atualização: 2026-02-24
+
+═══════════════════════════════════════════════════════════════════════
