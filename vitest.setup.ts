@@ -3,7 +3,7 @@
  * @description Global setup for all Vitest tests
  */
 
-import { expect, afterEach, vi } from 'vitest';
+import { expect, afterEach, beforeAll, afterAll, vi } from 'vitest';
 
 // ============================================================================
 // Global Setup

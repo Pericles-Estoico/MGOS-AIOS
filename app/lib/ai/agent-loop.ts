@@ -630,8 +630,6 @@ Formato esperado (JSON estruturado):
       channels,
       summary: aggregatedPlan.summary,
       createdAt: startTime.toISOString(),
-      phase1TasksCreated: phase1TaskIds.length,
-      taskIds: phase1TaskIds,
     };
   } catch (error) {
     console.error('Error creating analysis plan:', error);

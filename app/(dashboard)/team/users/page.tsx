@@ -29,10 +29,15 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    email: string;
+    name: string;
+    role: 'admin' | 'head' | 'executor' | 'qa';
+    department: string;
+  }>({
     email: '',
     name: '',
-    role: 'executor' as const,
+    role: 'executor',
     department: ''
   });
 

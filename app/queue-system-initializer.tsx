@@ -13,7 +13,7 @@ export function QueueSystemInitializer() {
     const initQueue = async () => {
       try {
         // Dynamic import to avoid server-side initialization issues
-        const { initializeQueueSystem } = await import('@/lib/queue/worker-init');
+        const { initializeQueueSystem } = await import('@lib/queue/worker-init');
         await initializeQueueSystem();
       } catch (error) {
         console.warn('Queue system initialization failed:', error);

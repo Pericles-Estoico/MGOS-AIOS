@@ -55,6 +55,10 @@ export async function GET() {
 /**
  * POST for manual health check trigger (useful for monitoring systems)
  */
-export async function POST(request: NextRequest) {
-  return GET(request);
+export async function POST() {
+  return NextResponse.json({
+    status: 'ok',
+    service: 'redis-health-check',
+    timestamp: new Date().toISOString(),
+  });
 }

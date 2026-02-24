@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
         analysis_approved: (tasks || []).filter(t => t.source_type === 'analysis_approved').length,
         ai_generated: (tasks || []).filter(t => t.source_type === 'ai_generated').length,
       },
-      by_channel: {},
+      by_channel: {} as Record<string, number>,
     };
 
     // Count by channel
