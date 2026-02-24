@@ -16,7 +16,11 @@ import {
   Search,
   Upload,
   X,
-  Loader
+  Loader,
+  Play,
+  BarChart3,
+  Activity,
+  Brain
 } from 'lucide-react';
 
 interface ChannelStatus {
@@ -49,6 +53,15 @@ const MARKETPLACE_CHANNELS = [
   { id: 'kaway', name: 'Kaway', icon: '💎', color: 'from-purple-400 to-purple-600' },
 ];
 
+interface NexoStatus {
+  isActive: boolean;
+  activeAgents: number;
+  totalAgents: number;
+  tasksGenerated: number;
+  successRate: number;
+  systemHealth: 'excellent' | 'good' | 'fair' | 'poor';
+}
+
 export default function MarketplacePage() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -63,6 +76,8 @@ export default function MarketplacePage() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [nexoStatus, setNexoStatus] = useState<NexoStatus | null>(null);
+  const [activatingNexo, setActivatingNexo] = useState(false);
 
   // Redirect if not admin
   useEffect(() => {
@@ -71,12 +86,63 @@ export default function MarketplacePage() {
     }
   }, [session, router]);
 
+  // Fetch NEXO orchestrator status
+  const fetchNexoStatus = async () => {
+    try {
+      const res = await fetch('/api/marketplace/orchestration/metrics');
+      if (res.ok) {
+        const data = await res.json();
+        setNexoStatus({
+          isActive: data.system.activeAgents > 0,
+          activeAgents: data.system.activeAgents,
+          totalAgents: data.system.totalAgents,
+          tasksGenerated: data.system.totalTasksGenerated,
+          successRate: data.system.totalTasksGenerated > 0
+            ? (data.system.totalTasksCompleted / data.system.totalTasksGenerated) * 100
+            : 0,
+          systemHealth: data.system.systemHealth
+        });
+      }
+    } catch (err) {
+      console.error('Failed to fetch NEXO status:', err);
+    }
+  };
+
+  // Activate NEXO
+  const handleActivateNexo = async () => {
+    try {
+      setActivatingNexo(true);
+      const res = await fetch('/api/marketplace/orchestration/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channels: ['amazon', 'mercadolivre', 'shopee', 'shein', 'tiktokshop', 'kaway'],
+        }),
+      });
+
+      if (res.ok) {
+        await fetchNexoStatus();
+        alert('✅ NEXO Orchestrator ativado! Agentes começando a gerar tarefas...');
+      } else {
+        const error = await res.json();
+        alert(`❌ Erro: ${error.error}`);
+      }
+    } catch (err) {
+      alert(`❌ Erro ao ativar NEXO: ${err}`);
+    } finally {
+      setActivatingNexo(false);
+    }
+  };
+
   // Fetch marketplace data
   useEffect(() => {
     async function fetchMarketplaceData() {
       try {
         setLoading(true);
         setError(null);
+
+        // Fetch NEXO status
+        await fetchNexoStatus();
 
         // Fetch overview stats (real data from API)
         const statsResponse = await fetch('/api/marketplace/stats/overview');
@@ -216,6 +282,141 @@ export default function MarketplacePage() {
           {error}
         </div>
       )}
+
+      {/* NEXO Orchestrator Master Control */}
+      <div className="mb-8 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="bg-blue-100 rounded-full p-3">
+              <Brain className="w-8 h-8 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">🚀 NEXO Orchestrator Master</h2>
+              <p className="text-gray-600 text-sm">Orquestração IA de 6 agentes especializados</p>
+            </div>
+          </div>
+          {nexoStatus?.isActive && (
+            <div className="flex items-center gap-2 bg-green-100 px-3 py-2 rounded-full">
+              <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" />
+              <span className="text-green-700 font-semibold text-sm">ATIVO</span>
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+          {/* Status Cards */}
+          {nexoStatus && (
+            <>
+              <div className="bg-white rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-blue-600 mb-1">{nexoStatus.activeAgents}/{nexoStatus.totalAgents}</div>
+                <div className="text-xs text-gray-600">Agentes Ativos</div>
+              </div>
+              <div className="bg-white rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-green-600 mb-1">{nexoStatus.tasksGenerated}</div>
+                <div className="text-xs text-gray-600">Tarefas Geradas</div>
+              </div>
+              <div className="bg-white rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-purple-600 mb-1">{nexoStatus.successRate.toFixed(1)}%</div>
+                <div className="text-xs text-gray-600">Taxa Sucesso</div>
+              </div>
+              <div className="bg-white rounded-lg p-4 text-center">
+                <div className={`text-sm font-bold px-2 py-1 rounded ${
+                  nexoStatus.systemHealth === 'excellent' ? 'bg-green-100 text-green-700' :
+                  nexoStatus.systemHealth === 'good' ? 'bg-blue-100 text-blue-700' :
+                  nexoStatus.systemHealth === 'fair' ? 'bg-yellow-100 text-yellow-700' :
+                  'bg-red-100 text-red-700'
+                }`}>
+                  {nexoStatus.systemHealth.toUpperCase()}
+                </div>
+                <div className="text-xs text-gray-600 mt-2">Saúde Sistema</div>
+              </div>
+              <div className="bg-white rounded-lg p-4">
+                {nexoStatus.isActive ? (
+                  <button
+                    onClick={() => router.push('/marketplace/orchestration')}
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-semibold"
+                  >
+                    Ver Dashboard
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleActivateNexo}
+                    disabled={activatingNexo}
+                    className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition text-sm font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {activatingNexo ? (
+                      <>
+                        <Loader className="w-4 h-4 animate-spin" />
+                        Ativando...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4" />
+                        Ativar NEXO
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Phase Navigation */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Phase 2 */}
+          <Link
+            href="/marketplace/orchestration"
+            className="bg-white rounded-lg p-4 border-l-4 border-blue-500 hover:shadow-lg transition"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <BarChart3 className="w-5 h-5 text-blue-600" />
+              <span className="font-semibold text-gray-900">Phase 2</span>
+            </div>
+            <p className="text-sm text-gray-600">Dashboard em Tempo Real</p>
+            <p className="text-xs text-gray-500 mt-1">Saúde + Performance de Agentes</p>
+          </Link>
+
+          {/* Phase 3 */}
+          <Link
+            href="/marketplace/tasks/execution"
+            className="bg-white rounded-lg p-4 border-l-4 border-green-500 hover:shadow-lg transition"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-5 h-5 text-green-600" />
+              <span className="font-semibold text-gray-900">Phase 3</span>
+            </div>
+            <p className="text-sm text-gray-600">Execução de Tarefas</p>
+            <p className="text-xs text-gray-500 mt-1">Progresso em Tempo Real (0-100%)</p>
+          </Link>
+
+          {/* Phase 4 */}
+          <Link
+            href="/marketplace/orchestration/optimization"
+            className="bg-white rounded-lg p-4 border-l-4 border-purple-500 hover:shadow-lg transition"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Brain className="w-5 h-5 text-purple-600" />
+              <span className="font-semibold text-gray-900">Phase 4</span>
+            </div>
+            <p className="text-sm text-gray-600">Otimização com IA</p>
+            <p className="text-xs text-gray-500 mt-1">ML Routing + Predições</p>
+          </Link>
+
+          {/* Orchestration */}
+          <Link
+            href="/marketplace/analysis"
+            className="bg-white rounded-lg p-4 border-l-4 border-orange-500 hover:shadow-lg transition"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Search className="w-5 h-5 text-orange-600" />
+              <span className="font-semibold text-gray-900">Análises</span>
+            </div>
+            <p className="text-sm text-gray-600">Planos Estratégicos</p>
+            <p className="text-xs text-gray-500 mt-1">Insights + Recomendações</p>
+          </Link>
+        </div>
+      </div>
 
       {/* Stats Grid */}
       {stats && (
