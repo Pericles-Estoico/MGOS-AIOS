@@ -1,11 +1,12 @@
 // Service Worker for offline support and performance caching
-const CACHE_NAME = 'mgos-v1';
+// Updated: 2026-02-24 - Force cache refresh
+const CACHE_NAME = 'mgos-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
 ];
 
-const API_CACHE = 'mgos-api-v1';
+const API_CACHE = 'mgos-api-v2';
 const API_ROUTES = [
   '/api/tasks',
   '/api/sprints',
