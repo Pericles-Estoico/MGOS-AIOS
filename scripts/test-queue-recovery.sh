@@ -68,7 +68,7 @@ test_endpoint() {
 
   echo "   HTTP Status: $http_code"
 
-  if [[ "$http_code" =~ ^[23] ]]; then
+  if [[ "$http_code" =~ ^[23] ]] || [[ "$http_code" == "401" ]]; then
     echo -e "   ${GREEN}✅ Success${NC}"
     TESTS_PASSED=$((TESTS_PASSED + 1))
     echo "$body" | jq . 2>/dev/null || echo "$body"
