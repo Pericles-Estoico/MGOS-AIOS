@@ -97,12 +97,12 @@ echo "======================================"
 test_endpoint "GET /api/tasks" "GET" "/api/tasks" ""
 
 # Test 3: List stuck analyses
-echo -e "${YELLOW}[3/5] List Stuck Analyses${NC}"
+echo -e "${YELLOW}[3/5] Recovery Endpoint${NC}"
 echo "======================================"
 test_endpoint \
-  "POST /api/admin/marketplace/recovery (list)" \
+  "POST /api/recovery (list)" \
   "POST" \
-  "/api/admin/marketplace/recovery" \
+  "/api/recovery" \
   '{"action":"list"}'
 
 # Test 4: Get marketplace analysis (if exists)
@@ -138,9 +138,8 @@ if [ $TESTS_FAILED -eq 0 ]; then
   echo ""
   echo "🔧 Next steps to recover marketplace analyses:"
   echo "  1. Make sure you're logged in as admin"
-  echo "  2. Run: curl -X POST $BASE_URL/api/admin/marketplace/recovery \\"
-  echo "     -H 'Content-Type: application/json' \\"
-  echo "     -d '{\"action\":\"reprocess-all\"}'"
+  echo "  2. Run: bash scripts/recover-analyses.sh list"
+  echo "  3. Then: bash scripts/recover-analyses.sh reprocess-all"
   echo ""
   echo "📝 Monitor logs:"
   if [ "$ENVIRONMENT" = "production" ]; then

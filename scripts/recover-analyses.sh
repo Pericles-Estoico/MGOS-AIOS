@@ -94,7 +94,7 @@ make_request() {
       -X POST \
       -H "Content-Type: application/json" \
       -d "$data" \
-      "$BASE_URL/api/admin/marketplace/recovery" 2>&1)
+      "$BASE_URL/api/recovery" 2>&1)
 
     http_code=$(echo "$response" | tail -1)
     body=$(echo "$response" | head -n -1)
