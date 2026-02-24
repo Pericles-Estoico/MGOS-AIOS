@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ClientProviders } from "./providers-client";
-import { QueueSystemInitializer } from "./queue-system-initializer";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -20,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={inter.variable} suppressHydrationWarning>
       <body className="font-inter">
-        <QueueSystemInitializer />
+        {/* Queue system is initialized via instrumented.ts during server startup */}
         <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
