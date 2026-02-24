@@ -3,7 +3,7 @@
  * Get per-channel statistics
  */
 
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@lib/supabase';
 import { NextResponse } from 'next/server';
 
 interface ChannelStatus {

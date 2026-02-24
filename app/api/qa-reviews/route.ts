@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@lib/supabase';
 import { notifyQAReviewAction } from '@/lib/notification-triggers';
 import type { Session } from 'next-auth';
 

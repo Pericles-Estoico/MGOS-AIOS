@@ -7,7 +7,7 @@
 
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 import type { Session } from 'next-auth';
 

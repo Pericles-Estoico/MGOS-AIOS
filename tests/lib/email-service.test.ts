@@ -9,7 +9,7 @@ import {
   processEmailQueue,
   storeEmailTemplates,
   type EmailData,
-} from '@/lib/email-service';
+} from '@lib/email-service';
 
 // Mock Supabase
 vi.mock('@supabase/supabase-js', () => ({

@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { checkRedisHealth, getRedisMetrics } from '@/lib/redis-client';
+import { checkRedisHealth, getRedisMetrics } from '@lib/redis-client';
 
 export async function GET() {
   try {

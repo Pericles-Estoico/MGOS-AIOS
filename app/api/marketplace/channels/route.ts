@@ -4,7 +4,7 @@
  * PUBLIC ENDPOINT - No authentication required
  */
 
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface ChannelRow {

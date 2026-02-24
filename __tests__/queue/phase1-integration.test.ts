@@ -4,8 +4,8 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getPhase1Queue, enqueuePhase1Job, getJobStatus, closePhase1Queue } from '@/lib/queue/phase1-queue';
-import { initPhase1Worker, shutdownPhase1Worker, isWorkerRunning } from '@/lib/queue/phase1-worker';
+import { getPhase1Queue, enqueuePhase1Job, getJobStatus, closePhase1Queue } from '@lib/queue/phase1-queue';
+import { initPhase1Worker, shutdownPhase1Worker, isWorkerRunning } from '@lib/queue/phase1-worker';
 
 describe('Phase 1 Queue Integration', () => {
   beforeAll(async () => {

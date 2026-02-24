@@ -5,7 +5,7 @@
  * POST /api/notifications/enqueue - Queue emails for sending
  */
 
-import { queueEmail } from '@/lib/email-service';
+import { queueEmail } from '@lib/email-service';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface EnqueueRequest {

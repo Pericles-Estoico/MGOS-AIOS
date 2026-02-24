@@ -9,7 +9,7 @@ import {
   canAccessTeamMetrics,
   canAccessUserMetrics,
   clearAnalyticsCache,
-} from '@/lib/analytics-service';
+} from '@lib/analytics-service';
 
 // Mock Supabase
 vi.mock('@supabase/supabase-js', () => ({

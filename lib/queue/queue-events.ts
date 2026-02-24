@@ -4,7 +4,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { getPhase1QueueEvents } from '@/lib/queue/phase1-queue';
+import { getPhase1QueueEvents } from '@lib/queue/phase1-queue';
 
 /**
  * Job lifecycle event payload type (more flexible than strict types)

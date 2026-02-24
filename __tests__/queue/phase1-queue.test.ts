@@ -10,7 +10,7 @@ import {
   getJobStatus,
   closePhase1Queue,
   Phase1JobSchema,
-} from '@/lib/queue/phase1-queue';
+} from '@lib/queue/phase1-queue';
 
 describe('Phase 1 Queue', () => {
   beforeAll(async () => {

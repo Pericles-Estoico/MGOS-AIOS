@@ -9,7 +9,7 @@ import {
   getSupportedTimezones,
   UserPreferences,
   PreferenceUpdate,
-} from '@/lib/user-preferences';
+} from '@lib/user-preferences';
 
 describe('User Preferences Helper Functions', () => {
   const mockUserId = 'test-user-123';

@@ -1,4 +1,4 @@
-import { processEmailQueue } from '@/lib/email-service';
+import { processEmailQueue } from '@lib/email-service';
 
 export const maxDuration = 300; // 5 minutes max for processing
 

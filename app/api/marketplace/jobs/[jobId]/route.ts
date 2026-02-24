@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { getJobStatus } from '@/lib/queue/phase1-queue';
+import { getJobStatus } from '@lib/queue/phase1-queue';
 
 export async function GET(
   request: NextRequest,

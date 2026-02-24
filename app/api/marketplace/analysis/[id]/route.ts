@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@lib/supabase';
 import { createPhase1Tasks } from '@/lib/ai/agent-loop';
-import { enqueuePhase1Job } from '@/lib/queue/phase1-queue';
+import { enqueuePhase1Job } from '@lib/queue/phase1-queue';
 
 /**
  * GET /api/marketplace/analysis/[id]

@@ -1,13 +1,13 @@
 import { callAgent } from './agent-client';
 import { getAgentPrompt, getAgentName, type AgentRole } from './agent-prompts';
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@lib/supabase';
 import {
   getAgentCircuitBreaker,
   canAttemptAgentCall,
   recordAgentSuccess,
   recordAgentFailure,
   type MarketplaceAgent,
-} from '@/lib/resilience/agent-circuit-breaker';
+} from '@lib/resilience/agent-circuit-breaker';
 
 export interface LoopExecutionResult {
   timestamp: string;

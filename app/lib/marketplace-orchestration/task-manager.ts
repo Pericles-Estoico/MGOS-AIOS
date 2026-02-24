@@ -2,7 +2,7 @@
  * Task Manager - Gerencia o ciclo de vida das tarefas
  */
 
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@lib/supabase';
 import type {
   MarketplaceTask,
   TaskStatus,

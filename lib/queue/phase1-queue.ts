@@ -6,7 +6,7 @@
 import { Queue, QueueEvents } from 'bullmq';
 import { z } from 'zod';
 import type { Redis } from 'ioredis';
-import { getRedisClient } from '@/lib/redis-client';
+import { getRedisClient } from '@lib/redis-client';
 
 /**
  * Job payload schema with Zod validation

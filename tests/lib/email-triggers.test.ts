@@ -12,7 +12,7 @@ import {
   triggerMultiple,
   type TaskEvent,
   type CommentEvent,
-} from '@/lib/email-triggers';
+} from '@lib/email-triggers';
 
 // Mock the email service
 vi.mock('@/lib/email-service', () => ({

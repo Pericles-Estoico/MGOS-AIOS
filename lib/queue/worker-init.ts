@@ -4,8 +4,8 @@
  * Should be imported in app/layout.tsx or similar
  */
 
-import { initPhase1Worker, shutdownPhase1Worker } from '@/lib/queue/phase1-worker';
-import { initQueueEventListeners, closeQueueEventListeners } from '@/lib/queue/queue-events';
+import { initPhase1Worker, shutdownPhase1Worker } from '@lib/queue/phase1-worker';
+import { initQueueEventListeners, closeQueueEventListeners } from '@lib/queue/queue-events';
 
 let workerInitialized = false;
 

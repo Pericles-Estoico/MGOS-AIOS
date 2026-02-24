@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@lib/supabase';
 import { Loader, AlertCircle, CheckCircle2 } from 'lucide-react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
