@@ -1,7 +1,7 @@
 /**
  * NEXO - Marketplace Master Orchestrator
  * Gerencia todos os 6 agentes especializados (Alex, Marina, Sunny, Tren, Viral, Premium)
- * Indica tarefas, monitora desempenho, controla execução
+ * Gera tarefas de escala de vendas e produtos, envia para aprovação humana
  */
 
 import { createSupabaseServerClient } from '@lib/supabase';
@@ -38,21 +38,34 @@ export interface OrchestrationPlan {
   };
 }
 
+const CHANNEL_MAP: Record<AgentRole, string> = {
+  alex: 'amazon',
+  marina: 'mercadolivre',
+  sunny: 'shopee',
+  tren: 'shein',
+  viral: 'tiktokshop',
+  premium: 'kaway',
+  nexo: 'general',
+};
+
 export class AgentOrchestrator {
   private agents: AgentRole[] = ['alex', 'marina', 'sunny', 'tren', 'viral', 'premium'];
   private supabase = createSupabaseServerClient();
 
   /**
-   * NEXO activates and coordinates all marketplace specialists
-   * Returns orchestration plan with all agents' tasks
+   * NEXO ativa todos os agentes e gera tarefas para aprovação humana
    */
   async activateOrchestation(channels: string[] = []): Promise<OrchestrationPlan> {
     const planId = `plan-${Date.now()}`;
+    const activeChannels = channels.length > 0
+      ? channels
+      : ['amazon', 'mercadolivre', 'shopee', 'shein', 'tiktokshop', 'kaway'];
+
     const plan: OrchestrationPlan = {
       planId,
       timestamp: new Date().toISOString(),
       orchestrator: 'nexo',
-      channels: channels.length > 0 ? channels : ['amazon', 'mercadolivre', 'shopee', 'shein', 'tiktokshop', 'kaway'],
+      channels: activeChannels,
       agentsInvolved: this.agents,
       totalTasksGenerated: 0,
       totalTasksApproved: 0,
@@ -60,223 +73,159 @@ export class AgentOrchestrator {
       status: 'planning',
     };
 
-    console.log(`🌐 NEXO ORCHESTRATOR: Iniciando plano de orquestração ${planId}`);
-    console.log(`📍 Canais alvo: ${plan.channels.join(', ')}`);
-    console.log(`👥 Agentes ativados: ${this.agents.map(a => getAgentName(a as AgentRole)).join(', ')}`);
+    console.log(`🌐 NEXO: Iniciando orquestração ${planId}`);
+    console.log(`📍 Canais: ${activeChannels.join(', ')}`);
 
-    try {
-      // Activate each agent
-      let successCount = 0;
-      let failureCount = 0;
-
-      for (const agent of this.agents) {
-        try {
-          const agentName = getAgentName(agent);
-          console.log(`\n🔄 Ativando ${agentName}...`);
-
-          // Get agent's channel
-          const channelMap: Record<AgentRole, string> = {
-            alex: 'amazon',
-            marina: 'mercadolivre',
-            sunny: 'shopee',
-            tren: 'shein',
-            viral: 'tiktokshop',
-            premium: 'kaway',
-            nexo: 'general',
-          };
-
-          const agentChannel = channelMap[agent];
-
-          // Call agent for tasks generation
-          const agentPrompt = getAgentPrompt(agent);
-          const response = await callAgent({
-            systemPrompt: agentPrompt,
-            userMessage: `Como especialista em ${agentName}, analise o marketplace de ${agentChannel} e gere 3-5 tarefas prioritárias de otimização para moda bebê/infantil.`,
-            provider: 'openai',
-            maxTokens: 1500,
-          });
-
-          // Parse tasks
-          const tasks = this.parseAgentTasks(response.content, agent);
-          plan.totalTasksGenerated += tasks.length;
-
-          console.log(`✅ ${agentName}: ${tasks.length} tarefas geradas`);
-          successCount++;
-
-          // Save to database
-          if (tasks.length > 0) {
-            await this.saveTasaksToDatabase(tasks, planId, agent);
-          }
-        } catch (error) {
-          console.error(`❌ Erro ao ativar agente:`, error);
-          failureCount++;
-        }
-      }
-
-      plan.status = 'executing';
-      plan.result = {
-        successCount,
-        failureCount,
-        summary: `Orquestração concluída: ${successCount} agentes sucesso, ${failureCount} falhas`,
-      };
-
-      console.log(`\n✅ Orquestração ${planId} concluída!`);
-      console.log(`📊 Total de tarefas geradas: ${plan.totalTasksGenerated}`);
-
-      return plan;
-    } catch (error) {
-      plan.status = 'failed';
-      console.error('Erro fatal na orquestração:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get status of all agents
-   */
-  async getAgentsStatus(): Promise<AgentStatus[]> {
-    const statuses: AgentStatus[] = [];
+    let successCount = 0;
+    let failureCount = 0;
 
     for (const agent of this.agents) {
-      const agentName = getAgentName(agent);
-      const channelMap: Record<AgentRole, string> = {
-        alex: 'Amazon',
-        marina: 'MercadoLivre',
-        sunny: 'Shopee',
-        tren: 'Shein',
-        viral: 'TikTok Shop',
-        premium: 'Kaway',
-        nexo: 'General',
-      };
+      const agentChannel = CHANNEL_MAP[agent];
+
+      // Pula agentes cujo canal não está na lista solicitada
+      if (channels.length > 0 && !channels.includes(agentChannel)) {
+        continue;
+      }
 
       try {
-        // Get task stats from database
-        if (!this.supabase) {
-          statuses.push({
-            agentId: agent,
-            agentName,
-            channel: channelMap[agent],
-            status: 'error',
-            tasksGenerated: 0,
-            tasksApproved: 0,
-            tasksCompleted: 0,
-            errorCount: 0,
-            lastExecuted: null,
-            successRate: 0,
-          });
-          continue;
+        const agentName = getAgentName(agent);
+        console.log(`\n🔄 Ativando ${agentName} (${agentChannel})...`);
+
+        const agentPrompt = getAgentPrompt(agent);
+        const response = await callAgent({
+          systemPrompt: agentPrompt,
+          userMessage: this.buildTaskGenerationPrompt(agentName, agentChannel),
+          provider: 'openai',
+          maxTokens: 2000,
+        });
+
+        const tasks = this.parseAgentTasks(response.content, agent);
+        plan.totalTasksGenerated += tasks.length;
+        console.log(`✅ ${agentName}: ${tasks.length} tarefas geradas`);
+        successCount++;
+
+        if (tasks.length > 0) {
+          await this.saveTasksToDatabase(tasks, planId, agent);
         }
-
-        const { data: tasks } = await this.supabase
-          .from('tasks')
-          .select('status, source_type, admin_approved')
-          .eq('channel', agent === 'nexo' ? 'general' : channelMap[agent].toLowerCase());
-
-        const generated = tasks?.filter(t => t.source_type === 'ai_generated').length || 0;
-        const approved = tasks?.filter(t => t.admin_approved === true).length || 0;
-        const completed = tasks?.filter(t => t.status === 'completed').length || 0;
-
-        const successRate = generated > 0 ? (approved / generated) * 100 : 0;
-
-        statuses.push({
-          agentId: agent,
-          agentName,
-          channel: channelMap[agent],
-          status: generated > 0 ? 'active' : 'idle',
-          tasksGenerated: generated,
-          tasksApproved: approved,
-          tasksCompleted: completed,
-          errorCount: 0,
-          lastExecuted: new Date().toISOString(),
-          successRate,
-        });
       } catch (error) {
-        console.error(`Erro ao obter status de ${agentName}:`, error);
-        statuses.push({
-          agentId: agent,
-          agentName,
-          channel: channelMap[agent],
-          status: 'error',
-          tasksGenerated: 0,
-          tasksApproved: 0,
-          tasksCompleted: 0,
-          errorCount: 1,
-          lastExecuted: null,
-          successRate: 0,
-        });
+        console.error(`❌ Erro ao ativar agente ${agent}:`, error);
+        failureCount++;
       }
     }
 
-    return statuses;
-  }
-
-  /**
-   * Delegate task to specific agent
-   */
-  async delegateTask(agentId: AgentRole, taskDescription: string): Promise<string> {
-    const agentName = getAgentName(agentId);
-    console.log(`🎯 NEXO delegando tarefa para ${agentName}: ${taskDescription.substring(0, 50)}...`);
-
-    const agentPrompt = getAgentPrompt(agentId);
-    const response = await callAgent({
-      systemPrompt: agentPrompt,
-      userMessage: taskDescription,
-      provider: 'openai',
-      maxTokens: 1000,
-    });
-
-    return response.content;
-  }
-
-  /**
-   * Parse tasks from agent response
-   */
-  private parseAgentTasks(content: string, agent: AgentRole) {
-    const tasks: any[] = [];
-    const channelMap: Record<AgentRole, string> = {
-      alex: 'amazon',
-      marina: 'mercadolivre',
-      sunny: 'shopee',
-      tren: 'shein',
-      viral: 'tiktokshop',
-      premium: 'kaway',
-      nexo: 'general',
+    plan.status = 'executing';
+    plan.result = {
+      successCount,
+      failureCount,
+      summary: `Orquestração concluída: ${successCount} agentes com sucesso, ${failureCount} falhas. ${plan.totalTasksGenerated} tarefas aguardando sua aprovação.`,
     };
 
+    console.log(`\n✅ Orquestração ${planId} concluída! ${plan.totalTasksGenerated} tarefas geradas.`);
+    return plan;
+  }
+
+  /**
+   * Prompt explícito pedindo JSON estruturado para geração de tarefas
+   */
+  private buildTaskGenerationPrompt(agentName: string, channel: string): string {
+    return `Como ${agentName}, especialista em ${channel} para moda bebê/infantil (0-14 anos no Brasil), gere 4 tarefas prioritárias de escala de vendas e produtos.
+
+IMPORTANTE: Responda APENAS com um array JSON válido, sem texto adicional antes ou depois.
+
+Formato obrigatório:
+[
+  {
+    "title": "Título curto e claro da tarefa (máx 100 chars)",
+    "description": "Descrição detalhada do que fazer, por que e qual impacto esperado nas vendas",
+    "category": "scaling",
+    "priority": "high",
+    "estimatedHours": 4,
+    "tags": ["tag1", "tag2"]
+  }
+]
+
+Categorias válidas: "optimization", "best-practice", "scaling", "analysis"
+Prioridades válidas: "high", "medium", "low"
+estimatedHours: número de 1 a 40
+
+Foque em tarefas que aumentem vendas e escala de produtos em ${channel}.`;
+  }
+
+  /**
+   * Parser robusto da resposta do agente - tenta múltiplas estratégias
+   */
+  private parseAgentTasks(content: string, agent: AgentRole) {
+    const marketplace = CHANNEL_MAP[agent];
+    const tasks: Array<Record<string, unknown>> = [];
+
+    // Estratégia 1: JSON array direto
+    let parsed: unknown = null;
     try {
-      // Try to extract JSON
-      const jsonMatch = content.match(/\[[\s\S]*\]/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        if (Array.isArray(parsed)) {
-          for (const item of parsed) {
-            if (item.title && item.description) {
-              tasks.push({
-                title: item.title,
-                description: item.description,
-                channel: channelMap[agent],
-                priority: item.priority || 'medium',
-                estimated_hours: item.estimatedHours || 4,
-                source_type: 'ai_generated',
-                admin_approved: false,
-                created_by_agent: agent,
-              });
-            }
-          }
-        }
+      const arrayMatch = content.match(/\[[\s\S]*\]/);
+      if (arrayMatch) {
+        parsed = JSON.parse(arrayMatch[0]);
       }
-    } catch (error) {
-      console.error('Erro ao parsear tarefas:', error);
+    } catch {
+      // tenta próxima estratégia
     }
 
-    // If no tasks parsed, create a default one
+    // Estratégia 2: Objeto com chave tasks/tarefas/items
+    if (!parsed) {
+      try {
+        const objMatch = content.match(/\{[\s\S]*\}/);
+        if (objMatch) {
+          const obj = JSON.parse(objMatch[0]) as Record<string, unknown>;
+          parsed = obj.tasks || obj.tarefas || obj.items || obj.data || null;
+        }
+      } catch {
+        // tenta próxima estratégia
+      }
+    }
+
+    // Estratégia 3: Extrair blocos de código JSON
+    if (!parsed) {
+      try {
+        const codeBlock = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (codeBlock) {
+          parsed = JSON.parse(codeBlock[1]);
+        }
+      } catch {
+        // fallback
+      }
+    }
+
+    // Processar resultado parseado
+    if (Array.isArray(parsed)) {
+      for (const item of parsed) {
+        if (item && typeof item === 'object' && (item as Record<string, unknown>).title) {
+          const t = item as Record<string, unknown>;
+          tasks.push({
+            title: String(t.title).substring(0, 500),
+            description: String(t.description || t.desc || 'Sem descrição').substring(0, 5000),
+            category: this.sanitizeCategory(String(t.category || 'optimization')),
+            marketplace,
+            priority: this.sanitizePriority(String(t.priority || 'medium')),
+            estimated_hours: Number(t.estimatedHours || t.estimated_hours || 4),
+            tags: Array.isArray(t.tags) ? t.tags.map(String) : [],
+            source_type: 'ai_generated',
+            admin_approved: false,
+            created_by_agent: agent,
+          });
+        }
+      }
+    }
+
+    // Fallback: cria 1 tarefa com conteúdo do agente como contexto
     if (tasks.length === 0) {
+      console.warn(`⚠️  ${agent}: não foi possível parsear JSON. Criando tarefa fallback.`);
       tasks.push({
-        title: `Análise de ${getAgentName(agent)}`,
-        description: content.substring(0, 300),
-        channel: channelMap[agent],
+        title: `[${getAgentName(agent)}] Análise de oportunidades em ${marketplace}`,
+        description: content.substring(0, 1000),
+        category: 'analysis',
+        marketplace,
         priority: 'medium',
         estimated_hours: 2,
+        tags: [marketplace, 'ai-fallback'],
         source_type: 'ai_generated',
         admin_approved: false,
         created_by_agent: agent,
@@ -286,78 +235,164 @@ export class AgentOrchestrator {
     return tasks;
   }
 
+  private sanitizeCategory(val: string): string {
+    const valid = ['optimization', 'best-practice', 'scaling', 'analysis'];
+    return valid.includes(val) ? val : 'optimization';
+  }
+
+  private sanitizePriority(val: string): string {
+    const valid = ['high', 'medium', 'low'];
+    return valid.includes(val) ? val : 'medium';
+  }
+
   /**
-   * Save tasks to database
+   * Salva tarefas na tabela marketplace_tasks
    */
-  private async saveTasaksToDatabase(tasks: any[], planId: string, agent: AgentRole) {
+  private async saveTasksToDatabase(tasks: Array<Record<string, unknown>>, planId: string, agent: AgentRole) {
     if (!this.supabase || tasks.length === 0) return;
 
-    try {
-      const dueDateString = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-      const tasksToInsert = tasks.map(task => ({
-        ...task,
-        status: 'pending',
-        due_date: dueDateString,
-        created_at: new Date().toISOString(),
-        metadata: {
-          planId,
-          orchestrator: 'nexo',
-        },
-      }));
+    const rows = tasks.map(task => ({
+      ...task,
+      status: 'pending',
+      plan_id: planId,
+      due_date: dueDate,
+      created_at: new Date().toISOString(),
+      metadata: { planId, orchestrator: 'nexo', generatedAt: new Date().toISOString() },
+    }));
 
-      const { error } = await this.supabase
-        .from('tasks')
-        .insert(tasksToInsert);
+    const { error } = await this.supabase
+      .from('marketplace_tasks')
+      .insert(rows);
 
-      if (error) {
-        console.error('❌ Erro ao salvar tarefas:', error);
-      } else {
-        console.log(`✅ ${tasks.length} tarefas salvas para ${getAgentName(agent)}`);
-      }
-    } catch (error) {
-      console.error('❌ Erro ao salvar no banco:', error);
+    if (error) {
+      console.error(`❌ Erro ao salvar tarefas de ${agent}:`, error.message);
+    } else {
+      console.log(`💾 ${tasks.length} tarefas de ${getAgentName(agent)} salvas no banco`);
     }
   }
 
   /**
-   * Generate orchestration report
+   * Status de todos os agentes baseado no banco de dados
+   */
+  async getAgentsStatus(): Promise<AgentStatus[]> {
+    const statuses: AgentStatus[] = [];
+
+    for (const agent of this.agents) {
+      const agentName = getAgentName(agent);
+      const channel = CHANNEL_MAP[agent];
+
+      try {
+        if (!this.supabase) {
+          statuses.push(this.errorStatus(agent, agentName, channel));
+          continue;
+        }
+
+        const { data: tasks, error } = await this.supabase
+          .from('marketplace_tasks')
+          .select('status, admin_approved, created_at')
+          .eq('created_by_agent', agent);
+
+        if (error) {
+          console.error(`Erro ao buscar status de ${agentName}:`, error.message);
+          statuses.push(this.errorStatus(agent, agentName, channel));
+          continue;
+        }
+
+        const generated = tasks?.length || 0;
+        const approved = tasks?.filter(t => t.admin_approved === true).length || 0;
+        const completed = tasks?.filter(t => t.status === 'completed').length || 0;
+        const lastTask = tasks?.sort((a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )[0];
+
+        statuses.push({
+          agentId: agent,
+          agentName,
+          channel,
+          status: generated > 0 ? 'active' : 'idle',
+          tasksGenerated: generated,
+          tasksApproved: approved,
+          tasksCompleted: completed,
+          errorCount: 0,
+          lastExecuted: lastTask?.created_at || null,
+          successRate: generated > 0 ? (approved / generated) * 100 : 0,
+        });
+      } catch (error) {
+        console.error(`Erro ao obter status de ${agentName}:`, error);
+        statuses.push(this.errorStatus(agent, agentName, channel));
+      }
+    }
+
+    return statuses;
+  }
+
+  private errorStatus(agent: AgentRole, agentName: string, channel: string): AgentStatus {
+    return {
+      agentId: agent,
+      agentName,
+      channel,
+      status: 'error',
+      tasksGenerated: 0,
+      tasksApproved: 0,
+      tasksCompleted: 0,
+      errorCount: 1,
+      lastExecuted: null,
+      successRate: 0,
+    };
+  }
+
+  /**
+   * Delega tarefa específica para um agente
+   */
+  async delegateTask(agentId: AgentRole, taskDescription: string): Promise<string> {
+    const agentName = getAgentName(agentId);
+    console.log(`🎯 NEXO delegando para ${agentName}: ${taskDescription.substring(0, 50)}...`);
+
+    const response = await callAgent({
+      systemPrompt: getAgentPrompt(agentId),
+      userMessage: taskDescription,
+      provider: 'openai',
+      maxTokens: 1000,
+    });
+
+    return response.content;
+  }
+
+  /**
+   * Relatório de orquestração em markdown
    */
   async generateReport(): Promise<string> {
     const statuses = await this.getAgentsStatus();
+    const totalGenerated = statuses.reduce((s, a) => s + a.tasksGenerated, 0);
+    const totalApproved = statuses.reduce((s, a) => s + a.tasksApproved, 0);
+    const totalCompleted = statuses.reduce((s, a) => s + a.tasksCompleted, 0);
+
     const lines = [
-      '## 🌐 RELATÓRIO DE ORQUESTRAÇÃO - NEXO',
+      '## 🌐 RELATÓRIO NEXO MASTER ORCHESTRATOR',
       `**Data:** ${new Date().toLocaleString('pt-BR')}`,
       '',
       '### 👥 Status dos Agentes:',
       '',
     ];
 
-    for (const status of statuses) {
-      const statusIcon = status.status === 'active' ? '✅' : status.status === 'error' ? '❌' : '⏸️';
-      lines.push(
-        `${statusIcon} **${status.agentName}** (${status.channel})`
-      );
-      lines.push(`   - Tarefas geradas: ${status.tasksGenerated}`);
-      lines.push(`   - Tarefas aprovadas: ${status.tasksApproved}`);
-      lines.push(`   - Tarefas completadas: ${status.tasksCompleted}`);
-      lines.push(`   - Taxa de sucesso: ${status.successRate.toFixed(1)}%`);
+    for (const s of statuses) {
+      const icon = s.status === 'active' ? '✅' : s.status === 'error' ? '❌' : '⏸️';
+      lines.push(`${icon} **${s.agentName}** (${s.channel})`);
+      lines.push(`   - Geradas: ${s.tasksGenerated} | Aprovadas: ${s.tasksApproved} | Concluídas: ${s.tasksCompleted}`);
+      lines.push(`   - Taxa de aprovação: ${s.successRate.toFixed(1)}%`);
       lines.push('');
     }
 
-    const totalGenerated = statuses.reduce((sum, s) => sum + s.tasksGenerated, 0);
-    const totalApproved = statuses.reduce((sum, s) => sum + s.tasksApproved, 0);
-    const totalCompleted = statuses.reduce((sum, s) => sum + s.tasksCompleted, 0);
-
-    lines.push('### 📊 Totalizadores:');
-    lines.push(`- **Total de tarefas geradas:** ${totalGenerated}`);
-    lines.push(`- **Total de tarefas aprovadas:** ${totalApproved}`);
-    lines.push(`- **Total de tarefas completadas:** ${totalCompleted}`);
-    lines.push(`- **Taxa geral de aprovação:** ${totalGenerated > 0 ? ((totalApproved / totalGenerated) * 100).toFixed(1) : 0}%`);
+    lines.push('### 📊 Totais:');
+    lines.push(`- Tarefas geradas: **${totalGenerated}**`);
+    lines.push(`- Tarefas aprovadas: **${totalApproved}**`);
+    lines.push(`- Tarefas concluídas: **${totalCompleted}**`);
+    lines.push(`- Taxa geral de aprovação: **${totalGenerated > 0 ? ((totalApproved / totalGenerated) * 100).toFixed(1) : 0}%**`);
 
     return lines.join('\n');
   }
 }
 
-// Export singleton instance
 export const nexoOrchestrator = new AgentOrchestrator();

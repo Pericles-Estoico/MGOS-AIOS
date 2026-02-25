@@ -1,4 +1,4 @@
-import { runAutonomousLoop, generateLoopSummary } from '@/lib/ai/agent-loop';
+import { runAutonomousLoop, generateLoopSummary } from '@lib/ai/agent-loop';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
