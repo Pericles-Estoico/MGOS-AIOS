@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@lib/supabase';
-import { createPhase1Tasks } from '@lib/ai/agent-loop';
+import { createPhase1Tasks } from '@/lib/ai/agent-loop';
 
 /**
  * POST /api/marketplace/analysis/unlock-dev

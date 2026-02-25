@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { runAnalysisPlan } from '@lib/ai/agent-loop';
+import { runAnalysisPlan } from '@/lib/ai/agent-loop';
 
 const VALID_CHANNELS = [
   'amazon',
