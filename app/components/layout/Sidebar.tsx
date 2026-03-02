@@ -108,6 +108,7 @@ export default function Sidebar({ user, onClose }: SidebarProps) {
         {navLink('/dashboard', 'Dashboard', <BarChart3 className="w-5 h-5" />)}
         {navLink('/tasks', 'Todas as Tarefas', <CheckSquare className="w-5 h-5" />)}
         {navLink('/tasks/my-tasks', 'Minhas Tarefas', <ListTodo className="w-5 h-5" />)}
+        {navLink('/produtos', '📦 Produtos', <Globe className="w-5 h-5" />)}
 
         {/* QA only routes */}
         {(['qa', 'admin', 'head'].includes(user?.role as string)) && (
