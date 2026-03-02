@@ -231,4 +231,3 @@ export function resetMetrics(): void {
 // Do not auto-initialize to prevent crashes without Redis config
 
 export default getRedisClient;
-export default getRedisClient;
