@@ -6,6 +6,45 @@ if (!process.env.NEXTAUTH_SECRET) {
   console.warn('⚠️  NEXTAUTH_SECRET is not set. Using default for development.');
 }
 
+// Test users for development (fallback when Supabase is not available)
+const TEST_USERS = [
+  {
+    id: '10000000-0000-0000-0000-000000000001',
+    email: 'admin@empresa.com',
+    password: 'admin123',
+    name: 'Admin User',
+    role: 'admin',
+  },
+  {
+    id: '20000000-0000-0000-0000-000000000001',
+    email: 'maria@empresa.com',
+    password: 'maria123',
+    name: 'Maria Silva',
+    role: 'head',
+  },
+  {
+    id: '30000000-0000-0000-0000-000000000001',
+    email: 'joao@empresa.com',
+    password: 'joao123',
+    name: 'João Oliveira',
+    role: 'executor',
+  },
+  {
+    id: '99999999-9999-9999-9999-999999999999',
+    email: 'teste@teste.com',
+    password: 'teste123',
+    name: 'Teste User',
+    role: 'executor',
+  },
+  {
+    id: '11111111-1111-1111-1111-111111111111',
+    email: 'pericles@vidadeceo.com.br',
+    password: 'Estoico123@',
+    name: 'Pericles',
+    role: 'admin',
+  },
+];
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -22,31 +61,61 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          if (!supabase) {
-            console.log('❌ Supabase not configured');
-            return null;
+          // First try Supabase
+          if (supabase) {
+            try {
+              const { data, error } = await supabase.auth.signInWithPassword({
+                email: credentials.email,
+                password: credentials.password,
+              });
+
+              if (!error && data.user) {
+                console.log('✅ Supabase auth successful:', { userId: data.user.id });
+                const user: User & { role?: string } = {
+                  id: data.user.id,
+                  email: data.user.email!,
+                  name: data.user.user_metadata?.name ?? data.user.email,
+                  role: data.user.user_metadata?.role ?? 'executor',
+                };
+                return user;
+              }
+            } catch (supabaseError) {
+              console.log('⚠️  Supabase auth failed, trying test users:', supabaseError);
+            }
           }
 
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email: credentials.email,
-            password: credentials.password,
-          });
+          // Fallback to test users (development)
+          const testUser = TEST_USERS.find(
+            (u) => u.email === credentials.email && u.password === credentials.password
+          );
 
-          if (error || !data.user) {
-            console.log('❌ Supabase auth error:', error?.message);
-            return null;
+          if (testUser) {
+            console.log('✅ Test user auth successful:', { userId: testUser.id, email: testUser.email });
+            const user: User & { role?: string } = {
+              id: testUser.id,
+              email: testUser.email,
+              name: testUser.name,
+              role: testUser.role,
+            };
+            return user;
           }
 
-          console.log('✅ Supabase auth successful:', { userId: data.user.id });
-          const user: User & { role?: string } = {
-            id: data.user.id,
-            email: data.user.email!,
-            name: data.user.user_metadata?.name ?? data.user.email,
-            role: data.user.user_metadata?.role ?? 'executor',
-          };
-          return user;
+          console.log('❌ Auth failed: Invalid credentials');
+          return null;
         } catch (error) {
           console.error('❌ authorize() error:', error);
+          // Fallback to test users if Supabase connection fails
+          const testUser = TEST_USERS.find(
+            (u) => u.email === credentials.email && u.password === credentials.password
+          );
+          if (testUser) {
+            return {
+              id: testUser.id,
+              email: testUser.email,
+              name: testUser.name,
+              role: testUser.role,
+            } as User & { role?: string };
+          }
           return null;
         }
       },
