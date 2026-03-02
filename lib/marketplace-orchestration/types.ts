@@ -81,3 +81,64 @@ export interface TaskDailyStats {
   completed: number;
   avgCompletionTime: number; // in hours
 }
+
+// ============================================================================
+// Sub-Agent Types (Autonomous Execution)
+// ============================================================================
+
+export type SubTaskType = 'analysis' | 'content_generation' | 'delegation';
+
+export type SubTaskStatus = 'pending' | 'in_progress' | 'awaiting_checkpoint' | 'completed' | 'failed';
+
+export interface CheckpointData {
+  [key: string]: unknown;
+}
+
+export interface SubTaskResultData {
+  [key: string]: unknown;
+}
+
+export interface SubTask {
+  id: string;
+  parent_task_id: string;
+  sub_agent_id: string;
+  type: SubTaskType;
+  title: string;
+  description?: string;
+
+  // Status workflow
+  status: SubTaskStatus;
+
+  // Checkpoint workflow
+  checkpoint_data?: CheckpointData;
+  result_data?: SubTaskResultData;
+  checkpoint_approved_by?: string;
+  checkpoint_approved_at?: string;
+
+  // Ordering
+  order_index: number;
+
+  // Timestamps
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SubTaskRequest {
+  parent_task_id: string;
+  sub_agent_id: string;
+  type: SubTaskType;
+  title: string;
+  description?: string;
+  order_index?: number;
+}
+
+export interface SubTaskCheckpointRequest {
+  subtask_id: string;
+  checkpoint_data: CheckpointData;
+}
+
+export interface SubTaskApprovalRequest {
+  subtask_id: string;
+  user_id: string;
+  notes?: string;
+}

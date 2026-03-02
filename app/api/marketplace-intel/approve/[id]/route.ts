@@ -10,6 +10,7 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
+import { enqueueSubAgentJob } from '@lib/queue/sub-agent-queue';
 import { NextRequest, NextResponse } from 'next/server';
 import type { Session } from 'next-auth';
 
@@ -178,14 +179,33 @@ export async function PATCH(
       console.warn('Audit log failed (non-blocking):', auditError);
     }
 
+    // 8.5. Queue sub-agent decomposition job
+    let subagentJobId: string | null = null;
+    try {
+      subagentJobId = await enqueueSubAgentJob({
+        subtask_id: `init-${params.id}`,
+        task_id: params.id,
+        action: 'execute_subtask',
+      });
+      console.log(`✅ Sub-agent decomposition job queued: ${subagentJobId}`);
+    } catch (queueError) {
+      console.warn(
+        'Sub-agent decomposition queue failed (non-blocking):',
+        queueError
+      );
+      // Don't fail the approval if queue fails - it's non-critical
+      // The decomposition can be triggered manually via the execute endpoint
+    }
+
     // 9. Return updated task
     return NextResponse.json(
       {
         success: true,
         task: updatedTask,
+        sub_agent_job_id: subagentJobId,
         message: `AI task approved and ready for execution${
           body.assigned_to ? ' - assigned to executor' : ' - awaiting assignment'
-        }`,
+        }${subagentJobId ? ' - sub-agents decomposition initiated' : ''}`,
       },
       { status: 200 }
     );

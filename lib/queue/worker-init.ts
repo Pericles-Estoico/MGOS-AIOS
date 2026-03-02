@@ -5,6 +5,7 @@
  */
 
 import { initPhase1Worker, shutdownPhase1Worker } from '@lib/queue/phase1-worker';
+import { initSubAgentWorker, shutdownSubAgentWorker } from '@lib/queue/sub-agent-worker';
 import { initQueueEventListeners, closeQueueEventListeners } from '@lib/queue/queue-events';
 
 let workerInitialized = false;
@@ -21,8 +22,9 @@ export async function initializeQueueSystem(): Promise<void> {
   try {
     console.log('🚀 Initializing queue system...');
 
-    // Initialize worker
+    // Initialize workers
     await initPhase1Worker();
+    await initSubAgentWorker();
 
     // Initialize event listeners
     await initQueueEventListeners();
@@ -49,6 +51,7 @@ export async function shutdownQueueSystem(): Promise<void> {
     console.log('🛑 Shutting down queue system...');
 
     await shutdownPhase1Worker();
+    await shutdownSubAgentWorker();
     await closeQueueEventListeners();
 
     workerInitialized = false;
