@@ -225,7 +225,7 @@ export function resetMetrics(): void {
   metrics.commands = 0;
   metrics.errors = 0;
   metrics.latency = [];
-  metrics.lastChecked = new Date(
+  metrics.lastChecked = new Date();
 }
 // Redis is initialized on demand (lazy initialization)
 // Do not auto-initialize to prevent crashes without Redis config
