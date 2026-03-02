@@ -1,6 +1,6 @@
 import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
-import { logger } from './lib/logger';
+import { logger } from '@lib/logger';
 
 const protectedPaths = ['/dashboard', '/team', '/settings', '/configuracoes', '/marketplace'];
 const publicPaths = ['/login', '/api/auth', '/api/health'];

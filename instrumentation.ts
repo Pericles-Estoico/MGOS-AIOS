@@ -5,8 +5,8 @@
  * Reference: https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
  */
 
-import { logger } from './lib/logger';
-import { initSubAgentWorker } from './lib/queue/sub-agent-worker';
+import { logger } from '@lib/logger';
+import { initSubAgentWorker } from '@lib/queue/sub-agent-worker';
 
 /**
  * Register function - runs on server startup (Node.js only)
