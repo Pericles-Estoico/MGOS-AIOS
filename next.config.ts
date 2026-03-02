@@ -5,9 +5,14 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false, // Fix type errors
   },
 
+  // Enable instrumentation hook for app initialization
+  experimental: {
+    instrumentationHook: true,
+  },
+
   // Support multiple domains
   // marketplace.aios.local (internal)
-  // www.sellersops.com.br (public)
+  // www.sellerops.com.br (public)
   async headers() {
     return [
       {
@@ -52,9 +57,10 @@ const nextConfig: NextConfig = {
 
   // Environment variables for multi-domain support
   env: {
-    NEXT_PUBLIC_APP_NAME: 'Marketplace Master',
+    NEXT_PUBLIC_APP_NAME: 'SellersOps - Marketplace Master',
     NEXT_PUBLIC_DOMAIN_MARKETPLACE: 'marketplace.aios.local',
-    NEXT_PUBLIC_DOMAIN_SELLERSOPS: 'www.sellersops.com.br',
+    NEXT_PUBLIC_DOMAIN_SELLEROPS: 'www.sellerops.com.br',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://www.sellerops.com.br',
   },
 
   images: {

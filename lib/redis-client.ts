@@ -4,6 +4,7 @@
  */
 
 import Redis, { RedisOptions } from 'ioredis';
+import { logger } from '@lib/logger';
 
 // Environment detection
 const isDevelopment = process.env.NODE_ENV === 'development';
@@ -83,13 +84,15 @@ export function getRedisClient(): Redis {
         RETRY_CONFIG.maxDelay
       );
       if (times > RETRY_CONFIG.maxAttempts) {
-        console.error(
-          `❌ Redis: Max retry attempts exceeded (${RETRY_CONFIG.maxAttempts})`
+        logger.error(
+          { attempts: RETRY_CONFIG.maxAttempts },
+          'Redis: Max retry attempts exceeded'
         );
         return null; // Stop retrying
       }
-      console.warn(
-        `⏳ Redis: Retrying connection (attempt ${times}, delay ${delay}ms)`
+      logger.warn(
+        { attempt: times, delay },
+        'Redis: Retrying connection'
       );
       return delay;
     },
@@ -108,22 +111,22 @@ export function getRedisClient(): Redis {
   redisInstance.on('connect', () => {
     isConnected = true;
     metrics.connections++;
-    console.log('✅ Redis connected');
+    logger.info('Redis connected');
   });
 
   redisInstance.on('error', (err) => {
     isConnected = false;
     metrics.errors++;
-    console.error('❌ Redis error:', err.message);
+    logger.error({ error: err.message }, 'Redis error');
   });
 
   redisInstance.on('close', () => {
     isConnected = false;
-    console.warn('⚠️ Redis connection closed');
+    logger.warn('Redis connection closed');
   });
 
   redisInstance.on('reconnecting', () => {
-    console.log('🔄 Redis reconnecting...');
+    logger.info('Redis reconnecting...');
   });
 
   return redisInstance;
@@ -181,8 +184,8 @@ export function getRedisMetrics() {
   const avgLatency =
     metrics.latency.length > 0
       ? Math.round(
-          metrics.latency.reduce((a, b) => a + b, 0) / metrics.latency.length
-        )
+        metrics.latency.reduce((a, b) => a + b, 0) / metrics.latency.length
+      )
       : 0;
 
   return {
@@ -206,14 +209,14 @@ export async function disconnectRedis(): Promise<void> {
       await redisInstance.quit();
     } catch (error) {
       // Connection may already be closed
-      console.warn(
-        '⚠️ Redis disconnect warning:',
-        error instanceof Error ? error.message : 'Unknown error'
+      logger.warn(
+        { error: error instanceof Error ? error.message : 'Unknown error' },
+        'Redis disconnect warning'
       );
     } finally {
       redisInstance = null;
       isConnected = false;
-      console.log('✅ Redis disconnected');
+      logger.info('Redis disconnected');
     }
   }
 }
@@ -228,9 +231,7 @@ export function resetMetrics(): void {
   metrics.lastChecked = new Date();
 }
 
-// Auto-initialize on import in production
-if (isProduction && typeof window === 'undefined') {
-  getRedisClient();
-}
+// Redis é inicializado sob demanda (lazy initialization)
+// Não inicializar automaticamente para evitar crashes em ambientes sem Redis
 
 export default getRedisClient;

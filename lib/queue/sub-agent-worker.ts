@@ -7,6 +7,7 @@ import { Worker, Job } from 'bullmq';
 import type { Redis } from 'ioredis';
 import { getRedisClient } from '@lib/redis-client';
 import { getSubAgentOrchestrator } from '@lib/marketplace-orchestration/services/sub-agent-orchestrator';
+import { logger } from '@lib/logger';
 
 export interface SubAgentJob {
   subtask_id: string;
@@ -38,7 +39,7 @@ export async function initSubAgentWorker(): Promise<Worker<SubAgentJob>> {
   workerInstance = new Worker<SubAgentJob>(
     'sub-agent-tasks',
     async (job: Job<SubAgentJob>) => {
-      console.log(`🤖 Processing sub-agent job ${job.id}...`);
+      logger.info({ jobId: job.id }, 'Processing sub-agent job');
 
       try {
         job.updateProgress(10);
@@ -46,8 +47,9 @@ export async function initSubAgentWorker(): Promise<Worker<SubAgentJob>> {
         const { subtask_id, task_id, action, user_id, notes } = job.data;
         const orchestrator = getSubAgentOrchestrator();
 
-        console.log(
-          `🎯 Sub-agent action: ${action} for subtask ${subtask_id}`
+        logger.info(
+          { action, subtaskId: subtask_id },
+          'Sub-agent action'
         );
         job.updateProgress(30);
 
@@ -56,7 +58,7 @@ export async function initSubAgentWorker(): Promise<Worker<SubAgentJob>> {
         switch (action) {
           case 'execute_subtask':
             result = await orchestrator.executeSubtask(subtask_id);
-            console.log(`✅ Subtask executed: ${subtask_id}`);
+            logger.info({ subtaskId: subtask_id }, 'Subtask executed');
             break;
 
           case 'approve_checkpoint':
@@ -68,7 +70,7 @@ export async function initSubAgentWorker(): Promise<Worker<SubAgentJob>> {
               user_id,
               notes
             );
-            console.log(`✅ Checkpoint approved: ${subtask_id}`);
+            logger.info({ subtaskId: subtask_id, userId: user_id }, 'Checkpoint approved');
             break;
 
           case 'reject_checkpoint':
@@ -76,7 +78,7 @@ export async function initSubAgentWorker(): Promise<Worker<SubAgentJob>> {
               throw new Error('user_id required for reject_checkpoint action');
             }
             result = await orchestrator.rejectCheckpoint(subtask_id, user_id);
-            console.log(`❌ Checkpoint rejected: ${subtask_id}`);
+            logger.info({ subtaskId: subtask_id, userId: user_id }, 'Checkpoint rejected');
             break;
 
           default:
@@ -85,7 +87,7 @@ export async function initSubAgentWorker(): Promise<Worker<SubAgentJob>> {
 
         job.updateProgress(90);
 
-        console.log(`✅ Job ${job.id} completed`);
+        logger.info({ jobId: job.id }, 'Job completed');
         job.updateProgress(100);
 
         return {
@@ -99,7 +101,7 @@ export async function initSubAgentWorker(): Promise<Worker<SubAgentJob>> {
         const errorMessage =
           error instanceof Error ? error.message : String(error);
 
-        console.error(`❌ Job ${job.id} failed: ${errorMessage}`);
+        logger.error({ jobId: job.id, error: errorMessage }, 'Job failed');
         job.log(`Error: ${errorMessage}`);
 
         throw new Error(`Sub-agent task failed: ${errorMessage}`);
@@ -116,22 +118,22 @@ export async function initSubAgentWorker(): Promise<Worker<SubAgentJob>> {
 
   // Event handlers
   workerInstance.on('completed', (job) => {
-    console.log(`✅ Sub-agent job completed: ${job.id}`);
+    logger.info({ jobId: job.id }, 'Sub-agent job completed');
   });
 
   workerInstance.on('failed', (job, err) => {
-    console.error(`❌ Sub-agent job failed: ${job?.id} - ${err.message}`);
+    logger.error({ jobId: job?.id, error: err.message }, 'Sub-agent job failed');
   });
 
   workerInstance.on('error', (err) => {
-    console.error(`❌ Sub-agent worker error: ${err.message}`);
+    logger.error({ error: err.message }, 'Sub-agent worker error');
   });
 
   workerInstance.on('paused', () => {
-    console.warn('⚠️ Sub-agent worker paused');
+    logger.warn('Sub-agent worker paused');
   });
 
-  console.log('✅ Sub-agent worker initialized and running');
+  logger.info('Sub-agent worker initialized and running');
 
   return workerInstance;
 }
@@ -142,14 +144,15 @@ export async function initSubAgentWorker(): Promise<Worker<SubAgentJob>> {
  */
 export async function shutdownSubAgentWorker(): Promise<void> {
   if (workerInstance) {
-    console.log('🛑 Shutting down sub-agent worker gracefully...');
+    logger.info('Shutting down sub-agent worker gracefully');
 
     try {
       await workerInstance.close();
-      console.log('✅ Sub-agent worker shut down gracefully');
+      logger.info('Sub-agent worker shut down gracefully');
     } catch (error) {
-      console.error(
-        `⚠️ Worker shutdown error: ${error instanceof Error ? error.message : String(error)}`
+      logger.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Worker shutdown error'
       );
     } finally {
       workerInstance = null;

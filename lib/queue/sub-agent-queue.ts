@@ -4,22 +4,35 @@
  */
 
 import { Queue, QueueEvents } from 'bullmq';
-import { z } from 'zod';
 import type { Redis } from 'ioredis';
 import { getRedisClient } from '@lib/redis-client';
+import { logger } from '@lib/logger';
 
 /**
- * Job payload schema with Zod validation
+ * Job payload type (manual validation - no zod dependency needed)
  */
-export const SubAgentJobSchema = z.object({
-  subtask_id: z.string().uuid('Invalid subtask ID'),
-  task_id: z.string().uuid('Invalid task ID'),
-  action: z.enum(['execute_subtask', 'approve_checkpoint', 'reject_checkpoint']),
-  user_id: z.string().optional(),
-  notes: z.string().optional(),
-});
+export interface SubAgentJob {
+  subtask_id: string;
+  task_id: string;
+  action: 'execute_subtask' | 'approve_checkpoint' | 'reject_checkpoint';
+  user_id?: string;
+  notes?: string;
+}
 
-export type SubAgentJob = z.infer<typeof SubAgentJobSchema>;
+/**
+ * Validate job payload manually
+ */
+function validateSubAgentJob(payload: unknown): SubAgentJob {
+  if (!payload || typeof payload !== 'object') {
+    throw new Error('Invalid job payload: must be an object');
+  }
+  const p = payload as Record<string, unknown>;
+  if (!p.subtask_id || typeof p.subtask_id !== 'string') throw new Error('Invalid subtask_id');
+  if (!p.task_id || typeof p.task_id !== 'string') throw new Error('Invalid task_id');
+  const validActions = ['execute_subtask', 'approve_checkpoint', 'reject_checkpoint'];
+  if (!p.action || !validActions.includes(p.action as string)) throw new Error('Invalid action');
+  return p as unknown as SubAgentJob;
+}
 
 /**
  * Singleton queue instance
@@ -84,7 +97,7 @@ export function getSubAgentDLQ(): Queue<SubAgentJob> {
  */
 export async function enqueueSubAgentJob(payload: unknown): Promise<string> {
   // Validate job payload
-  const validatedJob = SubAgentJobSchema.parse(payload);
+  const validatedJob = validateSubAgentJob(payload);
 
   const queue = getSubAgentQueue();
 
@@ -97,8 +110,9 @@ export async function enqueueSubAgentJob(payload: unknown): Promise<string> {
     }
   );
 
-  console.log(
-    `✅ Sub-agent job enqueued: ${job.id} (action: ${validatedJob.action})`
+  logger.info(
+    { jobId: job.id, action: validatedJob.action, subtaskId: validatedJob.subtask_id },
+    'Sub-agent job enqueued'
   );
 
   return job.id || `subagent-${validatedJob.subtask_id}-${Date.now()}`;
@@ -135,7 +149,7 @@ export async function closeSubAgentQueue(): Promise<void> {
   if (queueInstance) {
     await queueInstance.close();
     queueInstance = null;
-    console.log('✅ Sub-agent queue closed');
+    logger.info('Sub-agent queue closed');
   }
 }
 
