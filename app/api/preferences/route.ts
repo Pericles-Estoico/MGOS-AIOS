@@ -54,35 +54,36 @@ export async function GET(request: Request) {
         });
       }
 
-      // Fetch user preferences
-      const { data, error } = await supabase
-        .from('notification_preferences')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
+      // Fetch user preferences (handle missing table gracefully)
+      let preferences = null;
+      try {
+        const { data, error } = await supabase
+          .from('notification_preferences')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
 
-      if (error && error.code !== 'PGRST116') {
-        // PGRST116 = no rows found, which is fine (return defaults)
-        console.error('Database error:', error);
-        return Response.json({
-          data: {
-            user_id: userId || '',
-            email_task_assigned: true,
-            email_qa_feedback: true,
-            email_burndown_warning: true,
-          },
-        });
+        if (error && error.code !== 'PGRST116') {
+          // PGRST116 = no rows found, which is fine (return defaults)
+          // Other errors might mean table doesn't exist, which is also fine
+          console.warn('Database query warning:', error.message);
+        }
+
+        preferences = data;
+      } catch (queryError) {
+        console.warn('Could not fetch preferences, using defaults:', queryError);
+        // Table might not exist yet, use defaults
       }
 
       // Return data or defaults
-      const preferences = data || {
+      const result = preferences || {
         user_id: userId,
         email_task_assigned: true,
         email_qa_feedback: true,
         email_burndown_warning: true,
       };
 
-      return Response.json({ data: preferences });
+      return Response.json({ data: result });
     } catch (dbError) {
       console.error('Database error:', dbError);
       return Response.json({
