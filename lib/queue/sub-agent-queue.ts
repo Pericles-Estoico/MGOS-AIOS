@@ -8,7 +8,7 @@ import type { Redis } from 'ioredis';
 import { getRedisClient } from '@lib/redis-client';
 
 /**
- * Job payload type (manual validation - no zod dependency needed)
+ * Job payload type (manual validation - no zod dependency needed) 
  */
 export interface SubAgentJob {
     subtask_id: string;
