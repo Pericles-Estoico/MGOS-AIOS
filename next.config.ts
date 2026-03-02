@@ -5,11 +5,6 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false, // Fix type errors
   },
 
-  // Enable instrumentation hook for app initialization
-  experimental: {
-    instrumentationHook: true,
-  },
-
   // Support multiple domains
   // marketplace.aios.local (internal)
   // www.sellerops.com.br (public)

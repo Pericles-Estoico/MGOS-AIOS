@@ -57,15 +57,14 @@ async function applyMigration() {
                   if (error) throw error;
                   console.log(`Success`);
       } catch (err) {
-                  console.error(`Error: ${err.message}`);
+        console.error(`Error: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
-  }
-      console.log('Migration completed successfully!');
-} catch (err) {
-      console.error('CRITICAL ERROR:', err.message);
+    console.log('Migration completed successfully!');
+  } catch (err) {
+    console.error('CRITICAL ERROR:', err instanceof Error ? err.message : String(err));
     process.exit(1);
-}
+  }
 }
 
 applyMigration();

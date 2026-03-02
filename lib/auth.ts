@@ -91,13 +91,12 @@ export const authOptions: NextAuthOptions = {
 
           if (testUser) {
             console.log('✅ Test user auth successful:', { userId: testUser.id, email: testUser.email });
-            const user: User & { role?: string } = {
+            return {
               id: testUser.id,
               email: testUser.email,
               name: testUser.name,
               role: testUser.role,
-            };
-            return user;
+            } as any;
           }
 
           console.log('❌ Auth failed: Invalid credentials');
