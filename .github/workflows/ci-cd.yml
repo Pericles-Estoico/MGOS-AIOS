@@ -115,11 +115,44 @@ jobs:
             echo "✅ CI Pipeline Passed"
           fi
 
+  # Deploy to Vercel (Production)
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+    needs: [quality, test, build]
+    if: github.ref == 'refs/heads/main' && success()
+    environment:
+      name: production
+      url: https://www.sellerops.com.br
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+
+      - name: Deployment Status
+        run: |
+          echo "### ✅ Deployment Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🚀 Deployed to: https://www.sellerops.com.br" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Features:**" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Sub-Agents System" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ API Endpoints (5)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Dashboard" >> $GITHUB_STEP_SUMMARY
+
   # Report
   report:
     name: Generate Report
     runs-on: ubuntu-latest
-    needs: [quality, test, build]
+    needs: [quality, test, build, deploy]
     if: always()
 
     steps:
@@ -127,13 +160,15 @@ jobs:
         run: |
           if [[ "${{ needs.quality.result }}" == "success" ]] && \
              [[ "${{ needs.test.result }}" == "success" ]] && \
-             [[ "${{ needs.build.result }}" == "success" ]]; then
+             [[ "${{ needs.build.result }}" == "success" ]] && \
+             [[ "${{ needs.deploy.result }}" == "success" ]]; then
             echo "### ✅ CI/CD Pipeline Passed" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "All checks passed:" >> $GITHUB_STEP_SUMMARY
             echo "- ✅ Code Quality (ESLint, TypeScript)" >> $GITHUB_STEP_SUMMARY
             echo "- ✅ Unit Tests (63 tests)" >> $GITHUB_STEP_SUMMARY
             echo "- ✅ Build (Next.js)" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Deploy to Vercel (Production)" >> $GITHUB_STEP_SUMMARY
           else
             echo "### ❌ CI/CD Pipeline Failed" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
@@ -146,5 +181,8 @@ jobs:
             fi
             if [[ "${{ needs.build.result }}" != "success" ]]; then
               echo "- ❌ Build" >> $GITHUB_STEP_SUMMARY
+            fi
+            if [[ "${{ needs.deploy.result }}" != "success" ]]; then
+              echo "- ❌ Deploy to Vercel" >> $GITHUB_STEP_SUMMARY
             fi
           fi
