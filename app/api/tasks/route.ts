@@ -88,8 +88,8 @@ export async function GET(request: NextRequest) {
       usesMockData = true;
     }
 
-    // 7. Fallback: usar dados mock
-    if (usesMockData || data.length === 0) {
+    // 7. Fallback: usar dados mock (SEMPRE para desenvolvimento/Pericles)
+    if (usesMockData || data.length === 0 || session.user?.email === 'pericles@vidadeceo.com.br') {
       let mockData = [...MOCK_TASKS];
 
       // Aplicar filtros
