@@ -2,7 +2,7 @@ import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from './lib/logger';
 
-const protectedPaths = ['/dashboard', '/team', '/settings', '/marketplace'];
+const protectedPaths = ['/dashboard', '/team', '/settings', '/configuracoes', '/marketplace'];
 const publicPaths = ['/login', '/api/auth', '/api/health'];
 
 export async function middleware(request: NextRequest) {
@@ -39,9 +39,10 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    if (pathname.startsWith('/settings') && token.role !== 'admin') {
-      logger.warn({ pathname, role: token.role }, 'Access denied: admin only');
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+    // Allow all authenticated users to access settings/configuracoes
+    // Settings page is for personal preferences, not admin-only
+    if (pathname.startsWith('/configuracoes') || pathname.startsWith('/settings')) {
+      logger.info({ pathname, role: token.role }, 'Settings access allowed for authenticated user');
     }
   }
 
