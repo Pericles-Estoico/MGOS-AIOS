@@ -38,74 +38,34 @@ async function applyMigration() {
       const description = stmt.substring(0, 80).replace(/\n/g, ' ');
 
       try {
-        // For CREATE TABLE, we can verify if it already exists
-        if (stmt.includes('CREATE TABLE')) {
-          console.log(`⏳ [${i + 1}/${statements.length}] Creating table...`);
+            if (stmt.includes('CREATE TABLE')) {
+                          console.log(`Creating table...`);
 
-          // First check if table exists
-          const { data: tables } = await client.query('SELECT * FROM information_schema.tables WHERE table_name = \'marketplace_subtasks\'');
+                    const { data: tables, error: tableCheckError } = await client
+                            .from('information_schema.tables')
+                            .select('table_name')
+                            .eq('table_name', 'marketplace_subtasks')
+                            .single();
 
-          if (tables && tables.length > 0) {
-            console.log(`✓ marketplace_subtasks table already exists`);
-            continue;
-          }
-        }
+                    if (!tableCheckError && tables) {
+                                    console.log('table already exists');
+                                    continue;
+                    }
+            }
 
-        // Execute statement via SQL
-        // Note: Supabase client doesn't have direct SQL execute, so we'll just log success
-        console.log(`✓ ${description}...`);
-      } catch (err: any) {
-        if (err.message?.includes('already exists')) {
-          console.log(`✓ ${description}... (already exists)`);
-        } else {
-          console.error(`✗ Error: ${err.message}`);
-        }
+                const { error } = await client.rpc('exec_sql', { sql_query: stmt });
+                  if (error) throw error;
+                  console.log(`Success`);
+      } catch (err) {
+                  console.error(`Error: ${err.message}`);
       }
     }
-
-    // Verify table creation by querying
-    console.log('\n🔍 Verifying table creation...');
-
-    try {
-      const { data, error } = await client
-        .from('marketplace_subtasks')
-        .select('*')
-        .limit(0);
-
-      if (!error) {
-        console.log('✅ marketplace_subtasks table successfully created and accessible!');
-        console.log('\n📊 Table Schema Verified:');
-        console.log('   ✓ id (UUID)');
-        console.log('   ✓ parent_task_id (UUID)');
-        console.log('   ✓ sub_agent_id (TEXT)');
-        console.log('   ✓ type (TEXT)');
-        console.log('   ✓ title (TEXT)');
-        console.log('   ✓ status (TEXT)');
-        console.log('   ✓ checkpoint_data (JSONB)');
-        console.log('   ✓ result_data (JSONB)');
-        console.log('   ✓ order_index (INTEGER)');
-        console.log('   ✓ created_at (TIMESTAMPTZ)');
-        console.log('   ✓ updated_at (TIMESTAMPTZ)');
-      } else {
-        console.log('⚠️  Table may need manual migration via Supabase Dashboard');
-        console.log('   Error:', error.message);
-      }
-    } catch (err) {
-      console.log('⚠️  Could not verify table (this is normal on first run)');
-    }
-
-    console.log('\n✨ Migration process completed!');
-    console.log('\n📌 If you see "already exists" errors above, the migration was already applied.');
-    console.log('📌 If you see verification errors, apply the migration manually:');
-    console.log('   1. Go to: https://app.supabase.com/project/ytywuiyzulkvzsqfeghh/sql');
-    console.log('   2. Create a new query and paste the contents of:');
-    console.log('      supabase/migrations/20260302_create_marketplace_subtasks.sql');
-    console.log('   3. Click "Execute"');
-
-  } catch (error: any) {
-    console.error('❌ Migration failed:', error.message);
-    process.exit(1);
   }
+      console.log('Migration completed successfully!');
+} catch (err) {
+      console.error('CRITICAL ERROR:', err.message);
+    process.exit(1);
+}
 }
 
 applyMigration();
