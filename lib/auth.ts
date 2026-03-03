@@ -4,7 +4,17 @@ import { supabase } from '@lib/supabase';
 
 if (!process.env.NEXTAUTH_SECRET) {
   console.warn('⚠️  NEXTAUTH_SECRET is not set. Using default for development.');
+} else {
+  console.log('✅ NEXTAUTH_SECRET is configured');
 }
+
+// Debug environment
+console.log('🔐 Auth Config:', {
+  hasSecret: !!process.env.NEXTAUTH_SECRET,
+  hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+  hasRedisUrl: !!process.env.REDIS_URL,
+  nodeEnv: process.env.NODE_ENV,
+});
 
 // Test users for development (fallback when Supabase is not available)
 const TEST_USERS = [
@@ -61,7 +71,22 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // First try Supabase
+          // ALWAYS try test users FIRST for reliability
+          const testUser = TEST_USERS.find(
+            (u) => u.email === credentials.email && u.password === credentials.password
+          );
+
+          if (testUser) {
+            console.log('✅ Test user auth successful:', { userId: testUser.id, email: testUser.email });
+            return {
+              id: testUser.id,
+              email: testUser.email,
+              name: testUser.name,
+              role: testUser.role,
+            } as any;
+          }
+
+          // Then try Supabase
           if (supabase) {
             try {
               const { data, error } = await supabase.auth.signInWithPassword({
@@ -78,36 +103,26 @@ export const authOptions: NextAuthOptions = {
                   role: data.user.user_metadata?.role ?? 'executor',
                 };
                 return user;
+              } else {
+                console.log('⚠️  Supabase auth failed:', error);
               }
             } catch (supabaseError) {
-              console.log('⚠️  Supabase auth failed, trying test users:', supabaseError);
+              console.log('⚠️  Supabase connection error:', supabaseError);
             }
+          } else {
+            console.log('⚠️  Supabase client not available');
           }
 
-          // Fallback to test users (development)
-          const testUser = TEST_USERS.find(
-            (u) => u.email === credentials.email && u.password === credentials.password
-          );
-
-          if (testUser) {
-            console.log('✅ Test user auth successful:', { userId: testUser.id, email: testUser.email });
-            return {
-              id: testUser.id,
-              email: testUser.email,
-              name: testUser.name,
-              role: testUser.role,
-            } as any;
-          }
-
-          console.log('❌ Auth failed: Invalid credentials');
+          console.log('❌ Auth failed: No matching user found');
           return null;
         } catch (error) {
           console.error('❌ authorize() error:', error);
-          // Fallback to test users if Supabase connection fails
+          // Last resort: try test users again
           const testUser = TEST_USERS.find(
             (u) => u.email === credentials.email && u.password === credentials.password
           );
           if (testUser) {
+            console.log('✅ Test user auth successful (fallback):', { userId: testUser.id });
             return {
               id: testUser.id,
               email: testUser.email,
