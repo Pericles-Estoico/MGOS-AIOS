@@ -1,37 +1,37 @@
-import { authOptions } from '@/lib/auth';
-import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function GET() {
   try {
-    console.log('🧪 DEBUG: Checking NextAuth configuration...');
-    console.log('🧪 DEBUG: NEXTAUTH_SECRET exists:', !!process.env.NEXTAUTH_SECRET);
-    console.log('🧪 DEBUG: NEXTAUTH_URL:', process.env.NEXTAUTH_URL);
-
     const session = await getServerSession(authOptions);
-    console.log('🧪 DEBUG: Current session:', session);
 
     return NextResponse.json({
-      status: 'ok',
-      message: 'NextAuth debug endpoint working',
-      environment: {
-        nextAuthSecretConfigured: !!process.env.NEXTAUTH_SECRET,
+      status: 'OK',
+      debug: {
+        hasSession: !!session,
+        sessionUser: session?.user?.email || null,
+        sessionRole: (session?.user as any)?.role || null,
+        nextAuthSecretSet: !!process.env.NEXTAUTH_SECRET,
         nextAuthUrl: process.env.NEXTAUTH_URL,
+        redisUrl: process.env.REDIS_URL ? 'configured' : 'missing',
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || 'missing',
         nodeEnv: process.env.NODE_ENV,
+        timestamp: new Date().toISOString(),
       },
-      currentSession: session,
-      authOptions: {
-        providers: (authOptions.providers as unknown as Array<Record<string, unknown>>).map((p: Record<string, unknown>) => p.id || p.name),
-        pages: authOptions.pages,
-        hasCallbacks: !!authOptions.callbacks,
+      testCredentials: {
+        email: 'teste@teste.com',
+        password: 'teste123',
       },
-    }, { status: 200 });
+      message: 'Test login via browser - should use test user now',
+    });
   } catch (error) {
-    console.error('🧪 DEBUG ERROR:', error);
-    return NextResponse.json({
-      status: 'error',
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        status: 'ERROR',
+        error: String(error),
+      },
+      { status: 500 }
+    );
   }
 }
