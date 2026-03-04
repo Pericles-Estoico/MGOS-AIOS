@@ -63,33 +63,46 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Senha' },
       },
       async authorize(credentials): Promise<User | null> {
-        console.log('🔐 authorize() called with:', { email: credentials?.email });
+        const startTime = Date.now();
+        console.log(`\n[${'='.repeat(60)}]`);
+        console.log(`🔐 [${new Date().toISOString()}] authorize() CALLED`);
+        console.log(`📝 Credentials type: ${typeof credentials}`);
+        console.log(`📝 Credentials keys: ${Object.keys(credentials || {}).join(', ')}`);
         console.log('📊 Credentials received:', {
           email: credentials?.email,
-          passwordLength: credentials?.password?.length,
-          passwordValue: credentials?.password
+          emailType: typeof credentials?.email,
+          emailLength: (credentials?.email as string)?.length,
+          password: credentials?.password,
+          passwordType: typeof credentials?.password,
+          passwordLength: (credentials?.password as string)?.length,
         });
 
         if (!credentials?.email || !credentials?.password) {
-          console.log('❌ Missing credentials');
+          console.log('❌ Missing credentials - returning null');
           return null;
         }
 
         try {
           // ALWAYS try test users FIRST for reliability
-          console.log('🔍 Searching test users. Available users:', TEST_USERS.map(u => ({ email: u.email, password: u.password })));
+          console.log(`🔍 TEST_USERS array length: ${TEST_USERS.length}`);
+          console.log('🔍 Searching test users. Available users:', TEST_USERS.map(u => ({ email: u.email, pwd_len: u.password.length })));
 
           const testUser = TEST_USERS.find(
             (u) => {
               const emailMatch = u.email === credentials.email;
               const passwordMatch = u.password === credentials.password;
-              console.log(`  - Comparing ${u.email}: email=${emailMatch}, password=${passwordMatch} (provided pwd: "${credentials.password}")`);
-              return emailMatch && passwordMatch;
+              const bothMatch = emailMatch && passwordMatch;
+              if (bothMatch) {
+                console.log(`✅ MATCH FOUND: ${u.email}`);
+              } else {
+                console.log(`❌ No match for ${u.email}: email_match=${emailMatch} (have:"${credentials.email}" vs want:"${u.email}"), pwd_match=${passwordMatch}`);
+              }
+              return bothMatch;
             }
           );
 
           if (testUser) {
-            console.log('✅ Test user auth successful:', { userId: testUser.id, email: testUser.email });
+            console.log(`✅✅✅ TEST USER AUTH SUCCESSFUL: ${testUser.email} (role: ${testUser.role})`);
             return {
               id: testUser.id,
               email: testUser.email,
@@ -97,11 +110,13 @@ export const authOptions: NextAuthOptions = {
               role: testUser.role,
             } as any;
           }
-          console.log('⚠️  No test user found matching credentials');
+          console.log('⚠️  No test user found matching credentials in local array');
 
           // Then try Supabase
+          console.log('🔄 Attempting Supabase auth...');
           if (supabase) {
             try {
+              console.log(`📡 Calling Supabase signInWithPassword for ${credentials.email}`);
               const { data, error } = await supabase.auth.signInWithPassword({
                 email: credentials.email,
                 password: credentials.password,
@@ -117,25 +132,38 @@ export const authOptions: NextAuthOptions = {
                 };
                 return user;
               } else {
-                console.log('⚠️  Supabase auth failed:', error);
+                console.log('⚠️  Supabase auth failed:', {
+                  errorMessage: error?.message,
+                  errorStatus: (error as any)?.status,
+                });
               }
-            } catch (supabaseError) {
-              console.log('⚠️  Supabase connection error:', supabaseError);
+            } catch (supabaseError: any) {
+              console.log('⚠️  Supabase connection error:', {
+                message: supabaseError?.message,
+                code: supabaseError?.code,
+              });
             }
           } else {
             console.log('⚠️  Supabase client not available');
           }
 
-          console.log('❌ Auth failed: No matching user found');
+          console.log('❌ Auth FAILED: No matching user found in TEST_USERS or Supabase');
+          console.log(`⏱️  authorize() took ${Date.now() - startTime}ms`);
+          console.log(`[${'='.repeat(60)}]\n`);
           return null;
-        } catch (error) {
-          console.error('❌ authorize() error:', error);
+        } catch (error: any) {
+          console.error('❌ authorize() EXCEPTION:', {
+            message: error?.message,
+            code: error?.code,
+            stack: error?.stack?.split('\n').slice(0, 3).join(' | '),
+          });
           // Last resort: try test users again
+          console.log('🔄 FALLBACK: Trying TEST_USERS one more time...');
           const testUser = TEST_USERS.find(
             (u) => u.email === credentials.email && u.password === credentials.password
           );
           if (testUser) {
-            console.log('✅ Test user auth successful (fallback):', { userId: testUser.id });
+            console.log('✅✅✅ TEST USER AUTH SUCCESS (FALLBACK):', { userId: testUser.id });
             return {
               id: testUser.id,
               email: testUser.email,
@@ -143,6 +171,9 @@ export const authOptions: NextAuthOptions = {
               role: testUser.role,
             } as User & { role?: string };
           }
+          console.log('❌ FALLBACK ALSO FAILED - returning null');
+          console.log(`⏱️  authorize() took ${Date.now() - startTime}ms (with exception)`);
+          console.log(`[${'='.repeat(60)}]\n`);
           return null;
         }
       },
