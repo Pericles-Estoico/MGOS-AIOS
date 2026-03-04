@@ -1,0 +1,1 @@
+CREATE INDEX idx_agent_messages_channel ON public.agent_messages(channel);

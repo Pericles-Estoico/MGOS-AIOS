@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_preference_audit_user_id ON preference_audit_log(user_id);

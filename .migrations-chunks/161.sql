@@ -1,0 +1,1 @@
+drop trigger if exists log_task_activity_trigger on tasks;

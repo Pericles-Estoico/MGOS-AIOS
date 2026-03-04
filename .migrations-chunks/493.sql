@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_mp_tasks_plan ON public.marketplace_tasks(plan_id);

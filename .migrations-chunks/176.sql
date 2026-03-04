@@ -1,0 +1,1 @@
+alter table notification_preferences add column if not exists quiet_hours_start time;

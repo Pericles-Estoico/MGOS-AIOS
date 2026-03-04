@@ -1,0 +1,1 @@
+CREATE INDEX idx_marketplace_channels_created_at ON public.marketplace_channels(created_at DESC);

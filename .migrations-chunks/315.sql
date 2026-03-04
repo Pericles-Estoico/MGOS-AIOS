@@ -1,0 +1,1 @@
+create index if not exists idx_search_analytics_created_at on search_analytics(created_at desc);

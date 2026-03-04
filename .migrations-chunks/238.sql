@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_reassignment_history_task_id ON reassignment_history(task_id);

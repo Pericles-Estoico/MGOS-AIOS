@@ -1,0 +1,4 @@
+CREATE TRIGGER notification_preferences_updated_at
+BEFORE UPDATE ON notification_preferences
+FOR EACH ROW
+EXECUTE FUNCTION update_notification_preferences_timestamp();

@@ -1,0 +1,1 @@
+COMMENT ON COLUMN notification_preferences.timezone IS 'User timezone for scheduling notifications';

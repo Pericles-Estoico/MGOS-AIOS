@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "See own time logs" ON public.time_logs;

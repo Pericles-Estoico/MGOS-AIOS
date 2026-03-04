@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS trigger_update_marketplace_job_executions_updated_at ON marketplace_job_executions;

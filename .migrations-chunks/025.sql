@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_qa_reviews_task_id ON public.qa_reviews(task_id);

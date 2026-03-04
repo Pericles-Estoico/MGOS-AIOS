@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.tasks.status IS 'Workflow: a_fazer → fazendo → enviado_qa → aprovado → concluido';

@@ -1,0 +1,1 @@
+alter table notification_preferences add column if not exists unsubscribed_from_all boolean default false;

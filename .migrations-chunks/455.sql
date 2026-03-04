@@ -1,0 +1,1 @@
+CREATE INDEX idx_agent_messages_status ON public.agent_messages(status);

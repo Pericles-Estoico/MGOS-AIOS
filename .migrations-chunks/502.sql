@@ -1,0 +1,1 @@
+ALTER TABLE public.marketplace_tasks ENABLE ROW LEVEL SECURITY;

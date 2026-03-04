@@ -1,0 +1,1 @@
+alter table user_metrics enable row level security;

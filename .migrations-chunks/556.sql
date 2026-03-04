@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION calculate_qa_metrics TO authenticated;

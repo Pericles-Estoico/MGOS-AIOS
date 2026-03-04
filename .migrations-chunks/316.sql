@@ -1,0 +1,1 @@
+create index if not exists idx_search_analytics_query on search_analytics(search_query);

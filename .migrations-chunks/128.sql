@@ -1,0 +1,1 @@
+create index if not exists idx_task_comments_task_id on task_comments(task_id);

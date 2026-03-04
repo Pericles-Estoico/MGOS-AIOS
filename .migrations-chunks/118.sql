@@ -1,0 +1,1 @@
+COMMENT ON FUNCTION public.update_timestamp() IS 'Auto-update updated_at timestamp on any row modification';

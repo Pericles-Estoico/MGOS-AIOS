@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.marketplace_tasks.status IS 'Workflow: pending → awaiting_approval → approved/rejected → in_progress → completed';

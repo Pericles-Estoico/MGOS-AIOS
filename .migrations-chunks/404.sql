@@ -1,0 +1,1 @@
+COMMENT ON COLUMN notification_preferences.email_daily_digest IS 'Send daily digest of tasks and updates';

@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_email_queue_status ON email_queue(status);

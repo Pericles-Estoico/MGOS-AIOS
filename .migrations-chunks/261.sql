@@ -1,0 +1,1 @@
+alter table reports enable row level security;

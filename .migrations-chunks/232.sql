@@ -1,0 +1,1 @@
+alter table qa_reviews enable row level security;

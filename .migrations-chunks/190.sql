@@ -1,0 +1,1 @@
+drop trigger if exists update_email_queue_timestamp_trigger on email_queue;

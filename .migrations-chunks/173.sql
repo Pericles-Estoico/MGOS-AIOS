@@ -1,0 +1,1 @@
+create index if not exists idx_email_tracking_opened on email_tracking(opened);

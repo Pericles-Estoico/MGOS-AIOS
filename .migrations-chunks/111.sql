@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS audit_time_logs_insert ON public.time_logs;

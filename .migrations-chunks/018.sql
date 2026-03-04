@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.audit_logs.action IS 'Operation type: INSERT, UPDATE, DELETE, STATUS_CHANGE';

@@ -1,0 +1,2 @@
+COMMENT ON TABLE public.marketplace_subtasks IS
+  'Tracks autonomous sub-agent decomposed tasks. Each subtask is created from a parent marketplace_task and executed by specialized sub-agents with human checkpoints.';

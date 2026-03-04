@@ -1,0 +1,1 @@
+create index if not exists idx_email_templates_name on email_templates(name);

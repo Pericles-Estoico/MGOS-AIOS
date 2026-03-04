@@ -1,0 +1,1 @@
+COMMENT ON COLUMN notification_preferences.email_deadline_approaching IS 'Send email when task deadline is approaching';

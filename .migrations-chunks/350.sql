@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_tasks_admin_approved ON public.tasks(admin_approved) WHERE source_type = 'ai_generated';

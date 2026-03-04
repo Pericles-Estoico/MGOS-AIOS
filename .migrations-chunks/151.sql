@@ -1,0 +1,1 @@
+drop trigger if exists update_comment_timestamp_trigger on task_comments;

@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.tasks.frente IS 'Team/front: Conteúdo, Ads, Marketplace, Cadastro de Produto, Relatórios';

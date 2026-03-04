@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.marketplace_tasks.created_by_agent IS 'Which NEXO sub-agent generated this task';

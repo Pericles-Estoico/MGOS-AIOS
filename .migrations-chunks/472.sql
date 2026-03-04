@@ -1,0 +1,1 @@
+CREATE INDEX idx_marketplace_channels_channel_key ON public.marketplace_channels(channel_key);

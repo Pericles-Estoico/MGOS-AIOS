@@ -1,0 +1,1 @@
+create index if not exists idx_saved_filters_is_default on saved_filters(is_default);

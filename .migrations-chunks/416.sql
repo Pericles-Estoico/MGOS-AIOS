@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_marketplace_plans_created_at ON public.marketplace_plans(created_at DESC);

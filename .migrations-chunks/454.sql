@@ -1,0 +1,1 @@
+CREATE INDEX idx_agent_messages_created_at ON public.agent_messages(created_at DESC);

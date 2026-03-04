@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "See evidence for accessible tasks" ON public.evidence;

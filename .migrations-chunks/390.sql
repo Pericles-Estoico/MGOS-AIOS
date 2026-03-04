@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.users.role IS 'User role: admin/ceo (full access), head/lider (create/assign tasks), executor (execute tasks), qa (review evidence)';

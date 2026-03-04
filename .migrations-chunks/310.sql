@@ -1,0 +1,1 @@
+drop trigger if exists update_tasks_search_vector_trigger on tasks;

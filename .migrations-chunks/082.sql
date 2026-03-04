@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Heads see team time logs" ON public.time_logs;

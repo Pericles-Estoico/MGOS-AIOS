@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "See reviews for accessible tasks" ON public.qa_reviews;

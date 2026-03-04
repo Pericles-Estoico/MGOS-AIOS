@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_mp_tasks_assigned_to ON public.marketplace_tasks(assigned_to);

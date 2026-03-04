@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Delete task - admin only" ON public.tasks;

@@ -1,0 +1,1 @@
+CREATE INDEX idx_marketplace_channels_status ON public.marketplace_channels(status);

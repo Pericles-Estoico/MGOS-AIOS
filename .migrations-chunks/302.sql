@@ -1,0 +1,1 @@
+alter table filter_usage enable row level security;

@@ -1,0 +1,1 @@
+COMMENT ON COLUMN notification_preferences.email_task_assigned IS 'Send email when task is assigned to user';

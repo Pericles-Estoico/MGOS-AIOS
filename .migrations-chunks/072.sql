@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Update review - reviewer or admin" ON public.qa_reviews;

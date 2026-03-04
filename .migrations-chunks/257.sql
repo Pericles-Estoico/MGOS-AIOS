@@ -1,0 +1,1 @@
+create index if not exists idx_user_metrics_sprint on user_metrics(sprint_id);

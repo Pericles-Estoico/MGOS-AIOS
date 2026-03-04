@@ -1,0 +1,1 @@
+ALTER TABLE preference_audit_log ENABLE ROW LEVEL SECURITY;

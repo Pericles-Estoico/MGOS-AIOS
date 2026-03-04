@@ -1,0 +1,1 @@
+COMMENT ON COLUMN notification_preferences.email_status_changed IS 'Send email when task status changes';

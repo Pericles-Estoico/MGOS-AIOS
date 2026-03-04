@@ -1,0 +1,1 @@
+alter table task_metrics enable row level security;

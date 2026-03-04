@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS audit_qa_reviews_update ON public.qa_reviews;

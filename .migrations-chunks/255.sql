@@ -1,0 +1,1 @@
+create index if not exists idx_team_metrics_sprint on team_metrics(sprint_id);

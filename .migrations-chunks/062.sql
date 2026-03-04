@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Insert evidence - executor only" ON public.evidence;

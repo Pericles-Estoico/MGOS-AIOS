@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.tasks.ai_change_type IS 'Type of change detected: algorithm (ranking changes), ads (ad formats), content (requirements), policies (compliance), features (new tools)';

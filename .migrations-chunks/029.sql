@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON public.tasks(due_date);

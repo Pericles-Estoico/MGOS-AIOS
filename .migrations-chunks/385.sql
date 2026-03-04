@@ -1,0 +1,1 @@
+COMMENT ON TABLE email_templates IS 'Email templates for notifications (Story 3.1)';

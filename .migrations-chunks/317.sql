@@ -1,0 +1,1 @@
+alter table search_analytics enable row level security;

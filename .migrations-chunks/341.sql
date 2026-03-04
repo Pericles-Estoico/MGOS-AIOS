@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.tasks.channel IS 'Marketplace channel for AI-generated tasks (e.g., amazon, mercadolivre, shopee)';

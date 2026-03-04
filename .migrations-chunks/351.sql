@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_tasks_ai_generated_at ON public.tasks(ai_generated_at) WHERE ai_generated_at IS NOT NULL;

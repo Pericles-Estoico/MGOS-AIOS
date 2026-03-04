@@ -1,0 +1,1 @@
+create index if not exists idx_saved_filters_user_id on saved_filters(user_id);

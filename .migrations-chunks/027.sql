@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_time_logs_task_id ON public.time_logs(task_id);

@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.marketplace_plans.plan_data IS 'JSONB: {summary, opportunities[], phases[], metrics[]}';

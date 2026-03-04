@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "See logs for accessible tasks" ON public.audit_logs;

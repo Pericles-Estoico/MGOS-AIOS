@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Heads see created and assigned" ON public.tasks;

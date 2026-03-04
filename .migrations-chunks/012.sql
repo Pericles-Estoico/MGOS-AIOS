@@ -1,0 +1,1 @@
+COMMENT ON TABLE public.evidence IS 'Evidence of task completion (file upload or external link)';

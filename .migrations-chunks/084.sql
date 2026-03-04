@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Insert own time logs" ON public.time_logs;

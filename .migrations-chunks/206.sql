@@ -1,0 +1,1 @@
+COMMENT ON COLUMN notification_preferences.email_burndown_warning IS 'Send email when team is behind burndown';

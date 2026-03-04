@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION calculate_team_metrics TO authenticated;

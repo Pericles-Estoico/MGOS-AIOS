@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Update task - creator or admin" ON public.tasks;

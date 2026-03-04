@@ -1,0 +1,2 @@
+IF TG_OP = 'DELETE' THEN
+      RETURN OLD;

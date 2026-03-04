@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Admins see all tasks" ON public.tasks;

@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_tasks_ai_change_type ON public.tasks(ai_change_type) WHERE ai_change_type IS NOT NULL;

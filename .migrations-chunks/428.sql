@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "QA can view marketplace plans" ON public.marketplace_plans;

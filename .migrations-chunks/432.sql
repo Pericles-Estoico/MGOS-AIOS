@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_job_executions_status ON marketplace_job_executions(status);

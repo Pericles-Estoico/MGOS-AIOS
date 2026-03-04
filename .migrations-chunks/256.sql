@@ -1,0 +1,1 @@
+create index if not exists idx_team_metrics_captured on team_metrics(captured_at desc);

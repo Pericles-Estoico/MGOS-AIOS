@@ -1,0 +1,1 @@
+create index if not exists idx_report_cache_expires on report_cache(expires_at);

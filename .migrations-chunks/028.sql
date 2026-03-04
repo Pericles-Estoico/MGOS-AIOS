@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_time_logs_user_id ON public.time_logs(user_id);

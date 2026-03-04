@@ -1,0 +1,1 @@
+CREATE INDEX idx_agent_messages_user_id ON public.agent_messages(user_id);

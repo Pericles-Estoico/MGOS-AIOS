@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_sprints_status ON sprints(status);

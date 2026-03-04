@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.marketplace_plans.channels IS 'Array of marketplace channels: amazon, mercadolivre, shopee, shein, tiktok-shop, kaway';

@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_users_is_active ON public.users(is_active);

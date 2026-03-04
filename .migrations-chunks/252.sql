@@ -1,0 +1,1 @@
+create index if not exists idx_reports_created_by on reports(created_by);

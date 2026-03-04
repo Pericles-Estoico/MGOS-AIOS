@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.tasks.admin_approved IS 'AI task approval status - false=pending admin review, true=approved and ready for execution';

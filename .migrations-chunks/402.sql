@@ -1,0 +1,1 @@
+COMMENT ON COLUMN notification_preferences.email_comment_mention IS 'Send email when mentioned in comments';

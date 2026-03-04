@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS marketplace_subtasks_update_timestamp ON public.marketplace_subtasks;

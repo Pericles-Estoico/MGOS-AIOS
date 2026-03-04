@@ -1,0 +1,1 @@
+COMMENT ON TABLE public.users IS 'User profiles with role assignment for RBAC';

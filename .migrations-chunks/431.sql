@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_job_executions_plan_id ON marketplace_job_executions(plan_id);

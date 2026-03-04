@@ -1,0 +1,1 @@
+ALTER TABLE public.marketplace_subtasks ENABLE ROW LEVEL SECURITY;

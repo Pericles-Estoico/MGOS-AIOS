@@ -1,0 +1,1 @@
+vacuum analyze email_queue;

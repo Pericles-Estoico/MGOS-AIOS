@@ -1,0 +1,1 @@
+create index if not exists idx_task_metrics_captured on task_metrics(captured_at desc);

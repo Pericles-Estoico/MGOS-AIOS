@@ -1,0 +1,1 @@
+COMMENT ON TABLE public.tasks IS 'Task units with optional assignment and due dates - support flexible task creation workflow';

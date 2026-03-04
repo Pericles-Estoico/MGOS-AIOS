@@ -1,0 +1,1 @@
+create index if not exists idx_task_activity_task_id on task_activity(task_id);

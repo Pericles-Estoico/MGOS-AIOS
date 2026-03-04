@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.evidence.evidence_type IS 'Type: file (uploaded to storage), link (external URL)';

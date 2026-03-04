@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_preference_audit_changed_at ON preference_audit_log(changed_at);

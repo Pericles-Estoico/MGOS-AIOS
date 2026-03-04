@@ -1,0 +1,1 @@
+alter table email_queue enable row level security;

@@ -1,0 +1,4 @@
+CREATE TRIGGER marketplace_channels_updated_at_trigger
+BEFORE UPDATE ON public.marketplace_channels
+FOR EACH ROW
+EXECUTE FUNCTION update_marketplace_channels_updated_at();

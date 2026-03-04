@@ -1,0 +1,1 @@
+create index if not exists idx_filter_usage_used_at on filter_usage(used_at desc);

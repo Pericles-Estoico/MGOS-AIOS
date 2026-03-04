@@ -1,0 +1,1 @@
+create index if not exists idx_filter_usage_filter_id on filter_usage(filter_id);

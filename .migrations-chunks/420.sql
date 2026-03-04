@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Admin sees all marketplace plans" ON public.marketplace_plans;

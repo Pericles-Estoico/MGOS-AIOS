@@ -1,0 +1,1 @@
+alter table notification_preferences add column if not exists email_digest_frequency text default 'daily';

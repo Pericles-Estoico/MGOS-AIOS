@@ -1,0 +1,1 @@
+alter table task_activity enable row level security;

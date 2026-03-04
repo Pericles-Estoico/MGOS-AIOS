@@ -1,0 +1,1 @@
+create index if not exists idx_tasks_search_vector on tasks using gin(search_vector);

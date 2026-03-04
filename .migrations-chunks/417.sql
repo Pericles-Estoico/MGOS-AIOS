@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_marketplace_plans_channels ON public.marketplace_plans USING GIN (channels);

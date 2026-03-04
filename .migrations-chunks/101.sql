@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS audit_tasks_delete ON public.tasks;

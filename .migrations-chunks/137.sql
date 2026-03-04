@@ -1,0 +1,1 @@
+alter table task_comments enable row level security;

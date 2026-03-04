@@ -1,0 +1,1 @@
+create index if not exists idx_task_activity_created_at on task_activity(created_at desc);

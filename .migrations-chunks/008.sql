@@ -1,0 +1,1 @@
+COMMENT ON TABLE public.tasks IS 'Task units with status workflow and evidence requirements';

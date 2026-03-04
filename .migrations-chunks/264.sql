@@ -1,0 +1,1 @@
+alter table team_metrics enable row level security;

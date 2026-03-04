@@ -1,0 +1,5 @@
+ALTER TABLE notification_preferences
+  ADD COLUMN IF NOT EXISTS last_modified_by VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS last_modified_at TIMESTAMPTZ DEFAULT NOW(),
+  ADD COLUMN IF NOT EXISTS preference_version INT DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;

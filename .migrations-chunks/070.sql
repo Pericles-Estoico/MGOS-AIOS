@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Insert review - QA only" ON public.qa_reviews;

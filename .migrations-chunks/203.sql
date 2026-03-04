@@ -1,0 +1,1 @@
+COMMENT ON TABLE notification_preferences IS 'User email notification preferences';

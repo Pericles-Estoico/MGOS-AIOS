@@ -1,0 +1,1 @@
+create index if not exists idx_qa_reviews_reviewer_id on qa_reviews(reviewer_id);

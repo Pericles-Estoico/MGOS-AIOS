@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.tasks.step_by_step IS 'Detailed step-by-step instructions in Markdown format for executing the task';

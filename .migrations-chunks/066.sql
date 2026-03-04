@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Admins see all reviews" ON public.qa_reviews;

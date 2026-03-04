@@ -1,0 +1,1 @@
+COMMENT ON FUNCTION public.log_audit_trail() IS 'Generic trigger function for audit trail - logs all INSERT/UPDATE/DELETE operations';

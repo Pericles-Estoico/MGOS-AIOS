@@ -1,0 +1,1 @@
+COMMENT ON TABLE public.audit_logs IS 'Immutable audit trail of all data changes';

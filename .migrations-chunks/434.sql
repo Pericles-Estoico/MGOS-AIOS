@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_job_executions_created_at ON marketplace_job_executions(created_at DESC);

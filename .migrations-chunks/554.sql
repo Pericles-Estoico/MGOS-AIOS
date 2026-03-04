@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION calculate_per_user_metrics TO authenticated;

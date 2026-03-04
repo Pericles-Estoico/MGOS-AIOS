@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Users see own profile" ON public.users;

@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Admins see all time logs" ON public.time_logs;

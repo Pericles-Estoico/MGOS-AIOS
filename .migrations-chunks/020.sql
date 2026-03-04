@@ -1,0 +1,1 @@
+COMMENT ON TABLE public.time_logs IS 'Time tracking for task metrics and analytics';

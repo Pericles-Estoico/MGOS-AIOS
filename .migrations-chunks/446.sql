@@ -1,0 +1,1 @@
+ALTER TABLE public.agent_messages ENABLE ROW LEVEL SECURITY;

@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Create task - admin or head" ON public.tasks;

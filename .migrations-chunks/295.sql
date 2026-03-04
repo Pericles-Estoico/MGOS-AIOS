@@ -1,0 +1,1 @@
+alter table saved_filters enable row level security;

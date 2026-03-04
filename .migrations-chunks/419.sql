@@ -1,0 +1,1 @@
+ALTER TABLE public.marketplace_plans ENABLE ROW LEVEL SECURITY;

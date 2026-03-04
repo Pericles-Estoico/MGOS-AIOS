@@ -1,0 +1,1 @@
+vacuum analyze task_comments;

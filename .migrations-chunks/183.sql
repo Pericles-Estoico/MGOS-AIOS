@@ -1,0 +1,1 @@
+alter table email_templates enable row level security;

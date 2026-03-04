@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS audit_tasks_update ON public.tasks;

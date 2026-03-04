@@ -1,0 +1,1 @@
+ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS estimated_hours FLOAT DEFAULT NULL;

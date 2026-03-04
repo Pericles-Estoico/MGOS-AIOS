@@ -1,0 +1,1 @@
+create index if not exists idx_email_queue_pending on email_queue(status, retry_count) where status = 'pending';

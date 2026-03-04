@@ -1,0 +1,1 @@
+alter table report_cache enable row level security;

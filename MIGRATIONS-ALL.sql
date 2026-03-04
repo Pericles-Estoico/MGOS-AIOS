@@ -2864,14 +2864,14 @@ COMMENT ON COLUMN public.marketplace_subtasks.order_index IS
 ALTER TABLE public.marketplace_subtasks ENABLE ROW LEVEL SECURITY;
 
 -- Allow authenticated users to view subtasks (will be further restricted in frontend)
-CREATE POLICY IF NOT EXISTS marketplace_subtasks_read_authenticated
+CREATE POLICY marketplace_subtasks_read_authenticated
   ON public.marketplace_subtasks
   FOR SELECT
   TO authenticated
   USING (true);
 
 -- Allow service role (backend) full access
-CREATE POLICY IF NOT EXISTS marketplace_subtasks_all_service_role
+CREATE POLICY marketplace_subtasks_all_service_role
   ON public.marketplace_subtasks
   FOR ALL
   TO service_role

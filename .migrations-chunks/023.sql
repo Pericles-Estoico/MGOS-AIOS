@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_evidence_task_id ON public.evidence(task_id);

@@ -1,0 +1,1 @@
+create index if not exists idx_task_metrics_task on task_metrics(task_id);

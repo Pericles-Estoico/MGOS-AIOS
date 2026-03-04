@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.tasks.ai_source_url IS 'Official source URL of the marketplace documentation for the detected change';

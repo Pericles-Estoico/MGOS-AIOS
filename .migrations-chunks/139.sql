@@ -1,0 +1,1 @@
+alter table user_presence enable row level security;

@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_tasks_frente ON public.tasks(frente);

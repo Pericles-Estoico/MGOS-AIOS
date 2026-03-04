@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_reassignment_history_created_at ON reassignment_history(created_at DESC);

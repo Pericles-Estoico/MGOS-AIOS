@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.users.is_active IS 'Soft-delete flag: false means the user is deactivated';

@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_mp_tasks_agent ON public.marketplace_tasks(created_by_agent);

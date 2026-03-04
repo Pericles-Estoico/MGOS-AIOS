@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Admin can create plans" ON public.marketplace_plans;

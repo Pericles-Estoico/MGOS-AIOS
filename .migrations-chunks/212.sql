@@ -1,0 +1,2 @@
+create index if not exists idx_qa_reviews_created_at
+  on qa_reviews (created_at desc);

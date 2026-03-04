@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_qa_reviews_reviewed_by ON public.qa_reviews(reviewed_by);

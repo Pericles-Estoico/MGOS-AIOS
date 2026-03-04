@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_email_tracking_queue_id ON email_tracking(queue_id);

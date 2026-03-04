@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.tasks.ai_generated_at IS 'Timestamp when the task was AI-generated (ISO 8601 UTC)';

@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Head can approve/reject plans" ON public.marketplace_plans;

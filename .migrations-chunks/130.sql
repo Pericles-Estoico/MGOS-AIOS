@@ -1,0 +1,1 @@
+create index if not exists idx_task_comments_created_at on task_comments(created_at desc);

@@ -1,0 +1,1 @@
+COMMENT ON TABLE email_queue IS 'Queue for emails pending sending (Story 3.1)';

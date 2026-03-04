@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.users.department IS 'Team/department the user belongs to';

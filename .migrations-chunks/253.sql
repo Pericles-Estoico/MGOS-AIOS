@@ -1,0 +1,1 @@
+create index if not exists idx_reports_created_at on reports(created_at desc);

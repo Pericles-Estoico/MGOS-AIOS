@@ -1,0 +1,1 @@
+ALTER TABLE marketplace_job_executions ENABLE ROW LEVEL SECURITY;

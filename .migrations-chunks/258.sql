@@ -1,0 +1,1 @@
+create index if not exists idx_user_metrics_user_captured on user_metrics(user_id, captured_at desc);

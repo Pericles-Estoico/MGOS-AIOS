@@ -1,0 +1,1 @@
+create index if not exists idx_email_queue_created_at on email_queue(created_at desc);

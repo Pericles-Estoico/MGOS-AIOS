@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "QA sees all for review" ON public.tasks;

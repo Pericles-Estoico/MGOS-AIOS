@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.marketplace_plans.phase1_tasks_created IS 'TRUE after createPhase1Tasks() executed on approval';

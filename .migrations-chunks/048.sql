@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Executors see assigned" ON public.tasks;

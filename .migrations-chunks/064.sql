@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Delete evidence - submitter or admin" ON public.evidence;

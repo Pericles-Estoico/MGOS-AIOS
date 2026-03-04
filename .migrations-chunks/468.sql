@@ -1,0 +1,1 @@
+ALTER TABLE public.marketplace_channels ENABLE ROW LEVEL SECURITY;

@@ -1,0 +1,1 @@
+COMMENT ON TABLE public.qa_reviews IS 'QA decisions on task completion (approval/rejection with reason)';

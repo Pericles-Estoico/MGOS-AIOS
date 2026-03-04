@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.users.id IS 'Foreign key to auth.users(id)';

@@ -1,0 +1,1 @@
+COMMENT ON TABLE email_tracking IS 'Analytics and delivery tracking for emails';

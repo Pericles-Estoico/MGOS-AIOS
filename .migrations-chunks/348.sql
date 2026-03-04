@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_tasks_source_type ON public.tasks(source_type);

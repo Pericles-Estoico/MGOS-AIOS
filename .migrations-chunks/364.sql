@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_email_queue_user_id ON email_queue(user_id);

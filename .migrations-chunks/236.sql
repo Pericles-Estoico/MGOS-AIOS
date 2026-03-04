@@ -1,0 +1,1 @@
+alter table tasks add column if not exists qa_review_count integer default 0;

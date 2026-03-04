@@ -1,0 +1,1 @@
+alter table email_tracking enable row level security;

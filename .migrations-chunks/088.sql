@@ -1,0 +1,6 @@
+BEGIN
+    action_type := CASE
+      WHEN TG_OP = 'INSERT' THEN 'INSERT'
+      WHEN TG_OP = 'UPDATE' THEN 'UPDATE'
+      WHEN TG_OP = 'DELETE' THEN 'DELETE'
+    END;

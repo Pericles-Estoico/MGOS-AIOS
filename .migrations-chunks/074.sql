@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Admins see all audit logs" ON public.audit_logs;

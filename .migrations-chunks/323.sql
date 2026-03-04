@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_sprints_created_at ON sprints(created_at DESC);

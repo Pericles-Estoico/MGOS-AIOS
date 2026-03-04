@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.marketplace_tasks.admin_approved IS 'Whether a human admin has approved this task for execution';

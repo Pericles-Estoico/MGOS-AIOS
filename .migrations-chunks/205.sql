@@ -1,0 +1,1 @@
+COMMENT ON COLUMN notification_preferences.email_qa_feedback IS 'Send email when QA review feedback is provided';

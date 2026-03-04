@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS audit_evidence_insert ON public.evidence;

@@ -1,0 +1,1 @@
+alter table report_configs enable row level security;

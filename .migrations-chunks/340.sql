@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.tasks.source_type IS 'Task source: manual (created by user/head), ai_generated (from marketplace intelligence)';

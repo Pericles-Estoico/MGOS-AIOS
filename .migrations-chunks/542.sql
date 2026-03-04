@@ -1,0 +1,1 @@
+RETURN EXTRACT(EPOCH FROM (status_completed_at - status_created_at)) / 3600.0;

@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_reassignment_history_old_assignee ON reassignment_history(old_assignee_id);

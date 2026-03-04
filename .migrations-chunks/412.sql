@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.marketplace_plans.status IS 'Workflow: pending → approved → executing → done (or rejected)';

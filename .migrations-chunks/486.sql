@@ -1,0 +1,1 @@
+COMMENT ON TABLE public.marketplace_tasks IS 'AI-generated marketplace optimization tasks from NEXO orchestrator';

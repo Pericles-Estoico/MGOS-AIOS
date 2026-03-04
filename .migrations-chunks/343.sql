@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.tasks.estimated_hours IS 'Estimated hours for task completion (AI-calculated based on change type and complexity)';

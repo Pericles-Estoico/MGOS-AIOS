@@ -1,0 +1,1 @@
+ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS ai_source_url TEXT DEFAULT NULL;

@@ -1,0 +1,1 @@
+create index if not exists idx_user_presence_user_id on user_presence(user_id);

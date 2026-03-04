@@ -1,0 +1,1 @@
+ALTER TABLE reassignment_history ENABLE ROW LEVEL SECURITY;

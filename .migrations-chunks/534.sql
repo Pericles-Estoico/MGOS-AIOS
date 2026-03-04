@@ -1,0 +1,3 @@
+ALTER TABLE public.tasks
+  ALTER COLUMN assigned_to DROP NOT NULL,
+  ALTER COLUMN due_date DROP NOT NULL;
