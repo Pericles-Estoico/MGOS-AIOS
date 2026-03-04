@@ -66,43 +66,63 @@ let isConnected = false;
 
 /**
  * Get or create Redis client instance
+ * Supports REDIS_URL (e.g. redis://user:pass@host:port or rediss://... for TLS)
+ * Falls back to individual REDIS_HOST/REDIS_PORT config if REDIS_URL is not set
  */
 export function getRedisClient(): Redis {
   if (redisInstance) {
     return redisInstance;
   }
 
-  const env = isDevelopment ? 'development' : 'production';
-  const config = REDIS_CONFIG[env as keyof typeof REDIS_CONFIG];
-
-  const redisOptions: RedisOptions = {
-    ...config,
-    retryStrategy: (times: number) => {
-      const delay = Math.min(
-        RETRY_CONFIG.baseDelay * Math.pow(2, times - 1),
-        RETRY_CONFIG.maxDelay
+  const retryStrategy = (times: number) => {
+    const delay = Math.min(
+      RETRY_CONFIG.baseDelay * Math.pow(2, times - 1),
+      RETRY_CONFIG.maxDelay
+    );
+    if (times > RETRY_CONFIG.maxAttempts) {
+      console.error(
+        `❌ Redis: Max retry attempts exceeded (${RETRY_CONFIG.maxAttempts})`
       );
-      if (times > RETRY_CONFIG.maxAttempts) {
-        console.error(
-          `❌ Redis: Max retry attempts exceeded (${RETRY_CONFIG.maxAttempts})`
-        );
-        return null; // Stop retrying
-      }
-      console.warn(
-        `⏳ Redis: Retrying connection (attempt ${times}, delay ${delay}ms)`
-      );
-      return delay;
-    },
-    reconnectOnError: (err) => {
-      const targetError = 'READONLY';
-      if (err.message.includes(targetError)) {
-        return true; // Retry
-      }
-      return false;
-    },
+      return null; // Stop retrying
+    }
+    console.warn(
+      `⏳ Redis: Retrying connection (attempt ${times}, delay ${delay}ms)`
+    );
+    return delay;
   };
 
-  redisInstance = new Redis(redisOptions);
+  const reconnectOnError = (err: Error) => {
+    const targetError = 'READONLY';
+    if (err.message.includes(targetError)) {
+      return true; // Retry
+    }
+    return false;
+  };
+
+  // If REDIS_URL is set, use it directly (supports Upstash, Railway, etc.)
+  if (process.env.REDIS_URL) {
+    const useTls = process.env.REDIS_URL.startsWith('rediss://');
+    redisInstance = new Redis(process.env.REDIS_URL, {
+      tls: useTls ? {} : undefined,
+      maxRetriesPerRequest: 3,
+      enableReadyCheck: false,
+      enableOfflineQueue: true,
+      retryStrategy,
+      reconnectOnError,
+    });
+    console.log(`🔗 Redis: Using REDIS_URL (TLS: ${useTls})`);
+  } else {
+    const env = isDevelopment ? 'development' : 'production';
+    const config = REDIS_CONFIG[env as keyof typeof REDIS_CONFIG];
+
+    const redisOptions: RedisOptions = {
+      ...config,
+      retryStrategy,
+      reconnectOnError,
+    };
+
+    redisInstance = new Redis(redisOptions);
+  }
 
   // Event handlers
   redisInstance.on('connect', () => {

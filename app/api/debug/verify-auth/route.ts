@@ -65,6 +65,10 @@ async function testAuthorize(email: string, password: string) {
 }
 
 export async function GET(request: Request) {
+  if (process.env.NODE_ENV !== 'development') {
+    return Response.json({ error: 'Not available in production' }, { status: 403 });
+  }
+
   const searchParams = new URL(request.url).searchParams;
   const testEmail = searchParams.get('email') || 'teste@teste.com';
   const testPassword = searchParams.get('password') || 'teste123';

@@ -8,6 +8,10 @@ import { createSupabaseServerClient } from '@lib/supabase';
  * Debug endpoint to check what's broken on mobile
  */
 export async function GET(request: NextRequest) {
+  if (process.env.NODE_ENV !== 'development') {
+    return NextResponse.json({ error: 'Not available in production' }, { status: 403 });
+  }
+
   try {
     const session = await getServerSession(authOptions);
 

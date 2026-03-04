@@ -68,22 +68,24 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // FOOLPROOF: Always try test users FIRST - simple direct matching
-        const testUser = TEST_USERS.find(
-          (u) => u.email === credentials.email && u.password === credentials.password
-        );
+        // Test users only available in development
+        if (process.env.NODE_ENV === 'development') {
+          const testUser = TEST_USERS.find(
+            (u) => u.email === credentials.email && u.password === credentials.password
+          );
 
-        if (testUser) {
-          return {
-            id: testUser.id,
-            email: testUser.email,
-            name: testUser.name,
-            role: testUser.role,
-          } as any;
+          if (testUser) {
+            return {
+              id: testUser.id,
+              email: testUser.email,
+              name: testUser.name,
+              role: testUser.role,
+            } as any;
+          }
         }
 
-        // If test user match fails, try Supabase as fallback
-        console.log('📡 Test user not found, attempting Supabase auth for:', credentials.email);
+        // Try Supabase auth
+        console.log('📡 Attempting Supabase auth for:', credentials.email);
 
           // Supabase fallback
         if (supabase) {
@@ -109,7 +111,6 @@ export const authOptions: NextAuthOptions = {
 
         // No match found anywhere
         return null;
-      }
       },
     }),
   ],

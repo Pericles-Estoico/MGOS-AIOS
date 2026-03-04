@@ -6,15 +6,21 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+const isSmtpConfigured = !!process.env.SMTP_HOST;
+
+const transporter = isSmtpConfigured
+  ? nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    })
+  : nodemailer.createTransport({
+      jsonTransport: true,
+    });
 
 interface EmailData {
   userId: string;
@@ -106,13 +112,18 @@ export async function processEmailQueue(): Promise<{ processed: number; failed: 
         );
 
         // Send email
-        await transporter.sendMail({
+        const mailResult = await transporter.sendMail({
           from: process.env.SMTP_FROM || 'noreply@taskops.com',
           to: email.recipient_email,
           subject: subject,
           html: html,
           text: text,
         });
+
+        if (!isSmtpConfigured) {
+          console.log(`[EMAIL DEV MODE] To: ${email.recipient_email} Subject: ${subject}`);
+          console.log(`[EMAIL DEV MODE] Body preview:`, mailResult.messageId || mailResult);
+        }
 
         // Update status
         await updateEmailStatus(email.id, 'sent', null);

@@ -25,6 +25,15 @@ interface EnqueueBatchRequest {
  * Queue a single email
  */
 export async function POST(request: NextRequest) {
+  // Verify API key
+  const apiKey = request.headers.get('x-api-key');
+  if (!apiKey || apiKey !== process.env.NOTIFICATIONS_API_KEY) {
+    return NextResponse.json(
+      { status: 'error', message: 'Unauthorized' },
+      { status: 401 }
+    );
+  }
+
   try {
     const body: EnqueueRequest | EnqueueBatchRequest = await request.json();
 

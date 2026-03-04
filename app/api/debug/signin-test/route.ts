@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { authOptions } from '@/lib/auth';
 
 export async function POST(req: Request) {
+  if (process.env.NODE_ENV !== 'development') {
+    return NextResponse.json({ error: 'Not available in production' }, { status: 403 });
+  }
+
   try {
     const { email, password } = await req.json();
     console.log('🧪 TEST: Attempting manual authorization test');
