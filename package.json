@@ -10,7 +10,10 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "db:migrations:apply": "node scripts/open-supabase.js",
+    "db:migrations:guide": "node scripts/execute-migrations.js",
+    "db:migrations:interactive": "node scripts/start-migrations.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
