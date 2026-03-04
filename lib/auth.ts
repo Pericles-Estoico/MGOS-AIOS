@@ -8,6 +8,9 @@ if (!process.env.NEXTAUTH_SECRET) {
   console.log('✅ NEXTAUTH_SECRET is configured');
 }
 
+// Version marker for deployment tracking
+console.log('🚀 lib/auth.ts loaded - v2.1 with detailed logging');
+
 // Debug environment
 console.log('🔐 Auth Config:', {
   hasSecret: !!process.env.NEXTAUTH_SECRET,
