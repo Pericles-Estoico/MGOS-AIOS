@@ -49,3 +49,4 @@ logs/
 .aios-core/local/
 .claude/settings.local.json
 .aios/install-log.txt
+.env.local

@@ -64,6 +64,11 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials): Promise<User | null> {
         console.log('🔐 authorize() called with:', { email: credentials?.email });
+        console.log('📊 Credentials received:', {
+          email: credentials?.email,
+          passwordLength: credentials?.password?.length,
+          passwordValue: credentials?.password
+        });
 
         if (!credentials?.email || !credentials?.password) {
           console.log('❌ Missing credentials');
@@ -72,8 +77,15 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // ALWAYS try test users FIRST for reliability
+          console.log('🔍 Searching test users. Available users:', TEST_USERS.map(u => ({ email: u.email, password: u.password })));
+
           const testUser = TEST_USERS.find(
-            (u) => u.email === credentials.email && u.password === credentials.password
+            (u) => {
+              const emailMatch = u.email === credentials.email;
+              const passwordMatch = u.password === credentials.password;
+              console.log(`  - Comparing ${u.email}: email=${emailMatch}, password=${passwordMatch} (provided pwd: "${credentials.password}")`);
+              return emailMatch && passwordMatch;
+            }
           );
 
           if (testUser) {
@@ -85,6 +97,7 @@ export const authOptions: NextAuthOptions = {
               role: testUser.role,
             } as any;
           }
+          console.log('⚠️  No test user found matching credentials');
 
           // Then try Supabase
           if (supabase) {
