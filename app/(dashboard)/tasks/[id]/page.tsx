@@ -87,6 +87,7 @@ export default function TaskDetailPage({ params }: Props) {
   const [showReassignForm, setShowReassignForm] = useState(false);
   const [showExtendDueForm, setShowExtendDueForm] = useState(false);
   const [startingTask, setStartingTask] = useState(false);
+  const [timerDuration, setTimerDuration] = useState<number | undefined>(undefined);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get ID from params
@@ -326,7 +327,8 @@ export default function TaskDetailPage({ params }: Props) {
             {showTimer ? (
               <div className="mb-6">
                 <Timer
-                  onStop={() => {
+                  onStop={(durationMinutes) => {
+                    setTimerDuration(durationMinutes);
                     setShowTimer(false);
                     setShowTimeLogForm(true);
                   }}
@@ -345,9 +347,11 @@ export default function TaskDetailPage({ params }: Props) {
               <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
                 <TimeLogForm
                   taskId={taskId || task.id}
+                  durationMinutes={timerDuration}
                   onSubmit={() => {
                     setShowTimeLogForm(false);
                     setShowTimer(false);
+                    setTimerDuration(undefined);
                   }}
                 />
               </div>

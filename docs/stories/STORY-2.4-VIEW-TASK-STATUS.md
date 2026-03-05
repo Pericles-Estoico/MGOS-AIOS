@@ -1,6 +1,6 @@
 # STORY 2.4 - VIEW TASK STATUS
 
-**Status:** In Progress - Phase 1-2 Implementation Complete
+**Status:** Done
 **Duration:** 1 day
 **Priority:** High - User Visibility Feature
 **Assigned to:** @dev (Dex)

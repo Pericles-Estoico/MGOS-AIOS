@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import BurndownChart from '@/components/tasks/BurndownChart';
+import QAReviewQueue from '@/components/team/QAReviewQueue';
 
 interface Task {
   id: string;
@@ -175,12 +176,17 @@ export default function TeamPage() {
         </div>
       )}
 
-      {/* Burndown Chart */}
-      {allTasks.length > 0 && (
-        <div className="mb-8">
-          <BurndownChart tasks={allTasks} />
+      {/* Burndown Chart + QA Queue */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {allTasks.length > 0 && (
+          <div className="lg:col-span-2">
+            <BurndownChart tasks={allTasks} />
+          </div>
+        )}
+        <div className={allTasks.length > 0 ? '' : 'lg:col-span-3'}>
+          <QAReviewQueue />
         </div>
-      )}
+      </div>
 
       {/* Task List */}
       <div className="bg-white rounded-lg border border-gray-200">
