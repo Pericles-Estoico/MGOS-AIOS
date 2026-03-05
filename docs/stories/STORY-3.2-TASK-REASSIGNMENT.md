@@ -1,6 +1,6 @@
 # STORY 3.2 - TASK REASSIGNMENT WORKFLOW
 
-**Status:** Ready for Development
+**Status:** Done
 **Duration:** 1-2 hours
 **Priority:** High - Core Workflow
 **Assigned to:** @dev (Dex)
@@ -78,67 +78,67 @@ AC-3.2.7: Performance & UX
 
 ### Phase 1: API Endpoint
 
-- [ ] **T-3.2.1: Create reassign endpoint**
-  - [ ] POST /api/tasks/[id]/reassign (already exists from email integration!)
-  - [ ] Validate: user is admin/head
-  - [ ] Validate: task exists and not completed
-  - [ ] Validate: new_assignee_id is valid user
-  - [ ] Update task.assigned_to
-  - [ ] Create reassignment_history entry
-  - [ ] Create audit log
-  - [ ] Trigger email notification
-  - [ ] Return updated task
+- [x] **T-3.2.1: Create reassign endpoint**
+  - [x] POST /api/tasks/[id]/reassign (already exists from email integration!)
+  - [x] Validate: user is admin/head
+  - [x] Validate: task exists and not completed
+  - [x] Validate: new_assignee_id is valid user
+  - [x] Update task.assigned_to
+  - [x] Create reassignment_history entry
+  - [x] Create audit log
+  - [x] Trigger email notification
+  - [x] Return updated task
 
 ### Phase 2: Task Detail Page Enhancement
 
-- [ ] **T-3.2.2: Add reassign modal to task detail**
-  - [ ] Import ReassignModal component
-  - [ ] Show "Reassign" button in task header
-  - [ ] Modal: dropdown for assignee selection
-  - [ ] Modal: optional reason textarea
-  - [ ] Modal: confirm/cancel buttons
-  - [ ] Call POST /api/tasks/[id]/reassign
-  - [ ] Handle success/error responses
-  - [ ] Show toast message
+- [x] **T-3.2.2: Add reassign modal to task detail**
+  - [x] Import ReassignModal component
+  - [x] Show "Reassign" button in task header
+  - [x] Modal: dropdown for assignee selection
+  - [x] Modal: optional reason textarea
+  - [x] Modal: confirm/cancel buttons
+  - [x] Call POST /api/tasks/[id]/reassign
+  - [x] Handle success/error responses
+  - [x] Show toast message
 
 ### Phase 3: Task List Enhancement
 
-- [ ] **T-3.2.3: Add quick reassign to task list**
-  - [ ] Add dropdown button in task row
-  - [ ] Show assignee options when clicked
-  - [ ] Click to reassign instantly
-  - [ ] Show toast: "Reassigned to [User]"
-  - [ ] Update UI without refresh
+- [x] **T-3.2.3: Add quick reassign to task list**
+  - [x] Add dropdown button in task row
+  - [x] Show assignee options when clicked
+  - [x] Click to reassign instantly
+  - [x] Show toast: "Reassigned to [User]"
+  - [x] Update UI without refresh
 
-- [ ] **T-3.2.4: Implement bulk reassign**
-  - [ ] Add checkbox to each task row
-  - [ ] Show "Bulk actions" bar when rows selected
-  - [ ] "Reassign All" button
-  - [ ] Modal: select new assignee
-  - [ ] Submit: reassign all selected
-  - [ ] Handle batch operation
+- [x] **T-3.2.4: Implement bulk reassign**
+  - [x] Add checkbox to each task row
+  - [x] Show "Bulk actions" bar when rows selected
+  - [x] "Reassign All" button
+  - [x] Modal: select new assignee
+  - [x] Submit: reassign all selected
+  - [x] Handle batch operation
 
 ### Phase 4: History & Audit
 
-- [ ] **T-3.2.5: Show reassignment history in task detail**
-  - [ ] Fetch reassignment_history for task
-  - [ ] Display timeline of reassignments
-  - [ ] Show: old assignee → new assignee
-  - [ ] Show: timestamp, reason, performed by
-  - [ ] Optional: expandable comments
+- [x] **T-3.2.5: Show reassignment history in task detail**
+  - [x] Fetch reassignment_history for task
+  - [x] Display timeline of reassignments
+  - [x] Show: old assignee → new assignee
+  - [x] Show: timestamp, reason, performed by
+  - [x] Optional: expandable comments
 
-- [ ] **T-3.2.6: Create reassignment_history table**
-  - [ ] Columns: id, task_id, old_assignee_id, new_assignee_id, reason, reassigned_by, created_at
-  - [ ] Index on task_id for fast lookup
-  - [ ] RLS policy for access control
+- [x] **T-3.2.6: Create reassignment_history table**
+  - [x] Columns: id, task_id, old_assignee_id, new_assignee_id, reason, reassigned_by, created_at
+  - [x] Index on task_id for fast lookup
+  - [x] RLS policy for access control
 
 ### Phase 5: Testing
 
-- [ ] **T-3.2.7: Create test suite**
-  - [ ] API endpoint tests (success, validation errors)
-  - [ ] Permission tests (admin vs executor)
-  - [ ] Smoke tests for UI components
-  - [ ] Email notification trigger tests
+- [x] **T-3.2.7: Create test suite**
+  - [x] API endpoint tests (success, validation errors)
+  - [x] Permission tests (admin vs executor)
+  - [x] Smoke tests for UI components
+  - [x] Email notification trigger tests
 
 ---
 
@@ -254,15 +254,15 @@ Task List Row:
 
 ## ✅ Definition of Done
 
-- [ ] API endpoint implemented and tested
-- [ ] ReassignModal component created and working
-- [ ] Task detail page updated
-- [ ] Task list quick reassign working
-- [ ] Bulk reassign implemented
-- [ ] Reassignment history displayed
-- [ ] Email notifications sent
-- [ ] Audit logging complete
-- [ ] All tests passing (smoke + unit)
-- [ ] Lint and build passing
-- [ ] Deployed to staging
-- [ ] Deployed to production
+- [x] API endpoint implemented and tested
+- [x] ReassignModal component created and working
+- [x] Task detail page updated
+- [x] Task list quick reassign working
+- [x] Bulk reassign implemented
+- [x] Reassignment history displayed
+- [x] Email notifications sent
+- [x] Audit logging complete
+- [x] All tests passing (smoke + unit)
+- [x] Lint and build passing
+- [x] Deployed to staging
+- [x] Deployed to production

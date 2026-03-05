@@ -1,6 +1,6 @@
 # STORY 3.4 - USER MANAGEMENT UI
 
-**Status:** Ready for Development
+**Status:** Done
 **Duration:** 4-6 hours
 **Priority:** High - System Management Feature
 **Assigned to:** @dev (Dex)
@@ -80,99 +80,99 @@ AC-3.4.6: User Status indicators
 
 ### Phase 1: User Management Page & List
 
-- [ ] **T-3.4.1: Create User Management page**
+- [x] **T-3.4.1: Create User Management page**
   - Subtasks:
-    - [ ] Create `/app/(dashboard)/settings/users/page.tsx`
-    - [ ] Add authorization check (admin only)
-    - [ ] Fetch all users from `/api/users`
-    - [ ] Implement user list table with columns: name, email, role, status, created_at
-    - [ ] Add sorting by: name, email, role, created_at
-    - [ ] Add filtering by: role, status
-    - [ ] Implement pagination (10-50 per page)
-    - [ ] Add search/filter bar
-    - [ ] Add loading and error states
-    - [ ] Add "Add User" button (opens create form)
-    - [ ] Make rows clickable to view detail
+    - [x] Create `/app/(dashboard)/settings/users/page.tsx`
+    - [x] Add authorization check (admin only)
+    - [x] Fetch all users from `/api/users`
+    - [x] Implement user list table with columns: name, email, role, status, created_at
+    - [x] Add sorting by: name, email, role, created_at
+    - [x] Add filtering by: role, status
+    - [x] Implement pagination (10-50 per page)
+    - [x] Add search/filter bar
+    - [x] Add loading and error states
+    - [x] Add "Add User" button (opens create form)
+    - [x] Make rows clickable to view detail
 
-- [ ] **T-3.4.2: Create User Detail/Edit Modal**
+- [x] **T-3.4.2: Create User Detail/Edit Modal**
   - Subtasks:
-    - [ ] Create Modal component for user detail
-    - [ ] Display user info: name, email, role, status, timestamps
-    - [ ] Add edit form with fields: name, email, role, status
-    - [ ] Implement form validation
-    - [ ] Add Save and Cancel buttons
-    - [ ] Add Delete button (with confirmation)
-    - [ ] Handle API response and errors
-    - [ ] Show success/error toasts
+    - [x] Create Modal component for user detail
+    - [x] Display user info: name, email, role, status, timestamps
+    - [x] Add edit form with fields: name, email, role, status
+    - [x] Implement form validation
+    - [x] Add Save and Cancel buttons
+    - [x] Add Delete button (with confirmation)
+    - [x] Handle API response and errors
+    - [x] Show success/error toasts
 
 ### Phase 2: User CRUD API Endpoints
 
-- [ ] **T-3.4.3: Create /api/users GET endpoint**
+- [x] **T-3.4.3: Create /api/users GET endpoint**
   - Subtasks:
-    - [ ] Create `/app/api/users/route.ts`
-    - [ ] Validate authentication (401 if not logged in)
-    - [ ] Validate admin role (403 forbidden for non-admin)
-    - [ ] Support query params: page, limit, sort_by, filter_role, filter_status
-    - [ ] Fetch users from database
-    - [ ] Return paginated results with metadata
-    - [ ] Add error handling
+    - [x] Create `/app/api/users/route.ts`
+    - [x] Validate authentication (401 if not logged in)
+    - [x] Validate admin role (403 forbidden for non-admin)
+    - [x] Support query params: page, limit, sort_by, filter_role, filter_status
+    - [x] Fetch users from database
+    - [x] Return paginated results with metadata
+    - [x] Add error handling
 
-- [ ] **T-3.4.4: Create /api/users POST endpoint (Create User)**
+- [x] **T-3.4.4: Create /api/users POST endpoint (Create User)**
   - Subtasks:
-    - [ ] Support POST in existing /api/users route
-    - [ ] Validate authentication and admin role
-    - [ ] Validate request body: name, email, role
-    - [ ] Check email uniqueness
-    - [ ] Generate temporary password (8 chars, mixed case)
-    - [ ] Create user in database
-    - [ ] Send welcome email with temp password (if flag set)
-    - [ ] Return created user object
-    - [ ] Handle duplicate email error
+    - [x] Support POST in existing /api/users route
+    - [x] Validate authentication and admin role
+    - [x] Validate request body: name, email, role
+    - [x] Check email uniqueness
+    - [x] Generate temporary password (8 chars, mixed case)
+    - [x] Create user in database
+    - [x] Send welcome email with temp password (if flag set)
+    - [x] Return created user object
+    - [x] Handle duplicate email error
 
-- [ ] **T-3.4.5: Create /api/users/{id} GET/PUT endpoints**
+- [x] **T-3.4.5: Create /api/users/{id} GET/PUT endpoints**
   - Subtasks:
-    - [ ] Create `/app/api/users/[id]/route.ts`
-    - [ ] GET: Fetch single user, validate auth/admin
-    - [ ] PUT: Update user (name, email, role, status)
-    - [ ] Validate email uniqueness on update
-    - [ ] Prevent changing own admin status
-    - [ ] Create audit log for update
-    - [ ] Return updated user
-    - [ ] Handle not found error
+    - [x] Create `/app/api/users/[id]/route.ts`
+    - [x] GET: Fetch single user, validate auth/admin
+    - [x] PUT: Update user (name, email, role, status)
+    - [x] Validate email uniqueness on update
+    - [x] Prevent changing own admin status
+    - [x] Create audit log for update
+    - [x] Return updated user
+    - [x] Handle not found error
 
-- [ ] **T-3.4.6: Create /api/users/{id} DELETE endpoint**
+- [x] **T-3.4.6: Create /api/users/{id} DELETE endpoint**
   - Subtasks:
-    - [ ] DELETE: Remove user from system
-    - [ ] Validate auth/admin role
-    - [ ] Prevent self-deletion
-    - [ ] Prevent deletion if last admin
-    - [ ] Check for pending tasks (warning, not blocking)
-    - [ ] Create audit log entry
-    - [ ] Return success response
-    - [ ] Handle edge cases
+    - [x] DELETE: Remove user from system
+    - [x] Validate auth/admin role
+    - [x] Prevent self-deletion
+    - [x] Prevent deletion if last admin
+    - [x] Check for pending tasks (warning, not blocking)
+    - [x] Create audit log entry
+    - [x] Return success response
+    - [x] Handle edge cases
 
 ### Phase 3: Testing & Quality
 
-- [ ] **T-3.4.7: Create comprehensive test suite**
+- [x] **T-3.4.7: Create comprehensive test suite**
   - Subtasks:
-    - [ ] Test user list API: pagination, filtering, sorting
-    - [ ] Test user creation: validation, duplicate email
-    - [ ] Test user update: all fields, access control
-    - [ ] Test user deletion: restrictions, audit log
-    - [ ] Test UI components: form validation, error states
-    - [ ] Test authorization: admin-only access
-    - [ ] Aim for 100% test coverage
+    - [x] Test user list API: pagination, filtering, sorting
+    - [x] Test user creation: validation, duplicate email
+    - [x] Test user update: all fields, access control
+    - [x] Test user deletion: restrictions, audit log
+    - [x] Test UI components: form validation, error states
+    - [x] Test authorization: admin-only access
+    - [x] Aim for 100% test coverage
 
-- [ ] **T-3.4.8: UI/UX polish**
+- [x] **T-3.4.8: UI/UX polish**
   - Subtasks:
-    - [ ] Responsive design (mobile, tablet, desktop)
-    - [ ] Loading animations
-    - [ ] Error state messaging
-    - [ ] Success notifications (toast)
-    - [ ] Confirm dialogs for destructive actions
-    - [ ] Empty state message
-    - [ ] Keyboard navigation (if applicable)
-    - [ ] Accessibility audit (ARIA labels, alt text)
+    - [x] Responsive design (mobile, tablet, desktop)
+    - [x] Loading animations
+    - [x] Error state messaging
+    - [x] Success notifications (toast)
+    - [x] Confirm dialogs for destructive actions
+    - [x] Empty state message
+    - [x] Keyboard navigation (if applicable)
+    - [x] Accessibility audit (ARIA labels, alt text)
 
 ---
 
@@ -259,11 +259,11 @@ AC-3.4.6: User Status indicators
 
 ## ✅ Definition of Done
 
-- [ ] All acceptance criteria met
-- [ ] All tasks completed and tested
-- [ ] 100% test coverage for new code
-- [ ] Lint and build passing
-- [ ] CodeRabbit review: 0 CRITICAL issues
-- [ ] Deployed to staging
-- [ ] Deployed to production
-- [ ] Documentation updated
+- [x] All acceptance criteria met
+- [x] All tasks completed and tested
+- [x] 100% test coverage for new code
+- [x] Lint and build passing
+- [x] CodeRabbit review: 0 CRITICAL issues
+- [x] Deployed to staging
+- [x] Deployed to production
+- [x] Documentation updated

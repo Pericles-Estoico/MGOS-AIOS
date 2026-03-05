@@ -1,6 +1,6 @@
 # STORY 3.6 - ANALYTICS DASHBOARD
 
-**Status:** Ready for Development
+**Status:** Done
 **Duration:** 2-3 hours
 **Priority:** Medium - Monitoring & Insights
 **Assigned to:** @dev (Dex)
@@ -57,65 +57,65 @@ AC-3.6.5: Performance Metrics
 
 ### Phase 1: Analytics API Endpoints
 
-- [ ] **T-3.6.1: Create analytics data aggregation endpoint**
+- [x] **T-3.6.1: Create analytics data aggregation endpoint**
   - Subtasks:
-    - [ ] Create `/app/api/analytics/summary` endpoint
-    - [ ] Fetch metrics: task counts by status, team size, completion stats
-    - [ ] Calculate burndown: current progress vs ideal
-    - [ ] Return formatted JSON with all metrics
-    - [ ] Admin/head role check
+    - [x] Create `/app/api/analytics/summary` endpoint
+    - [x] Fetch metrics: task counts by status, team size, completion stats
+    - [x] Calculate burndown: current progress vs ideal
+    - [x] Return formatted JSON with all metrics
+    - [x] Admin/head role check
 
-- [ ] **T-3.6.2: Create team performance endpoint**
+- [x] **T-3.6.2: Create team performance endpoint**
   - Subtasks:
-    - [ ] Create `/app/api/analytics/team` endpoint
-    - [ ] Fetch per-team-member stats
-    - [ ] Calculate completion rate, avg time per task
-    - [ ] Support filtering by team member
-    - [ ] Return ranked by performance
+    - [x] Create `/app/api/analytics/team` endpoint
+    - [x] Fetch per-team-member stats
+    - [x] Calculate completion rate, avg time per task
+    - [x] Support filtering by team member
+    - [x] Return ranked by performance
 
 ### Phase 2: Dashboard UI Components
 
-- [ ] **T-3.6.3: Create Analytics Dashboard page**
+- [x] **T-3.6.3: Create Analytics Dashboard page**
   - Subtasks:
-    - [ ] Create `/app/(dashboard)/analytics/page.tsx`
-    - [ ] Add admin/head role check
-    - [ ] Display metrics summary (cards with numbers)
-    - [ ] Add loading and error states
-    - [ ] Responsive grid layout
+    - [x] Create `/app/(dashboard)/analytics/page.tsx`
+    - [x] Add admin/head role check
+    - [x] Display metrics summary (cards with numbers)
+    - [x] Add loading and error states
+    - [x] Responsive grid layout
 
-- [ ] **T-3.6.4: Create metrics cards component**
+- [x] **T-3.6.4: Create metrics cards component**
   - Subtasks:
-    - [ ] Component for metric cards (title, value, trend)
-    - [ ] Display: total tasks, completed, in progress, pending
-    - [ ] Color coding by status
-    - [ ] Icon for each metric type
+    - [x] Component for metric cards (title, value, trend)
+    - [x] Display: total tasks, completed, in progress, pending
+    - [x] Color coding by status
+    - [x] Icon for each metric type
 
 ### Phase 3: Charts & Visualizations
 
-- [ ] **T-3.6.5: Implement burndown chart**
+- [x] **T-3.6.5: Implement burndown chart**
   - Subtasks:
-    - [ ] Use simple SVG or library for chart
-    - [ ] Show actual progress vs ideal line
-    - [ ] X-axis: days in sprint
-    - [ ] Y-axis: tasks remaining
-    - [ ] Tooltip on hover
+    - [x] Use simple SVG or library for chart
+    - [x] Show actual progress vs ideal line
+    - [x] X-axis: days in sprint
+    - [x] Y-axis: tasks remaining
+    - [x] Tooltip on hover
 
-- [ ] **T-3.6.6: Create task status distribution**
+- [x] **T-3.6.6: Create task status distribution**
   - Subtasks:
-    - [ ] Pie/donut chart for task statuses
-    - [ ] Show count and percentage
-    - [ ] Color-coded by status
-    - [ ] Legend with status names
+    - [x] Pie/donut chart for task statuses
+    - [x] Show count and percentage
+    - [x] Color-coded by status
+    - [x] Legend with status names
 
 ### Phase 4: Team Performance
 
-- [ ] **T-3.6.7: Team member performance table**
+- [x] **T-3.6.7: Team member performance table**
   - Subtasks:
-    - [ ] List all team members with stats
-    - [ ] Columns: name, tasks assigned, completed, in progress
-    - [ ] Calculate completion % and avg time per task
-    - [ ] Sort by completion rate
-    - [ ] Highlight top performers
+    - [x] List all team members with stats
+    - [x] Columns: name, tasks assigned, completed, in progress
+    - [x] Calculate completion % and avg time per task
+    - [x] Sort by completion rate
+    - [x] Highlight top performers
 
 ---
 
@@ -212,12 +212,12 @@ AC-3.6.5: Performance Metrics
 
 ## ✅ Definition of Done
 
-- [ ] All metrics displaying correctly
-- [ ] API endpoints returning valid JSON
-- [ ] UI responsive and accessible
-- [ ] Admin/head role enforcement
-- [ ] Load time < 2 seconds
-- [ ] Lint and build passing
-- [ ] Basic smoke tests
-- [ ] Deployed to staging
-- [ ] Deployed to production
+- [x] All metrics displaying correctly
+- [x] API endpoints returning valid JSON
+- [x] UI responsive and accessible
+- [x] Admin/head role enforcement
+- [x] Load time < 2 seconds
+- [x] Lint and build passing
+- [x] Basic smoke tests
+- [x] Deployed to staging
+- [x] Deployed to production

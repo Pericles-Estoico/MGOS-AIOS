@@ -1,6 +1,6 @@
 # STORY 3.5 - ADVANCED FILTERING & SEARCH
 
-**Status:** Ready for Development
+**Status:** Done
 **Duration:** 1-1.5 hours
 **Priority:** HIGH - Core Workflow
 **Assigned to:** @dev (Dex)
@@ -65,70 +65,70 @@ AC-3.5.6: Performance
 
 ### Phase 1: Search Infrastructure
 
-- [ ] **T-3.5.1: Add full-text search index to PostgreSQL**
-  - [ ] Create GIN index on task title and description
-  - [ ] Add search_vector column with tsvector
-  - [ ] Create trigger for automatic search_vector update
+- [x] **T-3.5.1: Add full-text search index to PostgreSQL**
+  - [x] Create GIN index on task title and description
+  - [x] Add search_vector column with tsvector
+  - [x] Create trigger for automatic search_vector update
 
 ### Phase 2: Filter API
 
-- [ ] **T-3.5.2: Create advanced filters API endpoint**
-  - [ ] GET /api/tasks/search → Execute search with filters
-  - [ ] Support query params: q (search), status, priority, executor, due_date_from, due_date_to, tags, sprint
-  - [ ] Return paginated results with total count
+- [x] **T-3.5.2: Create advanced filters API endpoint**
+  - [x] GET /api/tasks/search → Execute search with filters
+  - [x] Support query params: q (search), status, priority, executor, due_date_from, due_date_to, tags, sprint
+  - [x] Return paginated results with total count
 
 ### Phase 3: Frontend UI
 
-- [ ] **T-3.5.3: Create search bar component**
-  - [ ] Global search component with Cmd+K shortcut
-  - [ ] Search history dropdown
-  - [ ] Real-time search results with debounce
+- [x] **T-3.5.3: Create search bar component**
+  - [x] Global search component with Cmd+K shortcut
+  - [x] Search history dropdown
+  - [x] Real-time search results with debounce
 
-- [ ] **T-3.5.4: Create advanced filters sidebar**
-  - [ ] Collapsible filter panel
-  - [ ] Multi-select filters with checkboxes
-  - [ ] Date range picker for due dates
-  - [ ] Filter badges showing active filters
+- [x] **T-3.5.4: Create advanced filters sidebar**
+  - [x] Collapsible filter panel
+  - [x] Multi-select filters with checkboxes
+  - [x] Date range picker for due dates
+  - [x] Filter badges showing active filters
 
-- [ ] **T-3.5.5: Integrate filters into task lists**
-  - [ ] Update Dashboard to use new search/filters
-  - [ ] Update My Tasks page with filters
-  - [ ] Update Sprint page with filters
-  - [ ] Update QA Reviews page with filters
+- [x] **T-3.5.5: Integrate filters into task lists**
+  - [x] Update Dashboard to use new search/filters
+  - [x] Update My Tasks page with filters
+  - [x] Update Sprint page with filters
+  - [x] Update QA Reviews page with filters
 
 ### Phase 4: Filter Persistence & Analytics
 
-- [ ] **T-3.5.6: Implement filter persistence**
-  - [ ] Save to URL query params
-  - [ ] Save to localStorage
-  - [ ] Generate shareable filter URLs
+- [x] **T-3.5.6: Implement filter persistence**
+  - [x] Save to URL query params
+  - [x] Save to localStorage
+  - [x] Generate shareable filter URLs
 
-- [ ] **T-3.5.7: Add search analytics**
-  - [ ] Track popular searches
-  - [ ] Generate search suggestions
-  - [ ] Admin analytics dashboard
+- [x] **T-3.5.7: Add search analytics**
+  - [x] Track popular searches
+  - [x] Generate search suggestions
+  - [x] Admin analytics dashboard
 
 ---
 
 ## ✅ Definition of Done
 
-- [ ] Full-text search index created and working
-- [ ] Advanced filters API implemented and tested
-- [ ] Search bar component with Cmd+K shortcut working
-- [ ] Filter sidebar with all filter types
-- [ ] Task lists integrated with new search/filters
-- [ ] Filter persistence in URL and localStorage
-- [ ] Search analytics tracking
-- [ ] All tests passing (target: 140+ total tests)
-- [ ] Performance: search < 500ms, filters < 200ms
-- [ ] Lint and build passing
-- [ ] Deployed to production
+- [x] Full-text search index created and working
+- [x] Advanced filters API implemented and tested
+- [x] Search bar component with Cmd+K shortcut working
+- [x] Filter sidebar with all filter types
+- [x] Task lists integrated with new search/filters
+- [x] Filter persistence in URL and localStorage
+- [x] Search analytics tracking
+- [x] All tests passing (target: 140+ total tests)
+- [x] Performance: search < 500ms, filters < 200ms
+- [x] Lint and build passing
+- [x] Deployed to production
 
 ---
 
 ## 📊 Dev Agent Record (To be filled)
 
-**Status:** Ready for @dev to implement
+**Status:** Done
 **Effort:** 1-1.5 hours
 **Complexity:** MEDIUM
 
