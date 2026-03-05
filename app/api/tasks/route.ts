@@ -21,6 +21,8 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const assignedTo = searchParams.get('assigned_to');
     const status = searchParams.get('status');
+    const marketplace = searchParams.get('marketplace');
+    const productId = searchParams.get('product_id');
     const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
     const offset = parseInt(searchParams.get('offset') || '0', 10);
     const sortBy = searchParams.get('sort_by') || 'updated_at';
@@ -49,7 +51,9 @@ export async function GET(request: NextRequest) {
             assigned_to,
             created_by,
             created_at,
-            updated_at
+            updated_at,
+            marketplace,
+            product_id
             `,
             { count: 'exact' }
           );
@@ -60,6 +64,12 @@ export async function GET(request: NextRequest) {
         }
         if (status) {
           query = query.eq('status', status);
+        }
+        if (marketplace) {
+          query = query.eq('marketplace', marketplace);
+        }
+        if (productId) {
+          query = query.eq('product_id', productId);
         }
 
         // 6. Ordenar e paginar
@@ -98,6 +108,12 @@ export async function GET(request: NextRequest) {
       }
       if (status) {
         mockData = mockData.filter((task) => task.status === status);
+      }
+      if (marketplace) {
+        mockData = mockData.filter((task) => (task as Record<string, unknown>).marketplace === marketplace);
+      }
+      if (productId) {
+        mockData = mockData.filter((task) => (task as Record<string, unknown>).product_id === productId);
       }
 
       // Aplicar ordenação
@@ -168,7 +184,7 @@ export async function POST(request: NextRequest) {
 
     // 4. Parse request body
     const body = await request.json();
-    const { title, description, priority, due_date, assigned_to } = body;
+    const { title, description, priority, due_date, assigned_to, marketplace: taskMarketplace, product_id: taskProductId } = body;
 
     // 5. Validar campos obrigatórios
     if (!title || !title.trim()) {
@@ -186,6 +202,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 6. Preparar dados da tarefa
+    const VALID_MARKETPLACES = ['shopee', 'shein', 'mercadolivre', 'amazon', 'tiktokshop', 'kaway'];
     const taskData = {
       title: title.trim(),
       description: description?.trim() || '',
@@ -194,6 +211,8 @@ export async function POST(request: NextRequest) {
       due_date: due_date || null,
       assigned_to: assigned_to || null,
       created_by: session.user.id,
+      marketplace: taskMarketplace && VALID_MARKETPLACES.includes(taskMarketplace) ? taskMarketplace : null,
+      product_id: taskProductId || null,
     };
 
     // 7. Inserir na tabela de tarefas

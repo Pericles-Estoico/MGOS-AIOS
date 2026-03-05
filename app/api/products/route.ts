@@ -9,7 +9,7 @@ import { authOptions } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase';
 import type { ProductInsert } from '@lib/types/products';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
@@ -20,17 +20,16 @@ export async function GET() {
     return NextResponse.json({ error: 'Banco indisponível' }, { status: 503 });
   }
 
+  const { searchParams } = new URL(request.url);
+  const includeListings = searchParams.get('include') === 'listings';
+
+  const selectQuery = includeListings
+    ? `*, product_listings(*, listing_analyses(id, score, summary, strengths, weaknesses, analyzed_at))`
+    : `*, product_listings(id, marketplace, listing_score, status)`;
+
   const { data, error } = await supabase
     .from('products')
-    .select(`
-      *,
-      product_listings (
-        id,
-        marketplace,
-        listing_score,
-        status
-      )
-    `)
+    .select(selectQuery)
     .eq('created_by', session.user.id)
     .order('created_at', { ascending: false });
 
