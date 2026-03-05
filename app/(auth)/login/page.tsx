@@ -3,8 +3,7 @@
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, FormEvent, Suspense } from 'react';
-import { Loader, Mail, Lock, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Loader, AlertCircle } from 'lucide-react';
 
 function LoginForm() {
   const router = useRouter();
@@ -31,7 +30,7 @@ function LoginForm() {
         setLoading(false);
       } else if (result?.ok) {
         setLoading(false);
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 300));
         const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
         router.push(callbackUrl);
       } else {
@@ -39,112 +38,97 @@ function LoginForm() {
         setLoading(false);
       }
     } catch {
-      setError('Erro na conexão. Tente novamente.');
+      setError('Erro na conexao. Tente novamente.');
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col justify-center items-center p-4">
-      {/* Main Container */}
-      <div className="w-full max-w-md">
-        {/* Header */}
+    <div className="min-h-screen mesh-gradient flex flex-col justify-center items-center p-4">
+      <div className="w-full max-w-sm">
+        {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-teal-500 rounded-lg mb-4">
-            <span className="text-xl font-bold text-white">M</span>
+          <div className="inline-flex items-center justify-center w-10 h-10 bg-teal-500 rounded-lg mb-5">
+            <span className="text-base font-bold text-white">M</span>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">MGOS</h1>
-          <p className="text-gray-600">Gerenciamento Inteligente de Tarefas</p>
+          <h1 className="text-2xl font-semibold text-white tracking-tight">MGOS</h1>
+          <p className="text-zinc-400 text-sm mt-1">Gerenciamento Inteligente de Tarefas</p>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          {/* Card Header */}
-          <div className="px-6 pt-6 pb-4 border-b border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-900">Bem-vindo</h2>
-            <p className="text-sm text-gray-600 mt-1">Acesse sua conta para continuar</p>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-2xl">
+          <div className="mb-5">
+            <h2 className="text-base font-semibold text-white">Entrar na conta</h2>
+            <p className="text-zinc-400 text-sm mt-0.5">Acesse sua conta para continuar</p>
           </div>
 
-          {/* Card Body */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
-            {/* Error Message */}
-            {error && (
-              <div className="flex gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            )}
+          {error && (
+            <div className="flex gap-2.5 p-3 mb-4 bg-red-950/50 border border-red-900 rounded-lg">
+              <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-300">{error}</p>
+            </div>
+          )}
 
-            {/* Email Field */}
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-900 mb-2">
+              <label htmlFor="email" className="block text-xs font-medium text-zinc-300 mb-1.5">
                 Email
               </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="seu@email.com"
-                  disabled={loading}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:opacity-50 disabled:bg-gray-50"
-                />
-              </div>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu@email.com"
+                disabled={loading}
+                className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 disabled:opacity-50 transition-colors"
+              />
             </div>
 
-            {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-gray-900 mb-2">
+              <label htmlFor="password" className="block text-xs font-medium text-zinc-300 mb-1.5">
                 Senha
               </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  disabled={loading}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:opacity-50 disabled:bg-gray-50"
-                />
-              </div>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                disabled={loading}
+                className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 disabled:opacity-50 transition-colors"
+              />
             </div>
 
-            {/* Submit Button */}
-            <Button
+            <button
               type="submit"
-              variant="primary"
-              size="default"
               disabled={loading}
-              className="w-full mt-6"
+              className="w-full mt-1 px-4 py-2.5 bg-teal-600 hover:bg-teal-500 disabled:bg-teal-800 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
             >
               {loading ? (
-                <span className="flex items-center gap-2">
+                <>
                   <Loader className="w-4 h-4 animate-spin" />
-                  Entrando...
-                </span>
+                  <span>Entrando...</span>
+                </>
               ) : (
-                'Entrar na Conta'
+                'Entrar'
               )}
-            </Button>
+            </button>
           </form>
 
-          {/* Card Footer - Demo Credentials */}
-          <div className="px-6 pb-6 border-t border-gray-100">
-            <p className="text-xs font-semibold text-gray-600 mb-3 uppercase">Credenciais de Teste</p>
-            <div className="space-y-2 bg-gray-50 p-3 rounded-lg">
+          {/* Demo credentials */}
+          <div className="mt-5 pt-4 border-t border-zinc-800">
+            <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-wider mb-2">Credenciais de teste</p>
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600">Email:</span>
-                <code className="text-xs font-mono bg-white px-2 py-1 rounded border border-gray-200">
+                <span className="text-xs text-zinc-500">Email</span>
+                <code className="text-xs font-mono text-zinc-300 bg-zinc-800 px-2 py-0.5 rounded">
                   teste@teste.com
                 </code>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600">Senha:</span>
-                <code className="text-xs font-mono bg-white px-2 py-1 rounded border border-gray-200">
+                <span className="text-xs text-zinc-500">Senha</span>
+                <code className="text-xs font-mono text-zinc-300 bg-zinc-800 px-2 py-0.5 rounded">
                   teste123
                 </code>
               </div>
@@ -152,9 +136,8 @@ function LoginForm() {
           </div>
         </div>
 
-        {/* Footer */}
-        <p className="text-center text-xs text-gray-600 mt-6">
-          MGOS © 2026 • Sistema Inteligente
+        <p className="text-center text-xs text-zinc-600 mt-6">
+          MGOS © 2026
         </p>
       </div>
     </div>
@@ -163,7 +146,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100" />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#0c0c0c]" />}>
       <LoginForm />
     </Suspense>
   );

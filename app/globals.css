@@ -1,33 +1,38 @@
 @import "tailwindcss";
 
-/* Dark mode CSS variables */
 :root {
   --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
-  --background: #ffffff;
-  --foreground: #000000;
-  --card: #f9fafb;
-  --card-border: #e5e7eb;
-  --primary: #10b981;
-  --secondary: #06b6d4;
+
+  /* Zinc-based palette */
+  --background: #fafafa;
+  --foreground: #09090b;
+  --card: #ffffff;
+  --card-border: #e4e4e7;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --primary: #0d9488;
+  --primary-foreground: #ffffff;
+  --ring: #0d9488;
+
+  /* Sidebar (always dark) */
+  --sidebar-bg: #0c0c0c;
+  --sidebar-border: #1c1c1c;
+  --sidebar-fg: #a1a1aa;
+  --sidebar-fg-active: #ffffff;
+  --sidebar-active-bg: #1c1c1c;
+  --sidebar-hover-bg: #141414;
+  --sidebar-section: #3f3f46;
 }
 
-.dark {
-  --background: #111827;
-  --foreground: #f3f4f6;
-  --card: #1f2937;
-  --card-border: #374151;
-  --primary: #10b981;
-  --secondary: #06b6d4;
-}
-
-html {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-}
-
+html,
 body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @layer utilities {
@@ -39,18 +44,32 @@ body {
   }
 }
 
-@keyframes blob {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-  }
-  33% {
-    transform: translate(30px, -50px) scale(1.1);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d4d4d8;
+  border-radius: 2px;
+}
+.dark-scroll::-webkit-scrollbar-thumb {
+  background: #3f3f46;
 }
 
-.animate-blob {
-  animation: blob 7s infinite;
+/* Sidebar scrollbar */
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: #27272a;
+}
+
+/* Mesh gradient for login */
+.mesh-gradient {
+  background-color: #0c0c0c;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% 20%, rgba(13, 148, 136, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 80%, rgba(99, 102, 241, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 50% 50%, rgba(20, 20, 20, 0.5) 0%, transparent 100%);
 }

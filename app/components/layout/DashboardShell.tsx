@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { Menu } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import Sidebar from './Sidebar';
 import type { Session } from 'next-auth';
 
@@ -11,70 +11,104 @@ interface DashboardShellProps {
   children: React.ReactNode;
 }
 
+// Map pathnames to readable breadcrumb labels
+const PATH_LABELS: Record<string, string> = {
+  '/dashboard': 'Dashboard',
+  '/tasks': 'Tarefas',
+  '/tasks/my-tasks': 'Minhas Tarefas',
+  '/tasks/new': 'Nova Tarefa',
+  '/produtos': 'Produtos',
+  '/qa-reviews': 'Revisoes de QA',
+  '/team': 'Time',
+  '/team/time-logs': 'Registros de Tempo',
+  '/agente-marketplace': 'Agente Master',
+  '/marketplace': 'Marketplace',
+  '/marketplace/chat': 'Chat com Nexo',
+  '/marketplace/analysis': 'Analises',
+  '/marketplace/aprovar': 'Aprovar Tasks',
+  '/best-practices': 'Melhores Praticas',
+  '/configuracoes': 'Configuracoes',
+};
+
+function getBreadcrumb(pathname: string): string {
+  if (PATH_LABELS[pathname]) return PATH_LABELS[pathname];
+  // Try prefix match
+  const segments = pathname.split('/').filter(Boolean);
+  const root = '/' + segments[0];
+  return PATH_LABELS[root] || segments[segments.length - 1] || 'MGOS';
+}
+
 export default function DashboardShell({ user, children }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
 
-  // Fechar sidebar ao navegar
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSidebarOpen(false);
   }, [pathname]);
 
-  // Evitar hydration mismatch
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
   if (!mounted) {
     return (
-      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="w-64 border-r border-gray-100 dark:border-gray-700" />
+      <div className="flex h-screen bg-zinc-50">
+        <div className="w-14 md:w-60 border-r border-zinc-200 bg-[#0c0c0c]" />
         <main className="flex-1" />
       </div>
     );
   }
 
+  const pageTitle = getBreadcrumb(pathname);
+
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Mobile overlay - fecha sidebar ao clicar */}
+    <div className="flex h-screen bg-zinc-50">
+      {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black/50 md:hidden"
+          className="fixed inset-0 z-20 bg-black/60 md:hidden backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar - fixo em mobile, relativo em desktop */}
+      {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-30 md:relative md:translate-x-0 transition-transform duration-300 ${
+        className={`fixed inset-y-0 left-0 z-30 md:relative md:translate-x-0 transition-transform duration-200 ease-out ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
         <Sidebar user={user} onClose={() => setSidebarOpen(false)} />
       </div>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto flex flex-col">
-        {/* Mobile Header com Hamburger */}
-        <div className="md:hidden flex items-center gap-4 px-4 py-4 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 z-10">
+      {/* Main content */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Top bar */}
+        <header className="h-12 border-b border-zinc-200 bg-white flex items-center px-4 md:px-6 gap-4 flex-shrink-0">
+          {/* Mobile hamburger */}
           <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="md:hidden p-1.5 rounded-md hover:bg-zinc-100 transition-colors text-zinc-500"
             aria-label="Abrir menu"
           >
-            <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
           </button>
-          <h1 className="text-lg font-bold text-gray-900 dark:text-white">MGOS</h1>
-        </div>
 
-        {/* Conteúdo da página */}
-        <div className="flex-1 p-4 md:p-8">
-          {children}
-        </div>
-      </main>
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-zinc-400 hidden md:inline">MGOS</span>
+            <span className="text-zinc-300 hidden md:inline">/</span>
+            <span className="font-medium text-zinc-700">{pageTitle}</span>
+          </div>
+        </header>
+
+        {/* Page content */}
+        <main className="flex-1 overflow-auto">
+          <div className="p-4 md:p-6 max-w-screen-2xl mx-auto">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
