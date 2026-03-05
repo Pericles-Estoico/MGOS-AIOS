@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
+import { createSupabaseServerClient } from '@/lib/supabase';
 import {
   analyzeListingContent,
   detectMarketplace,
@@ -31,6 +32,7 @@ export async function POST(request: NextRequest) {
     const imageFile = formData.get('image') as File | null;
     const url = formData.get('url') as string | null;
     const marketplaceOverride = formData.get('marketplace') as Marketplace | null;
+    const listingId = formData.get('listing_id') as string | null;
 
     // Validação: pelo menos um input
     if (!imageFile && !url) {
@@ -121,6 +123,29 @@ export async function POST(request: NextRequest) {
       } catch (taskError) {
         console.error('Erro ao criar task:', taskError);
         // Continua mesmo se falhar uma task individual
+      }
+    }
+
+    // Se listing_id fornecido, salva em listing_analyses e atualiza listing_score
+    if (listingId) {
+      const supabase = createSupabaseServerClient();
+      if (supabase) {
+        await supabase.from('listing_analyses').insert({
+          listing_id: listingId,
+          score: analysis.listingScore,
+          summary: analysis.summary,
+          strengths: analysis.strengths,
+          weaknesses: analysis.weaknesses,
+          analysis_data: {
+            marketplace: analysis.marketplace,
+            agentId: analysis.agentId,
+            tasks: analysis.tasks,
+          },
+        });
+        await supabase
+          .from('product_listings')
+          .update({ listing_score: analysis.listingScore, status: 'active' })
+          .eq('id', listingId);
       }
     }
 

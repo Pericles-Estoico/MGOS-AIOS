@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Package } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Plus, Package, Upload } from 'lucide-react';
 import type { ProductWithStats } from '@lib/types/products';
 import { ProductForm } from '@/components/products/ProductForm';
 import { ProductCard } from '@/components/products/ProductCard';
 
 export default function ProdutosPage() {
+  const router = useRouter();
   const [products, setProducts] = useState<ProductWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -65,13 +67,22 @@ export default function ProdutosPage() {
             Cadastre produtos e gerencie seus listings por canal de marketplace
           </p>
         </div>
-        <button
-          onClick={() => setCreating(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition"
-        >
-          <Plus className="w-4 h-4" />
-          Novo produto
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => router.push('/produtos/import')}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition"
+          >
+            <Upload className="w-4 h-4" />
+            Importar
+          </button>
+          <button
+            onClick={() => setCreating(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition"
+          >
+            <Plus className="w-4 h-4" />
+            Novo produto
+          </button>
+        </div>
       </div>
 
       {/* Formulário de criação */}

@@ -74,13 +74,16 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get('status');
     const marketplace = searchParams.get('marketplace');
+    const listingId = searchParams.get('listing_id');
     const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10), 100);
     const offset = parseInt(searchParams.get('offset') || '0', 10);
 
     const taskManager = new TaskManager(session.user?.email || undefined);
 
     let tasks;
-    if (marketplace) {
+    if (listingId) {
+      tasks = await taskManager.getTasksByListingId(listingId, status || undefined);
+    } else if (marketplace) {
       const allTasks = await taskManager.getTasksByMarketplace(marketplace, status || undefined);
       tasks = allTasks.slice(offset, offset + limit);
     } else {

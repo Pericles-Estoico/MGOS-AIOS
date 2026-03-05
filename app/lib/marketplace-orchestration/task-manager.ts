@@ -133,6 +133,27 @@ export class TaskManager {
   }
 
   /**
+   * Get tasks by listing_id
+   */
+  async getTasksByListingId(listingId: string, status?: string) {
+    const supabase = createSupabaseServerClient(this.accessToken);
+    if (!supabase) throw new Error('Supabase not configured');
+
+    let query = supabase
+      .from('marketplace_tasks')
+      .select('*')
+      .eq('listing_id', listingId);
+
+    if (status) {
+      query = query.eq('status', status);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
+    if (error) throw new Error(`Failed to fetch tasks by listing: ${error.message}`);
+    return (data || []) as MarketplaceTask[];
+  }
+
+  /**
    * Get tasks by marketplace
    */
   async getTasksByMarketplace(marketplace: string, status?: string) {

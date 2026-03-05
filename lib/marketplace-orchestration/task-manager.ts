@@ -130,6 +130,24 @@ export class TaskManager {
   }
 
   /**
+   * Busca tarefas vinculadas a um listing específico
+   */
+  async getTasksByListingId(listingId: string, status?: string) {
+    let query = this.supabase
+      .from('marketplace_tasks')
+      .select('*')
+      .eq('listing_id', listingId);
+
+    if (status) {
+      query = query.eq('status', status);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
+    if (error) throw new Error(`Erro ao buscar tarefas do listing: ${error.message}`);
+    return data as MarketplaceTask[];
+  }
+
+  /**
    * Busca tarefas por marketplace e status opcional
    */
   async getTasksByMarketplace(marketplace: string, status?: string) {
