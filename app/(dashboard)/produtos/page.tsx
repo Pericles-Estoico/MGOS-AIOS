@@ -1,253 +1,133 @@
 'use client';
 
-import { useState } from 'react';
-import { Link2, Plus, Trash2, AlertCircle, CheckCircle, Loader } from 'lucide-react';
-
-interface Produto {
-  id: string;
-  titulo: string;
-  preco: string;
-  imagem?: string;
-  link: string;
-  marketplace: 'shopee' | 'shein' | 'mercado-livre' | 'outro';
-  status: 'processando' | 'sucesso' | 'erro';
-  descricao?: string;
-}
+import { useState, useEffect, useCallback } from 'react';
+import { Plus, Package } from 'lucide-react';
+import type { ProductWithStats } from '@lib/types/products';
+import { ProductForm } from '@/components/products/ProductForm';
+import { ProductCard } from '@/components/products/ProductCard';
 
 export default function ProdutosPage() {
-  const [link, setLink] = useState('');
-  const [produtos, setProdutos] = useState<Produto[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const [products, setProducts] = useState<ProductWithStats[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const detectarMarketplace = (url: string) => {
-    if (url.includes('shopee')) return 'shopee';
-    if (url.includes('shein')) return 'shein';
-    if (url.includes('mercadolivre') || url.includes('mercado-livre')) return 'mercado-livre';
-    return 'outro';
-  };
-
-  const extrairDadosDoProduto = async (url: string) => {
-    try {
-      const response = await fetch('/api/produtos/extrair', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
-      });
-
-      if (!response.ok) throw new Error('Erro ao extrair dados');
-      
-      const dados = await response.json();
-      return dados;
-    } catch (error) {
-      console.error('Erro ao extrair:', error);
-      return null;
-    }
-  };
-
-  const adicionarProduto = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!link.trim()) {
-      setMessage('Cole um link válido');
-      return;
-    }
-
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
-    setMessage('');
-
     try {
-      const marketplace = detectarMarketplace(link);
-      
-      // Tentar extrair dados do link
-      const dadosExtraidos = await extrairDadosDoProduto(link);
-
-      const novoProduto: Produto = {
-        id: Date.now().toString(),
-        titulo: dadosExtraidos?.titulo || `Produto ${marketplace}`,
-        preco: dadosExtraidos?.preco || 'A consultar',
-        imagem: dadosExtraidos?.imagem,
-        link: link.trim(),
-        marketplace,
-        status: 'sucesso',
-        descricao: dadosExtraidos?.descricao,
-      };
-
-      setProdutos([novoProduto, ...produtos]);
-      setLink('');
-      setMessage('✅ Produto adicionado com sucesso!');
-      
-      // Criar tarefa automática
-      await criarTarefaProduto(novoProduto);
-      
-      setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
-      setMessage('❌ Erro ao adicionar produto');
-      console.error(error);
+      const res = await fetch('/api/products');
+      if (!res.ok) throw new Error('Erro ao carregar produtos');
+      const { products: data } = await res.json();
+      setProducts(data ?? []);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const criarTarefaProduto = async (produto: Produto) => {
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
+
+  async function handleCreate(data: { name: string; category: string; brand: string; description: string }) {
+    setSaving(true);
     try {
-      await fetch('/api/tasks', {
+      const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: `Processar: ${produto.titulo}`,
-          description: `Marketplace: ${produto.marketplace}\nLink: ${produto.link}`,
-          priority: 'high',
-          assigned_to: null,
-          due_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        }),
+        body: JSON.stringify(data),
       });
-    } catch (error) {
-      console.error('Erro ao criar tarefa:', error);
+      if (!res.ok) throw new Error((await res.json()).error);
+      const { product } = await res.json();
+      setProducts((prev) => [{ ...product, listings_count: 0, avg_score: null }, ...prev]);
+      setCreating(false);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
     }
-  };
+  }
 
-  const removerProduto = (id: string) => {
-    setProdutos(produtos.filter((p) => p.id !== id));
-  };
+  function handleUpdated(updated: ProductWithStats) {
+    setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+  }
+
+  function handleDeleted(id: string) {
+    setProducts((prev) => prev.filter((p) => p.id !== id));
+  }
 
   return (
-    <div className="p-8">
+    <div className="p-8 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Gerenciar Produtos</h1>
-        <p className="text-gray-600">Adicione produtos via link para processamento automático</p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Produtos</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Cadastre produtos e gerencie seus listings por canal de marketplace
+          </p>
+        </div>
+        <button
+          onClick={() => setCreating(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition"
+        >
+          <Plus className="w-4 h-4" />
+          Novo produto
+        </button>
       </div>
 
-      {/* Formulário de Adição */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-        <form onSubmit={adicionarProduto} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Cole o link do produto
-            </label>
-            <div className="flex gap-2">
-              <div className="flex-1 relative">
-                <Link2 className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-                <input
-                  type="url"
-                  value={link}
-                  onChange={(e) => setLink(e.target.value)}
-                  placeholder="https://shopee.com.br/... ou https://shein.com/... ou https://mercadolivre.com.br/..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:bg-gray-400 font-medium transition flex items-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <Loader className="w-4 h-4 animate-spin" />
-                    Processando...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-4 h-4" />
-                    Adicionar
-                  </>
-                )}
-              </button>
+      {/* Formulário de criação */}
+      {creating && (
+        <div className="bg-white rounded-xl border border-teal-200 shadow-sm p-5 mb-6">
+          <p className="text-sm font-medium text-gray-700 mb-3">Novo produto</p>
+          <ProductForm
+            onSubmit={handleCreate}
+            onCancel={() => setCreating(false)}
+            loading={saving}
+          />
+        </div>
+      )}
+
+      {/* Loading */}
+      {loading && (
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-xl border border-gray-100 p-5 animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-1/3 mb-3" />
+              <div className="h-3 bg-gray-100 rounded w-1/2" />
             </div>
-          </div>
+          ))}
+        </div>
+      )}
 
-          {message && (
-            <div
-              className={`p-3 rounded-lg flex items-center gap-2 ${
-                message.includes('✅')
-                  ? 'bg-green-50 text-green-700 border border-green-200'
-                  : 'bg-red-50 text-red-700 border border-red-200'
-              }`}
-            >
-              {message.includes('✅') ? (
-                <CheckCircle className="w-5 h-5" />
-              ) : (
-                <AlertCircle className="w-5 h-5" />
-              )}
-              {message}
-            </div>
-          )}
+      {/* Lista */}
+      {!loading && products.length > 0 && (
+        <div className="space-y-3">
+          {products.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              onUpdated={handleUpdated}
+              onDeleted={handleDeleted}
+            />
+          ))}
+        </div>
+      )}
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-900">
-              💡 <strong>Dica:</strong> Cole links de qualquer marketplace (Shopee, Shein, Mercado Livre).
-              O sistema extrairá automaticamente os dados e criará uma tarefa para processamento.
-            </p>
-          </div>
-        </form>
-      </div>
-
-      {/* Lista de Produtos */}
-      <div className="grid gap-4">
-        {produtos.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
-            <Link2 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">Nenhum produto adicionado ainda</p>
-            <p className="text-gray-400 text-sm">Cole um link para começar</p>
-          </div>
-        ) : (
-          produtos.map((produto) => (
-            <div key={produto.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition">
-              <div className="flex gap-4">
-                {produto.imagem && (
-                  <img
-                    src={produto.imagem}
-                    alt={produto.titulo}
-                    className="w-24 h-24 object-cover rounded-lg"
-                  />
-                )}
-
-                <div className="flex-1">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{produto.titulo}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded font-medium capitalize">
-                          {produto.marketplace}
-                        </span>
-                        {produto.status === 'sucesso' && (
-                          <span className="flex items-center gap-1 text-green-600 text-xs font-medium">
-                            <CheckCircle className="w-4 h-4" />
-                            Processado
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => removerProduto(produto.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  <p className="text-2xl font-bold text-teal-600 mb-2">{produto.preco}</p>
-
-                  {produto.descricao && (
-                    <p className="text-sm text-gray-600 line-clamp-2 mb-3">{produto.descricao}</p>
-                  )}
-
-                  <a
-                    href={produto.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-teal-600 text-sm font-medium hover:underline flex items-center gap-1"
-                  >
-                    Ver no marketplace
-                    <Link2 className="w-3 h-3" />
-                  </a>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+      {/* Empty state */}
+      {!loading && products.length === 0 && !creating && (
+        <div className="bg-white rounded-xl border border-gray-100 p-16 text-center">
+          <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-500 font-medium">Nenhum produto ainda</p>
+          <p className="text-gray-400 text-sm mt-1 mb-4">
+            Crie seu primeiro produto e adicione listings por canal de marketplace
+          </p>
+          <button
+            onClick={() => setCreating(true)}
+            className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition"
+          >
+            Criar produto
+          </button>
+        </div>
+      )}
     </div>
   );
 }
