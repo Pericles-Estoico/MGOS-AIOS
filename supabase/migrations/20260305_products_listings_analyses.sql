@@ -72,14 +72,26 @@ COMMENT ON COLUMN public.listing_analyses.weaknesses   IS 'Array de strings com 
 COMMENT ON COLUMN public.listing_analyses.analysis_data IS 'Payload completo retornado pela AI para referência';
 
 -- ============================================================================
--- ALTER TABLE: tasks — adicionar listing_id (nullable)
+-- ALTER TABLE: marketplace_tasks — adicionar listing_id (nullable)
 -- ============================================================================
 -- Tasks geradas pela análise AI são vinculadas ao listing que as originou.
+-- Usa DO block para não falhar se a tabela ainda não existir neste ambiente.
 
-ALTER TABLE public.marketplace_tasks
-  ADD COLUMN IF NOT EXISTS listing_id UUID REFERENCES public.product_listings(id) ON DELETE SET NULL;
-
-COMMENT ON COLUMN public.marketplace_tasks.listing_id IS 'Listing que originou esta task via análise AI (nullable)';
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'marketplace_tasks'
+  ) THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'marketplace_tasks' AND column_name = 'listing_id'
+    ) THEN
+      ALTER TABLE public.marketplace_tasks
+        ADD COLUMN listing_id UUID REFERENCES public.product_listings(id) ON DELETE SET NULL;
+    END IF;
+  END IF;
+END $$;
 
 -- ============================================================================
 -- INDEXES
@@ -103,8 +115,15 @@ CREATE INDEX IF NOT EXISTS idx_listing_analyses_listing_id
 CREATE INDEX IF NOT EXISTS idx_listing_analyses_analyzed_at
   ON public.listing_analyses(analyzed_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_marketplace_tasks_listing_id
-  ON public.marketplace_tasks(listing_id);
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'marketplace_tasks' AND column_name = 'listing_id'
+  ) THEN
+    CREATE INDEX IF NOT EXISTS idx_marketplace_tasks_listing_id ON public.marketplace_tasks(listing_id);
+  END IF;
+END $$;
 
 -- ============================================================================
 -- TRIGGERS: auto-update updated_at
