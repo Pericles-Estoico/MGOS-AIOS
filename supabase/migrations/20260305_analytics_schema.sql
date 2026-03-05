@@ -1,26 +1,24 @@
 -- Analytics Schema & Optimization
 -- Story 3.6: Analytics Data Aggregation Phase 2
 -- Indexes for query optimization + RPC functions for metric calculations
+-- Fixed 2026-03-05: align column names with actual audit_logs schema
+--   audit_logs real columns: id, entity_type, entity_id, action, changed_by, old_values, new_values, changed_at
 
 -- ============================================================================
 -- Indexes for Performance Optimization
 -- ============================================================================
 
--- Index on audit_logs for efficient time-based queries
-CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at
-ON audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_changed_at
+  ON public.audit_logs(changed_at DESC);
 
--- Index on task_id for joining with tasks
-CREATE INDEX IF NOT EXISTS idx_audit_logs_task_id
-ON audit_logs(task_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_entity_id
+  ON public.audit_logs(entity_id);
 
--- Index on user_id for per-user aggregations
-CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id
-ON audit_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_changed_by
+  ON public.audit_logs(changed_by);
 
--- Composite index for most common queries (status by date by user)
-CREATE INDEX IF NOT EXISTS idx_audit_logs_status_user_created
-ON audit_logs(status, user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_entity_type_changed_at
+  ON public.audit_logs(entity_type, changed_at DESC);
 
 -- ============================================================================
 -- Helper Function: Calculate Duration in Hours
@@ -60,55 +58,54 @@ RETURNS TABLE (
 BEGIN
   RETURN QUERY
   WITH user_tasks AS (
-    -- Get all status transitions for each user in date range
     SELECT
-      al.user_id,
-      up.display_name,
-      al.task_id,
-      al.status,
-      al.created_at,
-      al.updated_at,
-      LAG(al.status) OVER (PARTITION BY al.task_id ORDER BY al.created_at) as prev_status,
-      LAG(al.created_at) OVER (PARTITION BY al.task_id ORDER BY al.created_at) as prev_created_at
-    FROM audit_logs al
-    LEFT JOIN user_profiles up ON al.user_id = up.user_id
-    WHERE al.created_at >= date_start
-      AND al.created_at <= date_end
-      AND (user_id_filter IS NULL OR al.user_id = user_id_filter)
+      al.changed_by                                                    AS user_id,
+      u.name                                                           AS display_name,
+      al.entity_id                                                     AS task_id,
+      (al.new_values->>'status')                                       AS new_status,
+      (al.old_values->>'status')                                       AS prev_status,
+      al.changed_at
+    FROM public.audit_logs al
+    LEFT JOIN public.users u ON al.changed_by = u.id
+    WHERE al.entity_type = 'task'
+      AND al.changed_at >= date_start
+      AND al.changed_at <= date_end
+      AND (user_id_filter IS NULL OR al.changed_by = user_id_filter)
   ),
   completed_tasks AS (
-    -- Filter to only approved/rejected tasks (completed)
     SELECT
-      user_id,
-      display_name,
-      task_id,
-      status,
-      created_at,
-      updated_at,
-      prev_created_at,
-      calculate_duration_hours(prev_created_at, created_at) as duration_hours
-    FROM user_tasks
-    WHERE status IN ('approved', 'rejected')
-      AND prev_status = 'submitted'
+      cur.user_id,
+      cur.display_name,
+      cur.task_id,
+      cur.new_status                                                    AS final_status,
+      prev.changed_at                                                   AS prev_time,
+      cur.changed_at,
+      calculate_duration_hours(prev.changed_at, cur.changed_at)        AS duration_hours
+    FROM user_tasks cur
+    LEFT JOIN (
+      SELECT entity_id, changed_at
+      FROM public.audit_logs
+      WHERE entity_type = 'task'
+        AND (new_values->>'status') = 'enviado_qa'
+    ) prev ON prev.entity_id = cur.task_id
+    WHERE cur.new_status IN ('aprovado', 'concluido')
   ),
   aggregated AS (
     SELECT
       user_id,
       display_name,
-      COUNT(DISTINCT task_id) as task_count,
-      AVG(COALESCE(duration_hours, 0)) as avg_completion_time,
-      SUM(COALESCE(duration_hours, 0)) as total_hours,
+      COUNT(DISTINCT task_id)                                           AS task_count,
+      AVG(COALESCE(duration_hours, 0))                                  AS avg_completion_time,
+      SUM(COALESCE(duration_hours, 0))                                  AS total_hours,
       ROUND(
-        100.0 * COUNT(CASE WHEN status = 'approved' THEN 1 END) /
-        NULLIF(COUNT(DISTINCT task_id), 0),
-        2
-      ) as approval_rate,
+        100.0 * COUNT(CASE WHEN final_status = 'aprovado' THEN 1 END) /
+        NULLIF(COUNT(DISTINCT task_id), 0), 2
+      )                                                                 AS approval_rate,
       ROUND(
-        100.0 * COUNT(CASE WHEN status = 'rejected' THEN 1 END) /
-        NULLIF(COUNT(DISTINCT task_id), 0),
-        2
-      ) as rejection_rate,
-      MAX(created_at) as last_completed
+        100.0 * COUNT(CASE WHEN final_status != 'aprovado' THEN 1 END) /
+        NULLIF(COUNT(DISTINCT task_id), 0), 2
+      )                                                                 AS rejection_rate,
+      MAX(changed_at)                                                   AS last_completed
     FROM completed_tasks
     GROUP BY user_id, display_name
   )
@@ -144,16 +141,15 @@ RETURNS TABLE (
 BEGIN
   RETURN QUERY
   WITH daily_completions AS (
-    -- Count completed tasks per day
     SELECT
-      DATE(al.created_at) as completion_date,
-      COUNT(DISTINCT al.task_id) as tasks_completed
-    FROM audit_logs al
-    WHERE al.created_at >= date_start
-      AND al.created_at <= date_end
-      AND al.status IN ('approved', 'rejected')
-      AND LAG(al.status) OVER (PARTITION BY al.task_id ORDER BY al.created_at) = 'submitted'
-    GROUP BY DATE(al.created_at)
+      DATE(al.changed_at)                          AS completion_date,
+      COUNT(DISTINCT al.entity_id)                 AS tasks_completed
+    FROM public.audit_logs al
+    WHERE al.entity_type = 'task'
+      AND al.changed_at >= date_start
+      AND al.changed_at <= date_end
+      AND (al.new_values->>'status') IN ('aprovado', 'concluido')
+    GROUP BY DATE(al.changed_at)
   ),
   burndown_data AS (
     SELECT jsonb_agg(
@@ -161,32 +157,31 @@ BEGIN
         'date', TO_CHAR(completion_date, 'YYYY-MM-DD'),
         'tasks_completed', tasks_completed
       ) ORDER BY completion_date
-    ) as trend
+    ) AS trend
     FROM daily_completions
   ),
   task_durations AS (
-    -- Calculate duration for all completed tasks
     SELECT
-      al.task_id,
+      al.entity_id                                 AS task_id,
       calculate_duration_hours(
-        MIN(CASE WHEN al.status = 'created' THEN al.created_at END),
-        MAX(CASE WHEN al.status IN ('approved', 'rejected') THEN al.created_at END)
-      ) as duration_hours,
-      MAX(CASE WHEN al.status IN ('approved', 'rejected') THEN al.status END) as final_status
-    FROM audit_logs al
-    WHERE al.created_at >= date_start
-      AND al.created_at <= date_end
-    GROUP BY al.task_id
+        MIN(al.changed_at),
+        MAX(CASE WHEN (al.new_values->>'status') IN ('aprovado','concluido') THEN al.changed_at END)
+      )                                            AS duration_hours,
+      MAX(al.new_values->>'status')                AS final_status
+    FROM public.audit_logs al
+    WHERE al.entity_type = 'task'
+      AND al.changed_at >= date_start
+      AND al.changed_at <= date_end
+    GROUP BY al.entity_id
   ),
   team_stats AS (
     SELECT
-      COUNT(DISTINCT task_id) as total_completed,
-      AVG(COALESCE(duration_hours, 0)) as avg_duration,
+      COUNT(DISTINCT task_id)                      AS total_completed,
+      AVG(COALESCE(duration_hours, 0))             AS avg_duration,
       ROUND(
-        100.0 * COUNT(CASE WHEN final_status = 'approved' THEN 1 END) /
-        NULLIF(COUNT(DISTINCT task_id), 0),
-        2
-      ) as success_rate
+        100.0 * COUNT(CASE WHEN final_status = 'aprovado' THEN 1 END) /
+        NULLIF(COUNT(DISTINCT task_id), 0), 2
+      )                                            AS success_rate
     FROM task_durations
   )
   SELECT
@@ -215,52 +210,48 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
   RETURN QUERY
-  WITH review_times AS (
-    -- Get time from submitted → approved/rejected (QA review time)
+  WITH submitted_times AS (
+    SELECT entity_id AS task_id, changed_at AS submitted_at
+    FROM public.audit_logs
+    WHERE entity_type = 'task'
+      AND (new_values->>'status') = 'enviado_qa'
+  ),
+  review_times AS (
     SELECT
-      al.task_id,
+      al.entity_id                                 AS task_id,
       calculate_duration_hours(
-        submitted_time.created_at,
-        MAX(al.created_at)
-      ) as review_duration_hours,
+        st.submitted_at,
+        al.changed_at
+      )                                            AS review_duration_hours,
       CASE
-        WHEN calculate_duration_hours(submitted_time.created_at, MAX(al.created_at)) <= 24
-        THEN 1
+        WHEN calculate_duration_hours(st.submitted_at, al.changed_at) <= 24 THEN 1
         ELSE 0
-      END as meets_sla
-    FROM audit_logs al
-    JOIN (
-      SELECT task_id, created_at
-      FROM audit_logs
-      WHERE status = 'submitted'
-    ) submitted_time ON al.task_id = submitted_time.task_id
-    WHERE al.created_at >= date_start
-      AND al.created_at <= date_end
-      AND al.status IN ('approved', 'rejected')
-      AND al.created_at > submitted_time.created_at
-    GROUP BY al.task_id, submitted_time.created_at
+      END                                          AS meets_sla
+    FROM public.audit_logs al
+    JOIN submitted_times st ON al.entity_id = st.task_id
+    WHERE al.entity_type = 'task'
+      AND al.changed_at >= date_start
+      AND al.changed_at <= date_end
+      AND (al.new_values->>'status') IN ('aprovado', 'concluido')
+      AND al.changed_at > st.submitted_at
   ),
   pending_tasks AS (
-    -- Count tasks still in submitted status (pending review)
-    SELECT COUNT(DISTINCT task_id) as pending_count
-    FROM audit_logs
-    WHERE created_at >= date_start
-      AND created_at <= date_end
-      AND status = 'submitted'
+    SELECT COUNT(DISTINCT s.task_id) AS pending_count
+    FROM submitted_times s
+    WHERE s.submitted_at >= date_start
+      AND s.submitted_at <= date_end
       AND NOT EXISTS (
-        SELECT 1 FROM audit_logs al2
-        WHERE al2.task_id = audit_logs.task_id
-          AND al2.status IN ('approved', 'rejected')
-          AND al2.created_at > audit_logs.created_at
+        SELECT 1 FROM public.audit_logs al2
+        WHERE al2.entity_id = s.task_id
+          AND al2.entity_type = 'task'
+          AND (al2.new_values->>'status') IN ('aprovado', 'concluido')
+          AND al2.changed_at > s.submitted_at
       )
   ),
   qa_stats AS (
     SELECT
-      AVG(review_duration_hours) as avg_duration,
-      ROUND(
-        100.0 * SUM(meets_sla) / NULLIF(COUNT(*), 0),
-        2
-      ) as sla_percentage
+      AVG(review_duration_hours)                   AS avg_duration,
+      ROUND(100.0 * SUM(meets_sla) / NULLIF(COUNT(*), 0), 2) AS sla_percentage
     FROM review_times
   )
   SELECT
@@ -272,10 +263,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ============================================================================
--- Grant Permissions for RLS Security
+-- Grant Permissions
 -- ============================================================================
 
--- Allow authenticated users to call RPC functions (with row-level filtering in service layer)
+GRANT EXECUTE ON FUNCTION calculate_duration_hours TO authenticated;
 GRANT EXECUTE ON FUNCTION calculate_per_user_metrics TO authenticated;
 GRANT EXECUTE ON FUNCTION calculate_team_metrics TO authenticated;
 GRANT EXECUTE ON FUNCTION calculate_qa_metrics TO authenticated;
