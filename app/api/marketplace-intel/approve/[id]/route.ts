@@ -14,15 +14,12 @@ import { enqueueSubAgentJob } from '@lib/queue/sub-agent-queue';
 import { NextRequest, NextResponse } from 'next/server';
 import type { Session } from 'next-auth';
 
-// Initialize Supabase client (use anon key for user-authenticated operations)
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase configuration');
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) throw new Error('Missing Supabase configuration');
+  return createClient(url, key);
 }
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // ============================================================================
 // PATCH: Approve AI-Generated Task Card
@@ -46,6 +43,7 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
+    const supabase = getSupabase();
     // 1. Authenticate user
     const session = await getServerSession(authOptions) as Session | null;
     if (!session) {
@@ -232,6 +230,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const supabase = getSupabase();
     // 1. Authenticate user
     const session = await getServerSession(authOptions) as Session | null;
     if (!session) {

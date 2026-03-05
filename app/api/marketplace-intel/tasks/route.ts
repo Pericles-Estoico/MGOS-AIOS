@@ -14,15 +14,14 @@ import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import type { Session } from 'next-auth';
 
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Missing Supabase configuration');
+function getSupabase() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase configuration');
+  }
+  return { client: createClient(supabaseUrl, supabaseServiceKey), serviceKey: supabaseServiceKey };
 }
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // ============================================================================
 // POST: Create AI-Generated Task Card
@@ -46,6 +45,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
  */
 export async function POST(request: NextRequest) {
   try {
+    const { client: supabase, serviceKey: supabaseServiceKey } = getSupabase();
     // 1. Validate authorization header (service role or AIOS token)
     const authHeader = request.headers.get('authorization');
     const isServiceRole = authHeader && supabaseServiceKey ? authHeader.includes(supabaseServiceKey.substring(0, 20)) : false;
@@ -163,6 +163,7 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    const { client: supabase } = getSupabase();
     // 1. Authenticate user
     const session = await getServerSession(authOptions) as Session | null;
     if (!session) {

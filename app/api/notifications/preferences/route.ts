@@ -9,10 +9,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error('Missing Supabase configuration');
+  return createClient(url, key);
+}
 
 interface NotificationPreferences {
   task_assigned: boolean;
@@ -31,6 +33,7 @@ interface NotificationPreferences {
  */
 export async function GET(request: NextRequest) {
   try {
+    const supabase = getSupabase();
     // Get user from auth header
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
@@ -122,6 +125,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const supabase = getSupabase();
     // Get user from auth header
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {

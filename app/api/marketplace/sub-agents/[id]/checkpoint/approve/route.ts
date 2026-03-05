@@ -11,20 +11,19 @@ import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import type { Session } from 'next-auth';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase configuration');
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) throw new Error('Missing Supabase configuration');
+  return createClient(url, key);
 }
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { subtaskId: string } }
 ) {
   try {
+    const supabase = getSupabase();
     // 1. Authenticate user
     const session = (await getServerSession(authOptions)) as Session | null;
     if (!session) {

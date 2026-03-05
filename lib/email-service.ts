@@ -1,10 +1,11 @@
 import nodemailer from 'nodemailer';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  return createClient(url, key);
+}
 
 const isSmtpConfigured = !!process.env.SMTP_HOST;
 
@@ -34,6 +35,7 @@ interface EmailData {
  * Queue email for sending (instead of immediate send)
  */
 export async function queueEmail(data: EmailData): Promise<boolean> {
+  const supabase = getSupabase();
   try {
     const { error } = await supabase
       .from('email_queue')
@@ -62,6 +64,7 @@ export async function queueEmail(data: EmailData): Promise<boolean> {
  * Process email queue (call this from a scheduled job)
  */
 export async function processEmailQueue(): Promise<{ processed: number; failed: number }> {
+  const supabase = getSupabase();
   let processed = 0;
   let failed = 0;
 
@@ -159,6 +162,7 @@ export async function processEmailQueue(): Promise<{ processed: number; failed: 
  * Check if user is in quiet hours
  */
 async function checkQuietHours(userId: string): Promise<boolean> {
+  const supabase = getSupabase();
   try {
     const { data } = await supabase
       .from('notification_preferences')
@@ -190,6 +194,7 @@ async function checkDuplicateEmail(
   userId: string,
   templateName: string
 ): Promise<boolean> {
+  const supabase = getSupabase();
   try {
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
@@ -214,6 +219,7 @@ async function checkDuplicateEmail(
 async function getEmailTemplate(
   name: string
 ): Promise<{ subject: string; html: string; text?: string } | null> {
+  const supabase = getSupabase();
   try {
     const { data } = await supabase
       .from('email_templates')
@@ -263,6 +269,7 @@ async function updateEmailStatus(
   status: string,
   errorMessage: string | null
 ): Promise<void> {
+  const supabase = getSupabase();
   await supabase
     .from('email_queue')
     .update({
@@ -278,6 +285,7 @@ async function updateEmailStatus(
  * Store email templates
  */
 export async function storeEmailTemplates(): Promise<void> {
+  const supabase = getSupabase();
   const templates = [
     {
       name: 'task_assigned',
