@@ -32,6 +32,7 @@ export default function Sidebar({ user, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [pendingAnalyses, setPendingAnalyses] = useState(0);
+  const [pendingApprovals, setPendingApprovals] = useState(0);
 
   // Fetch pending analyses count
   useEffect(() => {
@@ -47,11 +48,27 @@ export default function Sidebar({ user, onClose }: SidebarProps) {
 
     if (['admin', 'head'].includes(user?.role as string)) {
       fetchPendingCount();
-      // Refresh every 30 seconds
       const interval = setInterval(fetchPendingCount, 30000);
       return () => clearInterval(interval);
     }
   }, [user?.role]);
+
+  // Fetch pending task approvals count
+  useEffect(() => {
+    const fetchApprovalCount = async () => {
+      try {
+        const response = await fetch('/api/orchestration/tasks?status=pending&limit=100');
+        const data = await response.json();
+        setPendingApprovals((data.tasks ?? []).length);
+      } catch {
+        // silencioso
+      }
+    };
+
+    fetchApprovalCount();
+    const interval = setInterval(fetchApprovalCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
 
@@ -137,6 +154,7 @@ export default function Sidebar({ user, onClose }: SidebarProps) {
           {navLink('/marketplace', 'Marketplace Master', <Globe className="w-5 h-5" />)}
           {navLink('/marketplace/chat', 'Chat com Nexo', <MessageCircle className="w-5 h-5" />)}
           {navLink('/marketplace/analysis', 'Análises', <Search className="w-5 h-5" />, pendingAnalyses > 0 ? pendingAnalyses : undefined)}
+          {navLink('/marketplace/aprovar', '✅ Aprovar Tasks', <CheckSquare className="w-5 h-5" />, pendingApprovals > 0 ? pendingApprovals : undefined)}
         </>
 
 
