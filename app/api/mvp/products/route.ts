@@ -75,6 +75,13 @@ export async function GET(request: NextRequest) {
         dataRecebimento = d.toISOString().split('T')[0];
       }
 
+      const receitaLiquida = p.preco_venda && p.taxa_canal
+        ? Number(p.preco_venda) * Number(p.quantidade) * (1 - Number(p.taxa_canal) / 100)
+        : null;
+      const margemEstimada = receitaLiquida && custoReal > 0
+        ? ((receitaLiquida - custoReal) / receitaLiquida) * 100
+        : null;
+
       return {
         ...p,
         mvp_stages: undefined,
@@ -84,6 +91,10 @@ export async function GET(request: NextRequest) {
         total_etapas: total,
         etapas_concluidas: concluidas,
         custo_acumulado_real: custoReal,
+        custo_planejado_total: custoPlanejado,
+        desvio_pct: custoPlanejado > 0 ? Math.round(desvio * 10) / 10 : null,
+        receita_liquida_estimada: receitaLiquida,
+        margem_estimada: margemEstimada !== null ? Math.round(margemEstimada * 10) / 10 : null,
         data_recebimento_estimada: dataRecebimento,
       };
     });

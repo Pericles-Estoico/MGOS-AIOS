@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Plus, Package, BarChart2, TrendingUp, Download } from 'lucide-react';
+import { Plus, Package, BarChart2, TrendingUp, Download, GitCompareArrows } from 'lucide-react';
 import { downloadCSV, todayISO } from '@lib/export-csv';
 import Link from 'next/link';
 
@@ -52,6 +52,10 @@ interface MvpProduct {
   total_etapas: number;
   etapas_concluidas: number;
   custo_acumulado_real: number;
+  custo_planejado_total: number;
+  desvio_pct: number | null;
+  margem_estimada: number | null;
+  receita_liquida_estimada: number | null;
   data_recebimento_estimada: string | null;
   created_at: string;
 }
@@ -71,6 +75,15 @@ function ProdutosContent() {
   const [products, setProducts] = useState<MvpProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selected, setSelected] = useState<string[]>([]);
+
+  function toggleSelect(id: string) {
+    setSelected((prev) =>
+      prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : prev.length < 4 ? [...prev, id] : prev
+    );
+  }
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -187,6 +200,15 @@ function ProdutosContent() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {selected.length >= 2 && (
+            <Link
+              href={`/produtos/comparar?ids=${selected.join(',')}`}
+              className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+            >
+              <GitCompareArrows className="w-4 h-4" />
+              Comparar ({selected.length})
+            </Link>
+          )}
           {filtered.length > 0 && (
             <button
               onClick={handleExportCSV}
@@ -321,14 +343,40 @@ function ProdutosContent() {
       {/* Product list */}
       {!loading && !error && filtered.length > 0 && (
         <div className="space-y-3">
+          {selected.length > 0 && (
+            <p className="text-xs text-zinc-400 mb-1">
+              {selected.length} selecionado{selected.length > 1 ? 's' : ''} para comparar
+              {selected.length < 4 && ` (máx 4)`}
+              {' · '}
+              <button onClick={() => setSelected([])} className="text-teal-600 hover:underline">Limpar</button>
+            </p>
+          )}
           {filtered.map((p) => {
             const status = STATUS_CONFIG[p.status] ?? STATUS_CONFIG.planejado;
+            const isSelected = selected.includes(p.id);
             return (
               <div
                 key={p.id}
-                className="bg-white rounded-xl border border-zinc-100 hover:border-zinc-200 hover:shadow-sm transition-all p-4"
+                className={`bg-white rounded-xl border transition-all p-4 ${isSelected ? 'border-indigo-300 shadow-sm ring-1 ring-indigo-200' : 'border-zinc-100 hover:border-zinc-200 hover:shadow-sm'}`}
               >
                 <div className="flex items-start gap-3">
+                  <button
+                    onClick={() => toggleSelect(p.id)}
+                    title={isSelected ? 'Remover da comparação' : selected.length >= 4 ? 'Máximo de 4 produtos' : 'Adicionar à comparação'}
+                    className={`flex-shrink-0 mt-0.5 w-4 h-4 rounded border-2 transition-colors ${
+                      isSelected
+                        ? 'bg-indigo-600 border-indigo-600'
+                        : selected.length >= 4
+                        ? 'border-zinc-200 bg-zinc-50 cursor-not-allowed'
+                        : 'border-zinc-300 hover:border-indigo-400'
+                    }`}
+                  >
+                    {isSelected && (
+                      <svg className="w-3 h-3 text-white mx-auto" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2 6l3 3 5-5" />
+                      </svg>
+                    )}
+                  </button>
                   <div className="flex-1 min-w-0">
                     {/* Name + alert badges */}
                     <div className="flex flex-wrap items-center gap-2 mb-1">

@@ -22,6 +22,8 @@ import {
   Bot,
   ShoppingBag,
   Layers,
+  TrendingUp,
+  GitCompareArrows,
 } from 'lucide-react';
 import GlobalSearch from '../global-search';
 
@@ -153,6 +155,7 @@ export default function Sidebar({ user, onClose }: SidebarProps) {
         <NavLink href="/tasks" label="Todas as Tarefas" icon={<CheckSquare className="w-4 h-4" />} />
         <NavLink href="/tasks/my-tasks" label="Minhas Tarefas" icon={<ListTodo className="w-4 h-4" />} />
         <NavLink href="/produtos" label="Produtos" icon={<Package className="w-4 h-4" />} />
+        <NavLink href="/fluxo-de-caixa" label="Fluxo de Caixa" icon={<TrendingUp className="w-4 h-4" />} />
 
         {['qa', 'admin', 'head'].includes(user?.role as string) && (
           <>
