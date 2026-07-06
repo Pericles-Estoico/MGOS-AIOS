@@ -38,12 +38,16 @@ create table if not exists email_tracking (
 create index if not exists idx_email_tracking_queue_id on email_tracking(queue_id);
 create index if not exists idx_email_tracking_opened on email_tracking(opened);
 
--- User email preferences (update existing table)
-alter table notification_preferences add column if not exists email_digest_enabled boolean default true;
-alter table notification_preferences add column if not exists email_digest_frequency text default 'daily';
-alter table notification_preferences add column if not exists quiet_hours_start time;
-alter table notification_preferences add column if not exists quiet_hours_end time;
-alter table notification_preferences add column if not exists unsubscribed_from_all boolean default false;
+-- User email preferences (update existing table if it exists — ordering guard)
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'notification_preferences') THEN
+    ALTER TABLE notification_preferences ADD COLUMN IF NOT EXISTS email_digest_enabled boolean default true;
+    ALTER TABLE notification_preferences ADD COLUMN IF NOT EXISTS email_digest_frequency text default 'daily';
+    ALTER TABLE notification_preferences ADD COLUMN IF NOT EXISTS quiet_hours_start time;
+    ALTER TABLE notification_preferences ADD COLUMN IF NOT EXISTS quiet_hours_end time;
+    ALTER TABLE notification_preferences ADD COLUMN IF NOT EXISTS unsubscribed_from_all boolean default false;
+  END IF;
+END $$;
 
 -- Email template table
 create table if not exists email_templates (

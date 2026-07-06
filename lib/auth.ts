@@ -46,13 +46,6 @@ const TEST_USERS = [
     name: 'Teste User',
     role: 'executor',
   },
-  {
-    id: '11111111-1111-1111-1111-111111111111',
-    email: 'pericles@vidadeceo.com.br',
-    password: 'Estoico123@',
-    name: 'Pericles',
-    role: 'admin',
-  },
 ];
 
 export const authOptions: NextAuthOptions = {

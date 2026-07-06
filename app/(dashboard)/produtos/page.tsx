@@ -1,197 +1,100 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { Plus, Package, Upload, LayoutGrid, LayoutList, ExternalLink, RefreshCw, Loader } from 'lucide-react';
-import type { ProductWithStats, Marketplace } from '@lib/types/products';
-import { MARKETPLACE_LABELS, getScoreLevel } from '@lib/types/products';
-import { ProductForm } from '@/components/products/ProductForm';
-import { ProductCard } from '@/components/products/ProductCard';
-import { ScoreBadge } from '@/components/products/ScoreBadge';
+import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Plus, Package, BarChart2, TrendingUp, Download } from 'lucide-react';
+import { downloadCSV, todayISO } from '@lib/export-csv';
+import Link from 'next/link';
 
-// ─── tipos internos ──────────────────────────────────────────────────────────
+const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
+  planejado:    { label: 'Planejado',    color: 'bg-zinc-100 text-zinc-600' },
+  em_andamento: { label: 'Em andamento', color: 'bg-blue-100 text-blue-700' },
+  concluido:    { label: 'Concluído',    color: 'bg-green-100 text-green-700' },
+  cancelado:    { label: 'Cancelado',    color: 'bg-red-100 text-red-600' },
+};
 
-interface ListingAnalysis {
-  id: string;
-  score: number;
-  summary: string;
-  strengths: string[];
-  weaknesses: string[];
-  analyzed_at: string;
-}
+const CATEGORIA_LABELS: Record<string, string> = {
+  camiseta:        'Camiseta',
+  calca:           'Calça',
+  vestido:         'Vestido',
+  conjunto:        'Conjunto',
+  'moda-infantil': 'Moda Infantil',
+  jaqueta:         'Jaqueta',
+  acessorio:       'Acessório',
+};
 
-interface FullListing {
-  id: string;
-  product_id: string;
-  marketplace: Marketplace;
-  url: string | null;
-  title: string | null;
-  price: string | null;
-  image_url: string | null;
-  listing_score: number | null;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  listing_analyses?: ListingAnalysis[];
-}
-
-interface ProductWithListings extends ProductWithStats {
-  product_listings?: FullListing[];
-}
-
-// ─── helpers ────────────────────────────────────────────────────────────────
-
-const MARKETPLACE_ORDER: Marketplace[] = [
-  'shopee', 'shein', 'mercadolivre', 'amazon', 'tiktokshop', 'kaway',
+const SORT_OPTIONS = [
+  { value: 'created_at', label: 'Mais recentes' },
+  { value: 'data_inicio', label: 'Data de início' },
+  { value: 'custo', label: 'Custo acumulado' },
+  { value: 'progresso', label: '% Concluído' },
 ];
 
-const MARKETPLACE_COLORS: Record<Marketplace, { bg: string; text: string; border: string; dot: string }> = {
-  shopee:       { bg: 'bg-orange-50',  text: 'text-orange-700', border: 'border-orange-200', dot: 'bg-orange-500' },
-  shein:        { bg: 'bg-pink-50',    text: 'text-pink-700',   border: 'border-pink-200',   dot: 'bg-pink-500' },
-  mercadolivre: { bg: 'bg-yellow-50',  text: 'text-yellow-700', border: 'border-yellow-200', dot: 'bg-yellow-500' },
-  amazon:       { bg: 'bg-amber-50',   text: 'text-amber-700',  border: 'border-amber-200',  dot: 'bg-amber-500' },
-  tiktokshop:   { bg: 'bg-gray-900',   text: 'text-white',      border: 'border-gray-700',   dot: 'bg-white' },
-  kaway:        { bg: 'bg-blue-50',    text: 'text-blue-700',   border: 'border-blue-200',   dot: 'bg-blue-500' },
-};
+const fmtCur = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
-const SCORE_COLORS: Record<string, string> = {
-  low:    'text-red-600',
-  medium: 'text-yellow-600',
-  high:   'text-green-600',
-};
-
-// ─── componente: card de listing por marketplace ─────────────────────────────
-
-function MarketplaceListingCard({
-  product,
-  listing,
-  onReanalyze,
-}: {
-  product: ProductWithListings;
-  listing: FullListing;
-  onReanalyze: (productId: string, listingId: string) => void;
-}) {
-  const [analyzing, setAnalyzing] = useState(listing.status === 'analyzing');
-  const latestAnalysis = listing.listing_analyses?.[0] ?? null;
-  const scoreLevel = listing.listing_score !== null ? getScoreLevel(listing.listing_score) : null;
-
-  async function handleReanalyze() {
-    setAnalyzing(true);
-    try {
-      await fetch(`/api/products/${product.id}/listings/${listing.id}/analyze`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-      });
-      onReanalyze(product.id, listing.id);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setAnalyzing(false);
-    }
-  }
-
-  return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition">
-      {/* Produto */}
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-gray-900 truncate">{product.name}</p>
-          <div className="flex flex-wrap gap-1 mt-1">
-            {product.brand && (
-              <span className="text-xs text-gray-400">{product.brand}</span>
-            )}
-            {product.category && (
-              <span className="text-xs text-gray-400">· {product.category}</span>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1 shrink-0">
-          {analyzing ? (
-            <span className="inline-flex items-center gap-1 text-xs text-blue-600 px-2 py-1">
-              <Loader className="w-3 h-3 animate-spin" /> Analisando...
-            </span>
-          ) : (
-            <button
-              onClick={handleReanalyze}
-              className="p-1.5 text-teal-600 hover:bg-teal-50 rounded-lg transition"
-              title="Reanalisar"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Listing title + price */}
-      {listing.title && (
-        <p className="text-sm text-gray-700 line-clamp-2 mb-2">{listing.title}</p>
-      )}
-
-      <div className="flex items-center gap-3 flex-wrap">
-        {listing.price && (
-          <span className="text-base font-bold text-teal-600">{listing.price}</span>
-        )}
-        {listing.listing_score !== null && (
-          <span className={`text-sm font-semibold ${scoreLevel ? SCORE_COLORS[scoreLevel] : ''}`}>
-            Score: {listing.listing_score}
-          </span>
-        )}
-        {!listing.listing_score && !analyzing && (
-          <span className="text-xs text-gray-400 italic">Score não calculado</span>
-        )}
-      </div>
-
-      {/* URL */}
-      {listing.url && (
-        <a
-          href={listing.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs text-teal-600 hover:underline mt-2"
-        >
-          Ver no marketplace <ExternalLink className="w-3 h-3" />
-        </a>
-      )}
-
-      {/* Último resumo de análise */}
-      {latestAnalysis?.summary && !analyzing && (
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          <p className="text-xs text-gray-500 line-clamp-2">{latestAnalysis.summary}</p>
-          {latestAnalysis.weaknesses?.length > 0 && (
-            <ul className="mt-1 space-y-0.5">
-              {latestAnalysis.weaknesses.slice(0, 2).map((w, i) => (
-                <li key={i} className="text-xs text-red-500">· {w}</li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-    </div>
-  );
+function fmtDate(dateStr: string | null): string {
+  if (!dateStr) return '—';
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
 }
 
-// ─── componente principal ────────────────────────────────────────────────────
+interface MvpProduct {
+  id: string;
+  nome: string;
+  categoria: string;
+  canal_venda: string;
+  quantidade: number;
+  status: string;
+  data_inicio_plan: string | null;
+  progresso: number;
+  tem_atraso: boolean;
+  tem_desvio_custo: boolean;
+  total_etapas: number;
+  etapas_concluidas: number;
+  custo_acumulado_real: number;
+  data_recebimento_estimada: string | null;
+  created_at: string;
+}
 
-export default function ProdutosPage() {
+function ProdutosContent() {
   const router = useRouter();
-  const [products, setProducts] = useState<ProductWithListings[]>([]);
+  const searchParams = useSearchParams();
+
+  const [selectedCats, setSelectedCats] = useState<string[]>(() => {
+    const cats = searchParams.get('cat');
+    return cats ? cats.split(',').filter(Boolean) : [];
+  });
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') ?? '');
+  const [canalFilter, setCanalFilter] = useState(searchParams.get('canal') ?? '');
+  const [sortBy, setSortBy] = useState(searchParams.get('sort') ?? 'created_at');
+
+  const [products, setProducts] = useState<MvpProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [view, setView] = useState<'marketplace' | 'product'>('marketplace');
-  const [activeTab, setActiveTab] = useState<Marketplace | null>(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (selectedCats.length > 0) params.set('cat', selectedCats.join(','));
+    if (statusFilter) params.set('status', statusFilter);
+    if (canalFilter) params.set('canal', canalFilter);
+    if (sortBy && sortBy !== 'created_at') params.set('sort', sortBy);
+    const qs = params.toString();
+    router.replace(`/produtos${qs ? '?' + qs : ''}`, { scroll: false });
+  }, [selectedCats, statusFilter, canalFilter, sortBy, router]);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
+    setError('');
     try {
-      const res = await fetch('/api/products?include=listings');
-      if (!res.ok) throw new Error('Erro ao carregar produtos');
+      const res = await fetch('/api/mvp/products');
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? 'Erro ao carregar produtos');
+      }
       const { products: data } = await res.json();
       setProducts(data ?? []);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -199,138 +102,207 @@ export default function ProdutosPage() {
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
-  // Detecta marketplaces com listings
-  const marketplacesWithListings = MARKETPLACE_ORDER.filter((mp) =>
-    products.some((p) =>
-      (p.product_listings ?? []).some((l) => l.marketplace === mp)
-    )
+  const allCanais = useMemo(
+    () => Array.from(new Set(products.map((p) => p.canal_venda))).sort(),
+    [products]
   );
 
-  // Seta aba ativa ao carregar
-  useEffect(() => {
-    if (!activeTab && marketplacesWithListings.length > 0) {
-      setActiveTab(marketplacesWithListings[0]);
+  const filtered = useMemo(() => {
+    let list = [...products];
+
+    if (selectedCats.length > 0) {
+      list = list.filter((p) => selectedCats.includes(p.categoria));
     }
-  }, [marketplacesWithListings, activeTab]);
-
-  // Produtos+listings para a aba ativa
-  const listingsForTab = activeTab
-    ? products.flatMap((p) =>
-        (p.product_listings ?? [])
-          .filter((l) => l.marketplace === activeTab)
-          .map((l) => ({ product: p, listing: l }))
-      )
-    : [];
-
-  async function handleCreate(data: { name: string; category: string; brand: string; description: string }) {
-    setSaving(true);
-    try {
-      const res = await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error((await res.json()).error);
-      await fetchProducts();
-      setCreating(false);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setSaving(false);
+    if (statusFilter === 'com_atraso') {
+      list = list.filter((p) => p.tem_atraso);
+    } else if (statusFilter) {
+      list = list.filter((p) => p.status === statusFilter);
     }
+    if (canalFilter) {
+      list = list.filter((p) => p.canal_venda === canalFilter);
+    }
+
+    list.sort((a, b) => {
+      if (sortBy === 'data_inicio') return (a.data_inicio_plan ?? '').localeCompare(b.data_inicio_plan ?? '');
+      if (sortBy === 'custo') return b.custo_acumulado_real - a.custo_acumulado_real;
+      if (sortBy === 'progresso') return b.progresso - a.progresso;
+      return b.created_at.localeCompare(a.created_at);
+    });
+
+    return list;
+  }, [products, selectedCats, statusFilter, canalFilter, sortBy]);
+
+  const hasFilters = selectedCats.length > 0 || !!statusFilter || !!canalFilter;
+
+  function clearFilters() {
+    setSelectedCats([]);
+    setStatusFilter('');
+    setCanalFilter('');
   }
 
-  function handleUpdated(updated: ProductWithStats) {
-    setProducts((prev) => prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)));
+  function handleExportCSV() {
+    const STATUS_LABELS: Record<string, string> = {
+      planejado: 'Planejado', em_andamento: 'Em andamento',
+      concluido: 'Concluído', cancelado: 'Cancelado',
+    };
+    const rows = filtered.map((p) => ({
+      nome: p.nome,
+      categoria: CATEGORIA_LABELS[p.categoria] ?? p.categoria,
+      canal_venda: p.canal_venda,
+      status: STATUS_LABELS[p.status] ?? p.status,
+      progresso: p.progresso,
+      etapas_concluidas: p.etapas_concluidas,
+      total_etapas: p.total_etapas,
+      custo_real: p.custo_acumulado_real.toFixed(2),
+      desvio: p.tem_desvio_custo ? 'Sim' : 'Não',
+      data_inicio: p.data_inicio_plan ?? '',
+      recebimento: p.data_recebimento_estimada ?? '',
+    }));
+    downloadCSV(`produtos-${todayISO()}.csv`, rows, [
+      { key: 'nome',              label: 'Nome' },
+      { key: 'categoria',         label: 'Categoria' },
+      { key: 'canal_venda',       label: 'Canal de Venda' },
+      { key: 'status',            label: 'Status' },
+      { key: 'progresso',         label: 'Progresso (%)' },
+      { key: 'etapas_concluidas', label: 'Etapas Concluídas' },
+      { key: 'total_etapas',      label: 'Total Etapas' },
+      { key: 'custo_real',        label: 'Custo Real (R$)' },
+      { key: 'desvio',            label: 'Desvio Custo > 15%' },
+      { key: 'data_inicio',       label: 'Data de Início' },
+      { key: 'recebimento',       label: 'Recebimento Estimado' },
+    ]);
   }
-
-  function handleDeleted(id: string) {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-  }
-
-  function handleReanalyze(productId: string, listingId: string) {
-    // Marca listing como analyzing e recarrega após um delay
-    setProducts((prev) =>
-      prev.map((p) => {
-        if (p.id !== productId) return p;
-        return {
-          ...p,
-          product_listings: (p.product_listings ?? []).map((l) =>
-            l.id === listingId ? { ...l, status: 'analyzing' } : l
-          ),
-        };
-      })
-    );
-    setTimeout(() => fetchProducts(), 8000);
-  }
-
-  const tabColor = activeTab ? MARKETPLACE_COLORS[activeTab] : null;
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Produtos</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            {products.length} produto{products.length !== 1 ? 's' : ''} cadastrado{products.length !== 1 ? 's' : ''}
+          <h1 className="text-xl font-semibold text-zinc-900">Produtos</h1>
+          <p className="text-sm text-zinc-500">
+            {loading
+              ? 'Carregando...'
+              : `${filtered.length}${filtered.length !== products.length ? ` de ${products.length}` : ''} produto${products.length !== 1 ? 's' : ''}`
+            }
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {/* Toggle de view */}
-          <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+          {filtered.length > 0 && (
             <button
-              onClick={() => setView('marketplace')}
-              className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition ${
-                view === 'marketplace'
-                  ? 'bg-teal-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
-              title="Por marketplace"
+              onClick={handleExportCSV}
+              className="flex items-center gap-2 px-3 py-2 bg-white border border-zinc-200 text-zinc-600 rounded-lg text-sm font-medium hover:bg-zinc-50 hover:border-zinc-300 transition-colors"
             >
-              <LayoutGrid className="w-4 h-4" />
-              Por canal
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Exportar CSV</span>
             </button>
-            <button
-              onClick={() => setView('product')}
-              className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition ${
-                view === 'product'
-                  ? 'bg-teal-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
-              title="Por produto"
-            >
-              <LayoutList className="w-4 h-4" />
-              Por produto
-            </button>
-          </div>
-
-          <button
-            onClick={() => router.push('/produtos/import')}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition"
-          >
-            <Upload className="w-4 h-4" />
-            Importar
-          </button>
-          <button
-            onClick={() => setCreating(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition"
+          )}
+          <Link
+            href="/produtos/novo"
+            className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Novo produto
-          </button>
+          </Link>
         </div>
       </div>
 
-      {/* Formulário de criação */}
-      {creating && (
-        <div className="bg-white rounded-xl border border-teal-200 shadow-sm p-5 mb-6">
-          <p className="text-sm font-medium text-gray-700 mb-3">Novo produto</p>
-          <ProductForm
-            onSubmit={handleCreate}
-            onCancel={() => setCreating(false)}
-            loading={saving}
-          />
+      {/* Filters + Sort */}
+      {!loading && !error && products.length > 0 && (
+        <div className="bg-white border border-zinc-100 rounded-xl p-4 mb-4 space-y-3">
+          <div>
+            <p className="text-xs font-medium text-zinc-500 mb-2">Categoria</p>
+            <div className="flex flex-wrap gap-1.5">
+              {Object.entries(CATEGORIA_LABELS).map(([key, label]) => {
+                const active = selectedCats.includes(key);
+                return (
+                  <button
+                    key={key}
+                    onClick={() =>
+                      setSelectedCats((prev) =>
+                        active ? prev.filter((c) => c !== key) : [...prev, key]
+                      )
+                    }
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                      active
+                        ? 'bg-teal-100 text-teal-700 border border-teal-300'
+                        : 'bg-zinc-50 text-zinc-500 border border-zinc-200 hover:border-zinc-300'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <div className="flex-1 min-w-[140px]">
+              <label className="block text-xs font-medium text-zinc-500 mb-1.5">Status</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full border border-zinc-200 rounded-lg px-3 py-1.5 text-sm text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400"
+              >
+                <option value="">Todos</option>
+                <option value="planejado">Planejado</option>
+                <option value="em_andamento">Em andamento</option>
+                <option value="concluido">Concluído</option>
+                <option value="cancelado">Cancelado</option>
+                <option value="com_atraso">Com atraso</option>
+              </select>
+            </div>
+
+            <div className="flex-1 min-w-[140px]">
+              <label className="block text-xs font-medium text-zinc-500 mb-1.5">Canal de venda</label>
+              <select
+                value={canalFilter}
+                onChange={(e) => setCanalFilter(e.target.value)}
+                className="w-full border border-zinc-200 rounded-lg px-3 py-1.5 text-sm text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400"
+              >
+                <option value="">Todos</option>
+                {allCanais.map((canal) => (
+                  <option key={canal} value={canal}>{canal}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex-1 min-w-[140px]">
+              <label className="block text-xs font-medium text-zinc-500 mb-1.5">Ordenar por</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full border border-zinc-200 rounded-lg px-3 py-1.5 text-sm text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400"
+              >
+                {SORT_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {hasFilters && (
+              <div className="flex items-end">
+                <button
+                  onClick={clearFilters}
+                  className="px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-700 border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors"
+                >
+                  Limpar filtros
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Error */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4">
+          <p className="text-sm text-red-600">{error}</p>
+          {error.includes('SERVICE_ROLE_KEY') && (
+            <p className="text-xs text-red-500 mt-1">
+              Adicione <code className="font-mono">SUPABASE_SERVICE_ROLE_KEY</code> no seu{' '}
+              <code className="font-mono">.env.local</code>.
+            </p>
+          )}
         </div>
       )}
 
@@ -338,127 +310,173 @@ export default function ProdutosPage() {
       {loading && (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-xl border border-gray-100 p-5 animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-1/3 mb-3" />
-              <div className="h-3 bg-gray-100 rounded w-1/2" />
+            <div key={i} className="bg-white rounded-xl border border-zinc-100 p-5 animate-pulse">
+              <div className="h-4 bg-zinc-100 rounded w-1/3 mb-3" />
+              <div className="h-3 bg-zinc-100 rounded w-1/2" />
             </div>
           ))}
         </div>
       )}
 
-      {/* ── VIEW: POR MARKETPLACE ───────────────────────────────────────────── */}
-      {!loading && view === 'marketplace' && (
-        <>
-          {marketplacesWithListings.length === 0 ? (
-            <EmptyState onNew={() => setCreating(true)} />
-          ) : (
-            <>
-              {/* Tabs de marketplace */}
-              <div className="flex gap-2 flex-wrap mb-6 border-b border-gray-200 pb-0">
-                {marketplacesWithListings.map((mp) => {
-                  const c = MARKETPLACE_COLORS[mp];
-                  const count = products.reduce(
-                    (acc, p) => acc + (p.product_listings ?? []).filter((l) => l.marketplace === mp).length,
-                    0
-                  );
-                  return (
-                    <button
-                      key={mp}
-                      onClick={() => setActiveTab(mp)}
-                      className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg border-b-2 transition -mb-px ${
-                        activeTab === mp
-                          ? `border-teal-600 text-teal-700 bg-teal-50`
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className={`w-2 h-2 rounded-full ${c.dot}`} />
-                      {MARKETPLACE_LABELS[mp]}
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
-                        activeTab === mp ? 'bg-teal-100 text-teal-700' : 'bg-gray-100 text-gray-500'
-                      }`}>
-                        {count}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+      {/* Product list */}
+      {!loading && !error && filtered.length > 0 && (
+        <div className="space-y-3">
+          {filtered.map((p) => {
+            const status = STATUS_CONFIG[p.status] ?? STATUS_CONFIG.planejado;
+            return (
+              <div
+                key={p.id}
+                className="bg-white rounded-xl border border-zinc-100 hover:border-zinc-200 hover:shadow-sm transition-all p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    {/* Name + alert badges */}
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <h3
+                        className="font-medium text-zinc-800 truncate cursor-pointer hover:text-teal-700 transition-colors"
+                        onClick={() => router.push(`/produtos/${p.id}`)}
+                      >
+                        {p.nome}
+                      </h3>
+                      {p.tem_atraso && (
+                        <span className="flex-shrink-0 text-xs font-medium bg-red-100 text-red-600 px-1.5 py-0.5 rounded">
+                          Atraso
+                        </span>
+                      )}
+                      {p.tem_desvio_custo && (
+                        <span className="flex-shrink-0 text-xs font-medium bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded">
+                          Desvio custo
+                        </span>
+                      )}
+                    </div>
 
-              {/* Conteúdo da aba */}
-              {activeTab && (
-                <div>
-                  {/* Cabeçalho da aba */}
-                  <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border mb-4 ${tabColor?.bg} ${tabColor?.border}`}>
-                    <span className={`w-3 h-3 rounded-full ${tabColor?.dot}`} />
-                    <div>
-                      <p className={`font-semibold ${tabColor?.text}`}>
-                        {MARKETPLACE_LABELS[activeTab]}
-                      </p>
-                      <p className={`text-xs opacity-70 ${tabColor?.text}`}>
-                        {listingsForTab.length} listing{listingsForTab.length !== 1 ? 's' : ''} neste canal
-                      </p>
+                    {/* Meta */}
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-400 mb-3">
+                      <span>{CATEGORIA_LABELS[p.categoria] ?? p.categoria}</span>
+                      <span>·</span>
+                      <span>{p.canal_venda}</span>
+                      <span>·</span>
+                      <span>{p.quantidade} un.</span>
+                      {p.data_inicio_plan && (
+                        <>
+                          <span>·</span>
+                          <span>Início: {fmtDate(p.data_inicio_plan)}</span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Metrics */}
+                    <div className="flex flex-wrap gap-4 text-xs mb-3">
+                      <div>
+                        <span className="text-zinc-400">Custo real:</span>{' '}
+                        <span className={`font-semibold ${p.tem_desvio_custo ? 'text-orange-600' : 'text-zinc-700'}`}>
+                          {fmtCur.format(p.custo_acumulado_real)}
+                        </span>
+                      </div>
+                      {p.data_recebimento_estimada && (
+                        <div>
+                          <span className="text-zinc-400">Recebimento est.:</span>{' '}
+                          <span className="font-semibold text-teal-600">
+                            {fmtDate(p.data_recebimento_estimada)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Progress bar */}
+                    {p.total_etapas > 0 && (
+                      <div className="mb-3">
+                        <div className="flex items-center justify-between text-xs text-zinc-400 mb-1">
+                          <span>{p.etapas_concluidas}/{p.total_etapas} etapas</span>
+                          <span>{p.progresso}%</span>
+                        </div>
+                        <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${p.tem_atraso ? 'bg-red-400' : 'bg-teal-500'}`}
+                            style={{ width: `${p.progresso}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Quick access */}
+                    <div className="flex gap-2">
+                      <Link
+                        href={`/produtos/${p.id}?tab=gantt`}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-600 bg-zinc-50 border border-zinc-200 rounded-lg hover:bg-zinc-100 hover:border-zinc-300 transition-colors"
+                      >
+                        <BarChart2 className="w-3.5 h-3.5" />
+                        Ver Gantt
+                      </Link>
+                      <Link
+                        href={`/produtos/${p.id}?tab=financeiro`}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-teal-600 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 hover:border-teal-300 transition-colors"
+                      >
+                        <TrendingUp className="w-3.5 h-3.5" />
+                        Ver Financeiro
+                      </Link>
                     </div>
                   </div>
 
-                  {listingsForTab.length === 0 ? (
-                    <p className="text-gray-400 text-sm text-center py-8">
-                      Nenhum produto cadastrado neste canal ainda.
-                    </p>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {listingsForTab.map(({ product, listing }) => (
-                        <MarketplaceListingCard
-                          key={listing.id}
-                          product={product}
-                          listing={listing}
-                          onReanalyze={handleReanalyze}
-                        />
-                      ))}
-                    </div>
-                  )}
+                  <span className={`flex-shrink-0 text-xs font-medium px-2.5 py-1 rounded-full ${status.color}`}>
+                    {status.label}
+                  </span>
                 </div>
-              )}
-            </>
-          )}
-        </>
+              </div>
+            );
+          })}
+        </div>
       )}
 
-      {/* ── VIEW: POR PRODUTO ───────────────────────────────────────────────── */}
-      {!loading && view === 'product' && (
-        <>
-          {products.length === 0 && !creating ? (
-            <EmptyState onNew={() => setCreating(true)} />
-          ) : (
-            <div className="space-y-3">
-              {products.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onUpdated={handleUpdated}
-                  onDeleted={handleDeleted}
-                />
-              ))}
-            </div>
-          )}
-        </>
+      {/* Filtered empty state */}
+      {!loading && !error && products.length > 0 && filtered.length === 0 && (
+        <div className="bg-white rounded-xl border border-zinc-100 p-12 text-center">
+          <p className="font-medium text-zinc-500">Nenhum produto corresponde aos filtros</p>
+          <button
+            onClick={clearFilters}
+            className="mt-3 text-sm text-teal-600 hover:text-teal-700"
+          >
+            Limpar filtros
+          </button>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!loading && !error && products.length === 0 && (
+        <div className="bg-white rounded-xl border border-zinc-100 p-16 text-center">
+          <Package className="w-10 h-10 text-zinc-200 mx-auto mb-4" />
+          <p className="font-medium text-zinc-500">Nenhum produto ainda</p>
+          <p className="text-sm text-zinc-400 mt-1 mb-5">
+            Cadastre seu primeiro produto e acompanhe todo o ciclo de produção
+          </p>
+          <Link
+            href="/produtos/novo"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Criar primeiro produto
+          </Link>
+        </div>
       )}
     </div>
   );
 }
 
-function EmptyState({ onNew }: { onNew: () => void }) {
+export default function ProdutosPage() {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-16 text-center">
-      <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-      <p className="text-gray-500 font-medium">Nenhum produto ainda</p>
-      <p className="text-gray-400 text-sm mt-1 mb-4">
-        Crie seu primeiro produto e adicione listings por canal de marketplace
-      </p>
-      <button
-        onClick={onNew}
-        className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition"
-      >
-        Criar produto
-      </button>
-    </div>
+    <Suspense
+      fallback={
+        <div className="max-w-5xl mx-auto space-y-3 pt-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-xl border border-zinc-100 p-5 animate-pulse">
+              <div className="h-4 bg-zinc-100 rounded w-1/3 mb-3" />
+              <div className="h-3 bg-zinc-100 rounded w-1/2" />
+            </div>
+          ))}
+        </div>
+      }
+    >
+      <ProdutosContent />
+    </Suspense>
   );
 }
