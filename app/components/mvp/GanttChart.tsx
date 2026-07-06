@@ -342,10 +342,10 @@ export function GanttChart({ stages, costsByStage = {} }: GanttChartProps) {
                 <span>{fmtDate(tooltip.stage.data_fim_real)}</span>
               </div>
             )}
-            {cost !== undefined && (
+            {costsByStage[tooltip.stage.id] !== undefined && (
               <div className="flex justify-between gap-2 pt-1 border-t border-zinc-100 mt-1">
                 <span className="text-zinc-400">Custo real</span>
-                <span className="font-medium">{fmtCur.format(cost)}</span>
+                <span className="font-medium">{fmtCur.format(costsByStage[tooltip.stage.id])}</span>
               </div>
             )}
           </div>

@@ -271,8 +271,8 @@ export function FinanceiroDashboard({
                   cy="45%"
                   outerRadius={90}
                   dataKey="value"
-                  label={({ name, percent }) =>
-                    percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : ''
+                  label={(props: any) =>
+                    (props.percent ?? 0) > 0.05 ? `${((props.percent ?? 0) * 100).toFixed(0)}%` : ''
                   }
                   labelLine={false}
                 >
@@ -281,7 +281,7 @@ export function FinanceiroDashboard({
                   ))}
                 </Pie>
                 <RechartTooltip
-                  formatter={(value: number) => fmtCur.format(value)}
+                  formatter={(value: any) => fmtCur.format(Number(value))}
                 />
                 <Legend
                   formatter={(value) => (
