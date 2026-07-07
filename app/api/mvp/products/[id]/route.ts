@@ -81,6 +81,25 @@ export async function GET(
       .single();
 
     if (productError || !product) {
+      // Log para diagnóstico — verifica se o produto existe mas com user_id diferente
+      const { data: exists } = await supabase
+        .from('mvp_products')
+        .select('id, user_id')
+        .eq('id', params.id)
+        .maybeSingle();
+
+      console.error('[GET /api/mvp/products/[id]] produto não encontrado', {
+        productId: params.id,
+        sessionUserId: session.user.id,
+        productExists: !!exists,
+        productOwnerId: exists?.user_id ?? null,
+        userIdMatch: exists?.user_id === session.user.id,
+        supabaseError: productError ? { code: productError.code, msg: productError.message } : null,
+      });
+
+      if (exists && exists.user_id !== session.user.id) {
+        return Response.json({ error: 'Acesso negado' }, { status: 403 });
+      }
       return Response.json({ error: 'Produto não encontrado' }, { status: 404 });
     }
 

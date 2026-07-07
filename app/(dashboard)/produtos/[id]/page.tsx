@@ -66,7 +66,10 @@ export default function ProdutoDetailPage() {
           fetch(`/api/mvp/costs?product_id=${id}`),
         ]);
 
-        if (!productRes.ok) throw new Error('Produto não encontrado');
+        if (!productRes.ok) {
+          const errData = await productRes.json().catch(() => ({}));
+          throw new Error(errData.error ?? 'Produto não encontrado');
+        }
         const productData = await productRes.json();
         setProduct(productData.product);
         setProgresso(productData.progresso ?? 0);
