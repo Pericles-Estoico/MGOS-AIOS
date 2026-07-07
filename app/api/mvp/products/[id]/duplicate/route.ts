@@ -5,7 +5,7 @@ import { NextRequest } from 'next/server';
 
 export async function POST(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -17,6 +17,8 @@ export async function POST(
     return Response.json({ error: 'SUPABASE_SERVICE_ROLE_KEY não configurada.' }, { status: 503 });
   }
 
+  const { id } = await params;
+
   try {
     // Fetch source product + stages (no costs)
     const { data: source, error: srcError } = await supabase
@@ -26,7 +28,7 @@ export async function POST(
         preco_venda, taxa_canal, prazo_repasse_dias,
         mvp_stages(nome, ordem)
       `)
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', session.user.id)
       .single();
 

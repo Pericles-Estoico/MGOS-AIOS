@@ -5,7 +5,7 @@ import { NextRequest } from 'next/server';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -17,12 +17,13 @@ export async function PATCH(
     return Response.json({ error: 'SUPABASE_SERVICE_ROLE_KEY não configurada' }, { status: 503 });
   }
 
+  const { id } = await params;
+
   let body: any;
   try { body = await request.json(); } catch {
     return Response.json({ error: 'JSON inválido' }, { status: 400 });
   }
 
-  // Apenas campos financeiros permitidos neste endpoint
   const allowed = ['preco_venda', 'taxa_canal', 'prazo_repasse_dias', 'data_venda_estimada'];
   const updates: Record<string, any> = {};
   for (const key of allowed) {
@@ -40,7 +41,7 @@ export async function PATCH(
     const { data: product, error } = await supabase
       .from('mvp_products')
       .update(updates)
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', session.user.id)
       .select('id, preco_venda, taxa_canal, prazo_repasse_dias, data_venda_estimada')
       .single();
@@ -57,7 +58,7 @@ export async function PATCH(
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -69,56 +70,29 @@ export async function GET(
     return Response.json({ error: 'SUPABASE_SERVICE_ROLE_KEY não configurada' }, { status: 503 });
   }
 
+  const { id } = await params;
   const today = new Date().toISOString().split('T')[0];
 
-  console.log('[GET /api/mvp/products/[id]] request', {
-    productId: params.id,
-    userId: session.user.id,
-    userEmail: session.user.email,
-  });
-
   try {
-    // Produto (verifica ownership)
     const { data: product, error: productError } = await supabase
       .from('mvp_products')
       .select('id, nome, categoria, canal_venda, quantidade, data_inicio_plan, status, created_at, preco_venda, taxa_canal, prazo_repasse_dias, data_venda_estimada')
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', session.user.id)
       .single();
 
     if (productError || !product) {
-      // Log para diagnóstico — verifica se o produto existe mas com user_id diferente
-      const { data: exists } = await supabase
-        .from('mvp_products')
-        .select('id, user_id')
-        .eq('id', params.id)
-        .maybeSingle();
-
-      console.error('[GET /api/mvp/products/[id]] produto não encontrado', {
-        productId: params.id,
-        sessionUserId: session.user.id,
-        productExists: !!exists,
-        productOwnerId: exists?.user_id ?? null,
-        userIdMatch: exists?.user_id === session.user.id,
-        supabaseError: productError ? { code: productError.code, msg: productError.message } : null,
-      });
-
-      if (exists && exists.user_id !== session.user.id) {
-        return Response.json({ error: 'Acesso negado' }, { status: 403 });
-      }
       return Response.json({ error: 'Produto não encontrado' }, { status: 404 });
     }
 
-    // Etapas
     const { data: stages, error: stagesError } = await supabase
       .from('mvp_stages')
       .select('id, nome, ordem, status, data_inicio_plan, data_fim_plan, data_inicio_real, data_fim_real, responsavel_id')
-      .eq('product_id', params.id)
+      .eq('product_id', id)
       .order('ordem');
 
     if (stagesError) throw stagesError;
 
-    // Histórico via audit_logs
     const stageIds = (stages ?? []).map((s) => s.id);
     let auditLogs: any[] = [];
     if (stageIds.length > 0) {
@@ -131,7 +105,6 @@ export async function GET(
       auditLogs = logs ?? [];
     }
 
-    // Enriquecer etapas com flag atrasada e histórico
     const enrichedStages = (stages ?? []).map((s) => ({
       ...s,
       is_atrasada: s.data_fim_plan && s.data_fim_plan < today && s.status !== 'concluida',

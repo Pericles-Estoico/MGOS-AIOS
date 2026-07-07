@@ -10,7 +10,7 @@ const VALID_TRANSITIONS: Record<string, string> = {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -34,11 +34,13 @@ export async function PATCH(
     return Response.json({ error: 'Ação inválida.' }, { status: 422 });
   }
 
+  const { id } = await params;
+
   try {
     const { data: stage, error: fetchError } = await supabase
       .from('mvp_stages')
       .select('id, status, product_id, mvp_products!inner(user_id)')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (fetchError || !stage) {
@@ -84,13 +86,13 @@ export async function PATCH(
     const { error: updateError } = await supabase
       .from('mvp_stages')
       .update(updateData)
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (updateError) throw updateError;
 
     await supabase.from('audit_logs').insert({
       entity_type: 'mvp_stage',
-      entity_id: params.id,
+      entity_id: id,
       action: action === 'atualizar' ? 'DATE_UPDATE' : 'STATUS_CHANGE',
       changed_by: session.user.id,
       old_values: { status: currentStatus },
@@ -98,7 +100,7 @@ export async function PATCH(
       changed_at: now,
     });
 
-    return Response.json({ stage: { id: params.id, ...updateData } });
+    return Response.json({ stage: { id, ...updateData } });
   } catch (err: any) {
     console.error('[PATCH /api/mvp/stages/[id]]', err);
     return Response.json({ error: err.message ?? 'Erro ao atualizar etapa' }, { status: 500 });
