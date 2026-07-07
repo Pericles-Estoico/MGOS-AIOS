@@ -71,6 +71,12 @@ export async function GET(
 
   const today = new Date().toISOString().split('T')[0];
 
+  console.log('[GET /api/mvp/products/[id]] request', {
+    productId: params.id,
+    userId: session.user.id,
+    userEmail: session.user.email,
+  });
+
   try {
     // Produto (verifica ownership)
     const { data: product, error: productError } = await supabase
