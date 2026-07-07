@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Loader2, Layers, DollarSign } from 'lucide-react';
+import { ArrowLeft, Loader2, Layers, DollarSign, Copy } from 'lucide-react';
 import Link from 'next/link';
 import { GanttChart } from '@components/mvp/GanttChart';
 import { FinanceiroDashboard } from '@components/mvp/FinanceiroDashboard';
@@ -35,6 +35,23 @@ export default function ProdutoDetailPage() {
   const [activeTab, setActiveTab] = useState<Tab>(
     searchParams.get('tab') === 'financeiro' ? 'financeiro' : 'gantt'
   );
+  const [duplicating, setDuplicating] = useState(false);
+
+  async function handleDuplicate() {
+    setDuplicating(true);
+    try {
+      const res = await fetch(`/api/mvp/products/${id}/duplicate`, { method: 'POST' });
+      if (!res.ok) {
+        const d = await res.json();
+        alert(d.error ?? 'Erro ao duplicar produto');
+        return;
+      }
+      const d = await res.json();
+      router.push(`/produtos/${d.product.id}`);
+    } finally {
+      setDuplicating(false);
+    }
+  }
 
   function handleTabChange(tab: Tab) {
     setActiveTab(tab);
@@ -140,6 +157,14 @@ export default function ProdutoDetailPage() {
             {' · '}{product.quantidade} un.
           </p>
         </div>
+        <button
+          onClick={handleDuplicate}
+          disabled={duplicating}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-500 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 hover:border-zinc-300 disabled:opacity-50 transition-colors"
+        >
+          <Copy className="w-3.5 h-3.5" />
+          {duplicating ? 'Duplicando...' : 'Duplicar'}
+        </button>
       </div>
 
       {/* Progresso */}

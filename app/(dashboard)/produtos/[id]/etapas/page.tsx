@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronDown, ChevronRight, Loader2, CheckCircle2, Circle, Clock, AlertCircle } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, Loader2, CheckCircle2, Circle, Clock, AlertCircle, Pencil, X, Check } from 'lucide-react';
 import Link from 'next/link';
 
 const CATEGORIA_LABELS: Record<string, string> = {
@@ -53,23 +53,65 @@ function fmtDate(d: string | null) {
   return new Date(d + 'T00:00:00').toLocaleDateString('pt-BR');
 }
 
-function StageRow({ stage, onAction }: { stage: Stage; onAction: (id: string, action: 'iniciar' | 'concluir') => Promise<void> }) {
+type StageAction = 'iniciar' | 'concluir' | 'atualizar';
+
+interface HandleActionArgs {
+  id: string;
+  action: StageAction;
+  data_real?: string;
+  data_inicio_real?: string;
+  data_fim_real?: string;
+}
+
+function StageRow({
+  stage,
+  onAction,
+}: {
+  stage: Stage;
+  onAction: (args: HandleActionArgs) => Promise<void>;
+}) {
   const [loading, setLoading] = useState(false);
   const [histOpen, setHistOpen] = useState(false);
+  const [editDates, setEditDates] = useState(false);
+  // Inline date override for iniciar/concluir
+  const [dateOverride, setDateOverride] = useState('');
+  // Free-form date editor
+  const [editInicio, setEditInicio] = useState(stage.data_inicio_real ?? '');
+  const [editFim, setEditFim] = useState(stage.data_fim_real ?? '');
 
   const effectiveStatus = stage.is_atrasada && stage.status !== 'concluida' ? 'atrasada' : stage.status;
   const cfg = STATUS_CONFIG[effectiveStatus] ?? STATUS_CONFIG.planejada;
 
   async function handle(action: 'iniciar' | 'concluir') {
     setLoading(true);
-    try { await onAction(stage.id, action); } finally { setLoading(false); }
+    try {
+      await onAction({ id: stage.id, action, data_real: dateOverride || undefined });
+      setDateOverride('');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSaveDates() {
+    setLoading(true);
+    try {
+      await onAction({
+        id: stage.id,
+        action: 'atualizar',
+        data_inicio_real: editInicio,
+        data_fim_real: editFim,
+      });
+      setEditDates(false);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <div className="bg-white border border-zinc-100 rounded-xl overflow-hidden">
-      <div className="flex items-center gap-3 p-4">
-        {/* Ordem + ícone */}
-        <div className={`flex-shrink-0 ${cfg.color}`}>
+      <div className="flex items-start gap-3 p-4">
+        {/* Status icon */}
+        <div className={`flex-shrink-0 mt-0.5 ${cfg.color}`}>
           {loading ? <Loader2 className="w-4 h-4 animate-spin text-zinc-400" /> : cfg.icon}
         </div>
 
@@ -81,32 +123,107 @@ function StageRow({ stage, onAction }: { stage: Stage; onAction: (id: string, ac
               {cfg.label}
             </span>
           </div>
+
           <div className="flex flex-wrap gap-3 mt-1 text-xs text-zinc-400">
             <span>Plan: {fmtDate(stage.data_inicio_plan)} → {fmtDate(stage.data_fim_plan)}</span>
-            {stage.data_inicio_real && (
-              <span className="text-blue-400">Real: {fmtDate(stage.data_inicio_real)}{stage.data_fim_real ? ` → ${fmtDate(stage.data_fim_real)}` : ' → ...'}</span>
+            {(stage.data_inicio_real || stage.data_fim_real) && !editDates && (
+              <span className="text-blue-400">
+                Real: {fmtDate(stage.data_inicio_real)}{stage.data_fim_real ? ` → ${fmtDate(stage.data_fim_real)}` : ' → ...'}
+              </span>
             )}
           </div>
+
+          {/* Inline action area */}
+          {!editDates && (
+            <div className="flex flex-wrap items-center gap-2 mt-3">
+              {stage.status === 'planejada' && (
+                <>
+                  <input
+                    type="date"
+                    value={dateOverride}
+                    onChange={(e) => setDateOverride(e.target.value)}
+                    title="Data de início real (opcional, padrão: hoje)"
+                    className="border border-zinc-200 rounded-lg px-2 py-1 text-xs text-zinc-600 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                  />
+                  <button
+                    onClick={() => handle('iniciar')}
+                    disabled={loading}
+                    className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  >
+                    Iniciar
+                  </button>
+                </>
+              )}
+              {stage.status === 'em_andamento' && (
+                <>
+                  <input
+                    type="date"
+                    value={dateOverride}
+                    onChange={(e) => setDateOverride(e.target.value)}
+                    title="Data de conclusão real (opcional, padrão: hoje)"
+                    className="border border-zinc-200 rounded-lg px-2 py-1 text-xs text-zinc-600 focus:outline-none focus:ring-1 focus:ring-green-400"
+                  />
+                  <button
+                    onClick={() => handle('concluir')}
+                    disabled={loading}
+                    className="px-3 py-1.5 text-xs font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                  >
+                    Concluir
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Free-form date editor */}
+          {editDates && (
+            <div className="flex flex-wrap items-center gap-2 mt-3">
+              <div className="flex items-center gap-1.5 text-xs">
+                <label className="text-zinc-400 w-16">Início real</label>
+                <input
+                  type="date"
+                  value={editInicio}
+                  onChange={(e) => setEditInicio(e.target.value)}
+                  className="border border-zinc-200 rounded-lg px-2 py-1 text-xs text-zinc-600 focus:outline-none focus:ring-1 focus:ring-teal-400"
+                />
+              </div>
+              <div className="flex items-center gap-1.5 text-xs">
+                <label className="text-zinc-400 w-16">Fim real</label>
+                <input
+                  type="date"
+                  value={editFim}
+                  onChange={(e) => setEditFim(e.target.value)}
+                  className="border border-zinc-200 rounded-lg px-2 py-1 text-xs text-zinc-600 focus:outline-none focus:ring-1 focus:ring-teal-400"
+                />
+              </div>
+              <button
+                onClick={handleSaveDates}
+                disabled={loading}
+                className="p-1.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50 transition-colors"
+                title="Salvar datas"
+              >
+                <Check className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => { setEditDates(false); setEditInicio(stage.data_inicio_real ?? ''); setEditFim(stage.data_fim_real ?? ''); }}
+                className="p-1.5 text-zinc-400 hover:text-zinc-600 rounded-lg border border-zinc-200 hover:bg-zinc-50 transition-colors"
+                title="Cancelar"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Ações */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {stage.status === 'planejada' && (
+        {/* Right actions */}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {stage.status !== 'planejada' && !editDates && (
             <button
-              onClick={() => handle('iniciar')}
-              disabled={loading}
-              className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              onClick={() => { setEditDates(true); setEditInicio(stage.data_inicio_real ?? ''); setEditFim(stage.data_fim_real ?? ''); }}
+              className="p-1.5 text-zinc-300 hover:text-zinc-500 transition-colors rounded"
+              title="Editar datas reais"
             >
-              Iniciar
-            </button>
-          )}
-          {stage.status === 'em_andamento' && (
-            <button
-              onClick={() => handle('concluir')}
-              disabled={loading}
-              className="px-3 py-1.5 text-xs font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Concluir
+              <Pencil className="w-3.5 h-3.5" />
             </button>
           )}
           {stage.historico.length > 0 && (
@@ -129,7 +246,10 @@ function StageRow({ stage, onAction }: { stage: Stage; onAction: (id: string, ac
             <div key={log.id} className="flex items-center gap-2 text-xs text-zinc-500">
               <span className="text-zinc-300">·</span>
               <span>
-                {log.old_values?.status} → <strong className="text-zinc-600">{log.new_values?.status}</strong>
+                {log.action === 'DATE_UPDATE'
+                  ? 'Datas atualizadas'
+                  : <>{log.old_values?.status} → <strong className="text-zinc-600">{log.new_values?.status}</strong></>
+                }
               </span>
               <span className="text-zinc-300">·</span>
               <span>{new Date(log.changed_at).toLocaleString('pt-BR')}</span>
@@ -177,11 +297,11 @@ export default function EtapasPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  async function handleAction(stageId: string, action: 'iniciar' | 'concluir') {
-    const res = await fetch(`/api/mvp/stages/${stageId}`, {
+  async function handleAction(args: HandleActionArgs) {
+    const res = await fetch(`/api/mvp/stages/${args.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action }),
+      body: JSON.stringify(args),
     });
     if (res.ok) {
       await fetchData();
@@ -191,30 +311,25 @@ export default function EtapasPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="flex items-center justify-center py-20">
+      <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
+    </div>
+  );
 
-  if (error) {
-    return (
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-          <p className="text-red-600 font-medium">{error}</p>
-          <button onClick={() => router.push('/produtos')} className="mt-3 text-sm text-zinc-500 hover:text-zinc-700">
-            ← Voltar para produtos
-          </button>
-        </div>
+  if (error) return (
+    <div className="max-w-3xl mx-auto">
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+        <p className="text-red-600 font-medium">{error}</p>
+        <button onClick={() => router.push('/produtos')} className="mt-3 text-sm text-zinc-500 hover:text-zinc-700">
+          ← Voltar para produtos
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
     <div className="max-w-3xl mx-auto">
-      {/* Header */}
       <div className="flex items-center gap-3 mb-2">
         <button
           onClick={() => router.push('/produtos')}
@@ -232,7 +347,6 @@ export default function EtapasPage() {
         </div>
       </div>
 
-      {/* Progresso geral */}
       <div className="bg-white border border-zinc-100 rounded-xl p-4 mb-4">
         <div className="flex items-center justify-between text-sm mb-2">
           <span className="font-medium text-zinc-700">Progresso geral</span>
@@ -246,7 +360,6 @@ export default function EtapasPage() {
         </div>
       </div>
 
-      {/* Etapas */}
       <div className="space-y-2">
         {stages.map((stage) => (
           <StageRow key={stage.id} stage={stage} onAction={handleAction} />

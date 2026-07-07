@@ -24,6 +24,7 @@ import {
   Layers,
   TrendingUp,
   GitCompareArrows,
+  BarChart2,
 } from 'lucide-react';
 import GlobalSearch from '../global-search';
 
@@ -36,6 +37,7 @@ export default function Sidebar({ user, onClose }: SidebarProps) {
   const pathname = usePathname();
   const [pendingAnalyses, setPendingAnalyses] = useState(0);
   const [pendingApprovals, setPendingApprovals] = useState(0);
+  const [alertCount, setAlertCount] = useState(0);
 
   useEffect(() => {
     const fetchPendingCount = async () => {
@@ -54,6 +56,22 @@ export default function Sidebar({ user, onClose }: SidebarProps) {
       return () => clearInterval(interval);
     }
   }, [user?.role]);
+
+  useEffect(() => {
+    const fetchAlertCount = async () => {
+      try {
+        const res = await fetch('/api/mvp/alerts');
+        if (!res.ok) return;
+        const d = await res.json();
+        setAlertCount(d.count ?? 0);
+      } catch {
+        // silencioso
+      }
+    };
+    fetchAlertCount();
+    const interval = setInterval(fetchAlertCount, 60_000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const fetchApprovalCount = async () => {
@@ -154,8 +172,9 @@ export default function Sidebar({ user, onClose }: SidebarProps) {
         <NavLink href="/dashboard" label="Dashboard" icon={<LayoutDashboard className="w-4 h-4" />} />
         <NavLink href="/tasks" label="Todas as Tarefas" icon={<CheckSquare className="w-4 h-4" />} />
         <NavLink href="/tasks/my-tasks" label="Minhas Tarefas" icon={<ListTodo className="w-4 h-4" />} />
-        <NavLink href="/produtos" label="Produtos" icon={<Package className="w-4 h-4" />} />
+        <NavLink href="/produtos" label="Produtos" icon={<Package className="w-4 h-4" />} badge={alertCount > 0 ? alertCount : undefined} />
         <NavLink href="/fluxo-de-caixa" label="Fluxo de Caixa" icon={<TrendingUp className="w-4 h-4" />} />
+        <NavLink href="/analytics" label="Analytics" icon={<BarChart2 className="w-4 h-4" />} />
 
         {['qa', 'admin', 'head'].includes(user?.role as string) && (
           <>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Plus, Package, BarChart2, TrendingUp, Download, GitCompareArrows } from 'lucide-react';
+import { Plus, Package, BarChart2, TrendingUp, Download, GitCompareArrows, Copy } from 'lucide-react';
 import { downloadCSV, todayISO } from '@lib/export-csv';
 import Link from 'next/link';
 
@@ -76,6 +76,24 @@ function ProdutosContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
+  const [duplicating, setDuplicating] = useState<string | null>(null);
+
+  async function handleDuplicate(productId: string) {
+    setDuplicating(productId);
+    try {
+      const res = await fetch(`/api/mvp/products/${productId}/duplicate`, { method: 'POST' });
+      if (res.ok) {
+        const { product } = await res.json();
+        await fetchProducts();
+        router.push(`/produtos/${product.id}`);
+      } else {
+        const d = await res.json();
+        alert(d.error ?? 'Erro ao duplicar produto');
+      }
+    } finally {
+      setDuplicating(null);
+    }
+  }
 
   function toggleSelect(id: string) {
     setSelected((prev) =>
@@ -448,7 +466,7 @@ function ProdutosContent() {
                     )}
 
                     {/* Quick access */}
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Link
                         href={`/produtos/${p.id}?tab=gantt`}
                         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-600 bg-zinc-50 border border-zinc-200 rounded-lg hover:bg-zinc-100 hover:border-zinc-300 transition-colors"
@@ -463,6 +481,14 @@ function ProdutosContent() {
                         <TrendingUp className="w-3.5 h-3.5" />
                         Ver Financeiro
                       </Link>
+                      <button
+                        onClick={() => handleDuplicate(p.id)}
+                        disabled={duplicating === p.id}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-500 bg-zinc-50 border border-zinc-200 rounded-lg hover:bg-zinc-100 hover:border-zinc-300 disabled:opacity-50 transition-colors"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        {duplicating === p.id ? 'Duplicando...' : 'Duplicar'}
+                      </button>
                     </div>
                   </div>
 

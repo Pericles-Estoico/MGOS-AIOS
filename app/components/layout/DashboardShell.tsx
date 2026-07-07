@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import Sidebar from './Sidebar';
+import AlertsBell from '@components/mvp/AlertsBell';
 import type { Session } from 'next-auth';
 
 interface DashboardShellProps {
@@ -18,6 +19,8 @@ const PATH_LABELS: Record<string, string> = {
   '/tasks/my-tasks': 'Minhas Tarefas',
   '/tasks/new': 'Nova Tarefa',
   '/produtos': 'Produtos',
+  '/analytics': 'Analytics',
+  '/fluxo-de-caixa': 'Fluxo de Caixa',
   '/qa-reviews': 'Revisoes de QA',
   '/team': 'Time',
   '/team/time-logs': 'Registros de Tempo',
@@ -95,11 +98,14 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
           </button>
 
           {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 text-sm flex-1">
             <span className="text-zinc-400 hidden md:inline">MGOS</span>
             <span className="text-zinc-300 hidden md:inline">/</span>
             <span className="font-medium text-zinc-700">{pageTitle}</span>
           </div>
+
+          {/* Alertas */}
+          <AlertsBell />
         </header>
 
         {/* Page content */}

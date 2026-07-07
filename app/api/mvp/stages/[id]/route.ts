@@ -27,13 +27,14 @@ export async function PATCH(
     return Response.json({ error: 'JSON inválido' }, { status: 400 });
   }
 
-  const { action } = body; // 'iniciar' | 'concluir'
-  if (!['iniciar', 'concluir'].includes(action)) {
-    return Response.json({ error: 'Ação inválida. Use "iniciar" ou "concluir".' }, { status: 422 });
+  // action: 'iniciar' | 'concluir' | 'atualizar'
+  // data_real: optional ISO date string override (YYYY-MM-DD)
+  const { action, data_real } = body;
+  if (!['iniciar', 'concluir', 'atualizar'].includes(action)) {
+    return Response.json({ error: 'Ação inválida.' }, { status: 422 });
   }
 
   try {
-    // Buscar etapa e verificar ownership via produto
     const { data: stage, error: fetchError } = await supabase
       .from('mvp_stages')
       .select('id, status, product_id, mvp_products!inner(user_id)')
@@ -50,25 +51,34 @@ export async function PATCH(
     }
 
     const currentStatus = stage.status;
-    const expectedCurrent = action === 'iniciar' ? 'planejada' : 'em_andamento';
-
-    if (currentStatus !== expectedCurrent) {
-      return Response.json(
-        { error: `Etapa está "${currentStatus}", não pode executar "${action}"` },
-        { status: 409 }
-      );
-    }
-
-    const newStatus = VALID_TRANSITIONS[currentStatus];
     const now = new Date().toISOString();
-    const today = now.split('T')[0];
+    const today = data_real ?? now.split('T')[0];
 
-    const updateData: Record<string, any> = { status: newStatus };
-    if (action === 'iniciar') {
-      updateData.data_inicio_real = today;
-      updateData.responsavel_id = session.user.id;
+    let updateData: Record<string, any> = {};
+
+    if (action === 'atualizar') {
+      // Free-form update: only update the real dates, no status change
+      if (body.data_inicio_real !== undefined) updateData.data_inicio_real = body.data_inicio_real || null;
+      if (body.data_fim_real !== undefined) updateData.data_fim_real = body.data_fim_real || null;
+      if (Object.keys(updateData).length === 0) {
+        return Response.json({ error: 'Nenhum campo para atualizar.' }, { status: 422 });
+      }
     } else {
-      updateData.data_fim_real = today;
+      const expectedCurrent = action === 'iniciar' ? 'planejada' : 'em_andamento';
+      if (currentStatus !== expectedCurrent) {
+        return Response.json(
+          { error: `Etapa está "${currentStatus}", não pode executar "${action}"` },
+          { status: 409 }
+        );
+      }
+      const newStatus = VALID_TRANSITIONS[currentStatus];
+      updateData.status = newStatus;
+      if (action === 'iniciar') {
+        updateData.data_inicio_real = today;
+        updateData.responsavel_id = session.user.id;
+      } else {
+        updateData.data_fim_real = today;
+      }
     }
 
     const { error: updateError } = await supabase
@@ -78,18 +88,17 @@ export async function PATCH(
 
     if (updateError) throw updateError;
 
-    // Registrar no audit_log
     await supabase.from('audit_logs').insert({
       entity_type: 'mvp_stage',
       entity_id: params.id,
-      action: 'STATUS_CHANGE',
+      action: action === 'atualizar' ? 'DATE_UPDATE' : 'STATUS_CHANGE',
       changed_by: session.user.id,
       old_values: { status: currentStatus },
-      new_values: { status: newStatus, ...updateData },
+      new_values: updateData,
       changed_at: now,
     });
 
-    return Response.json({ stage: { id: params.id, status: newStatus, ...updateData } });
+    return Response.json({ stage: { id: params.id, ...updateData } });
   } catch (err: any) {
     console.error('[PATCH /api/mvp/stages/[id]]', err);
     return Response.json({ error: err.message ?? 'Erro ao atualizar etapa' }, { status: 500 });
