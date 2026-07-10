@@ -1,7 +1,7 @@
 # SYSTEM_KNOWLEDGE.md
 > Documento de conhecimento vivo do projeto MGOS-AIOS / SellersOps.
 > Atualizado automaticamente a cada sessão de desenvolvimento.
-> **Última atualização:** 2026-07-10
+> **Última atualização:** 2026-07-10 (v2)
 
 ---
 
@@ -185,7 +185,31 @@ export async function GET(
 
 ---
 
-## 6. Regras de Deploy
+## 6. Cadastro do Administrador Próprio
+
+### Como cadastrar sua conta de admin (uma única vez)
+
+1. **Acesse o Vercel** → projeto `mgos-aios-evqe` → Settings → Environment Variables
+2. **Adicione** `SETUP_TOKEN` com um valor secreto de sua escolha (ex: `minha-senha-super-secreta-2026`)
+3. **Faça um redeploy** (ou aguarde o próximo deploy automático)
+4. **Acesse** `https://www.sellerops.com.br/setup`
+5. **Preencha** o formulário com o Setup Token, seu nome, email e senha
+6. **Após criar a conta**, remova a variável `SETUP_TOKEN` do Vercel para fechar o endpoint
+
+### Como funciona a autenticação em produção
+
+- `NODE_ENV=production` → TEST_USERS (admin@empresa.com etc.) são **desativados automaticamente**
+- Apenas usuários criados no **Supabase Auth** conseguem fazer login
+- Cada usuário tem `user_metadata.role` definindo seu nível de acesso: `admin`, `head`, `executor`, `qa`, `viewer`
+
+### Gerenciar usuários adicionais
+
+Após criar o admin inicial, novos usuários podem ser criados em:
+- **Supabase Dashboard** → Auth → Users → Invite User
+
+---
+
+## 7. Regras de Deploy
 
 ### Fluxo padrão
 ```bash
@@ -222,7 +246,7 @@ vercel alias <deployment-url> www.sellerops.com.br
 
 ---
 
-## 7. Epics e Stories Implementadas
+## 8. Epics e Stories Implementadas
 
 ### Epic 1 — MVP Tracker (CONCLUÍDO)
 - 1.1 Schema do banco + migrations
@@ -244,7 +268,7 @@ vercel alias <deployment-url> www.sellerops.com.br
 
 ---
 
-## 8. Referências Rápidas
+## 9. Referências Rápidas
 
 ### URLs de produção
 - App: `https://www.sellerops.com.br`
@@ -269,7 +293,7 @@ npm run typecheck   # type check sem build
 
 ---
 
-## 9. Histórico de Migrations Supabase
+## 10. Histórico de Migrations Supabase
 
 | Arquivo | Descrição |
 |---------|-----------|
