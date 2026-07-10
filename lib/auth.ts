@@ -61,17 +61,19 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // Seed users — fallback when Supabase auth is unavailable
-        const seedUser = TEST_USERS.find(
-          (u) => u.email === credentials.email && u.password === credentials.password
-        );
-        if (seedUser) {
-          return {
-            id: seedUser.id,
-            email: seedUser.email,
-            name: seedUser.name,
-            role: seedUser.role,
-          } as any;
+        // TEST_USERS apenas em desenvolvimento local — nunca em produção
+        if (process.env.NODE_ENV !== 'production') {
+          const seedUser = TEST_USERS.find(
+            (u) => u.email === credentials.email && u.password === credentials.password
+          );
+          if (seedUser) {
+            return {
+              id: seedUser.id,
+              email: seedUser.email,
+              name: seedUser.name,
+              role: seedUser.role,
+            } as any;
+          }
         }
 
         // Try Supabase auth
