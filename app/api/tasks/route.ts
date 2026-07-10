@@ -3,7 +3,7 @@ import type { Session } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import { createSupabaseServerClient } from '@lib/supabase';
-import { MOCK_TASKS, getMockTasksByAssignee } from '@lib/mock-tasks';
+// Mock tasks removidos — usar apenas dados reais do Supabase em produção
 
 export async function GET(request: NextRequest) {
   try {
@@ -90,58 +90,26 @@ export async function GET(request: NextRequest) {
         data = result.data || [];
         count = result.count || 0;
       } catch (err) {
-        console.warn('⚠️  Supabase query failed, using mock data:', err);
+        console.warn('⚠️  Supabase query failed:', err);
         usesMockData = true;
       }
     } else {
-      console.log('⚠️  Supabase not configured, using mock data');
+      console.warn('⚠️  Supabase não configurado');
       usesMockData = true;
     }
 
-    // 7. Fallback: usar dados mock (SEMPRE para desenvolvimento/Pericles)
-    if (usesMockData || data.length === 0 || session.user?.email === 'pericles@vidadeceo.com.br') {
-      let mockData = [...MOCK_TASKS];
-
-      // Aplicar filtros
-      if (assignedTo) {
-        mockData = mockData.filter((task) => task.assigned_to === assignedTo);
-      }
-      if (status) {
-        mockData = mockData.filter((task) => task.status === status);
-      }
-      if (marketplace) {
-        mockData = mockData.filter((task) => (task as Record<string, unknown>).marketplace === marketplace);
-      }
-      if (productId) {
-        mockData = mockData.filter((task) => (task as Record<string, unknown>).product_id === productId);
-      }
-
-      // Aplicar ordenação
-      if (sortBy === 'updated_at') {
-        mockData.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
-      } else if (sortBy === 'created_at') {
-        mockData.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      } else if (sortBy === 'due_date') {
-        mockData.sort((a, b) => {
-          if (!a.due_date) return 1;
-          if (!b.due_date) return -1;
-          return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
-        });
-      }
-
-      // Aplicar paginação
-      data = mockData.slice(offset, offset + limit);
-      count = mockData.length;
+    // Supabase indisponível: retorna array vazio em vez de dados falsos
+    if (usesMockData) {
+      return Response.json({
+        data: [],
+        pagination: { total: 0, limit, offset },
+        _debug: { source: 'supabase_unavailable' },
+      });
     }
 
     return Response.json({
       data,
-      pagination: {
-        total: count,
-        limit,
-        offset,
-      },
-      _debug: usesMockData ? { source: 'mock_data' } : undefined,
+      pagination: { total: count, limit, offset },
     });
   } catch (err) {
     console.error('Erro na API GET /tasks:', err);
