@@ -50,3 +50,4 @@ logs/
 .claude/settings.local.json
 .aios/install-log.txt
 .env.local
+.vercel
