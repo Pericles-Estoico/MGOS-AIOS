@@ -79,6 +79,10 @@ export class AgentOrchestrator {
     let successCount = 0;
     let failureCount = 0;
 
+    // Busca contexto real do negócio uma única vez antes do loop
+    const allProducts = await this.fetchProducts();
+    console.log(`📦 Portfólio carregado: ${allProducts.length} produtos ativos/planejados`);
+
     for (const agent of this.agents) {
       const agentChannel = CHANNEL_MAP[agent];
 
@@ -91,11 +95,12 @@ export class AgentOrchestrator {
         const agentName = getAgentName(agent);
         console.log(`\n🔄 Ativando ${agentName} (${agentChannel})...`);
 
+        const recentTasks = await this.fetchRecentTasksForChannel(agentChannel);
         const agentPrompt = getAgentPrompt(agent);
         const provider = process.env.OPENAI_API_KEY ? 'openai' : 'anthropic';
         const response = await callAgent({
           systemPrompt: agentPrompt,
-          userMessage: this.buildTaskGenerationPrompt(agentName, agentChannel),
+          userMessage: this.buildTaskGenerationPrompt(agentName, agentChannel, allProducts, recentTasks),
           provider,
           maxTokens: 2000,
         });
@@ -126,18 +131,95 @@ export class AgentOrchestrator {
   }
 
   /**
-   * Prompt explícito pedindo JSON estruturado para geração de tarefas
+   * Busca produtos ativos e planejados do portfólio
    */
-  private buildTaskGenerationPrompt(agentName: string, channel: string): string {
-    return `Como ${agentName}, especialista em ${channel} para moda bebê/infantil (0-14 anos no Brasil), gere 4 tarefas prioritárias de escala de vendas e produtos.
+  private async fetchProducts(): Promise<Array<Record<string, unknown>>> {
+    if (!this.supabase) return [];
+    try {
+      const { data, error } = await this.supabase
+        .from('mvp_products')
+        .select('nome, categoria, canal_venda, status, preco_venda, quantidade')
+        .in('status', ['planejado', 'em_andamento'])
+        .order('status', { ascending: true })
+        .limit(30);
+      if (error) {
+        console.warn('⚠️  Falha ao buscar portfólio:', error.message);
+        return [];
+      }
+      return data || [];
+    } catch {
+      return [];
+    }
+  }
 
-IMPORTANTE: Responda APENAS com um array JSON válido, sem texto adicional antes ou depois.
+  /**
+   * Busca tarefas recentes de um canal (últimos 30 dias) para evitar duplicatas
+   */
+  private async fetchRecentTasksForChannel(channel: string): Promise<string[]> {
+    if (!this.supabase) return [];
+    try {
+      const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const { data, error } = await this.supabase
+        .from('marketplace_tasks')
+        .select('title')
+        .eq('marketplace', channel)
+        .gte('created_at', since)
+        .limit(15);
+      if (error) return [];
+      return (data || []).map(t => t.title as string);
+    } catch {
+      return [];
+    }
+  }
 
-Formato obrigatório:
+  /**
+   * Prompt com contexto real do negócio injetado
+   */
+  private buildTaskGenerationPrompt(
+    agentName: string,
+    channel: string,
+    products: Array<Record<string, unknown>>,
+    recentTasks: string[],
+  ): string {
+    // Seção de portfólio
+    let portfolioSection: string;
+    if (products.length > 0) {
+      const lines = products.map(p => {
+        const canal = p.canal_venda ? ` | canal: ${p.canal_venda}` : '';
+        const preco = p.preco_venda ? ` | R$${p.preco_venda}` : '';
+        const qtd = p.quantidade ? ` | qtd: ${p.quantidade}` : '';
+        return `  - ${p.nome} [${p.status}]${canal}${preco}${qtd} (${p.categoria || 'sem categoria'})`;
+      }).join('\n');
+      portfolioSection = `PORTFÓLIO ATUAL (${products.length} produtos):\n${lines}`;
+    } else {
+      portfolioSection = 'PORTFÓLIO: Nenhum produto cadastrado ainda. Gere tarefas de configuração inicial do canal.';
+    }
+
+    // Seção de tarefas recentes
+    let recentSection = '';
+    if (recentTasks.length > 0) {
+      const lines = recentTasks.map(t => `  - "${t}"`).join('\n');
+      recentSection = `\nTAREFAS RECENTES EM ${channel.toUpperCase()} — NÃO REPITA:\n${lines}\n`;
+    }
+
+    return `Como ${agentName}, especialista em ${channel} para moda bebê/infantil (0-14 anos no Brasil), analise o contexto real do negócio abaixo e gere 4 tarefas priorizadas.
+
+${portfolioSection}
+${recentSection}
+DIRETRIZES:
+- Cite produtos específicos pelo nome quando a tarefa for sobre um produto existente
+- Priorize produtos com status "em_andamento" que precisam de ação imediata
+- Para produtos sem canal_venda definido, sugira qual canal faz mais sentido
+- Se o portfólio estiver vazio, crie tarefas de setup inicial para ${channel}
+- NÃO repita as tarefas recentes listadas acima
+
+IMPORTANTE: Responda APENAS com um array JSON válido, sem texto adicional.
+
+Formato:
 [
   {
-    "title": "Título curto e claro da tarefa (máx 100 chars)",
-    "description": "Descrição detalhada do que fazer, por que e qual impacto esperado nas vendas",
+    "title": "Título curto e claro (máx 100 chars)",
+    "description": "Descrição detalhada com referência ao produto/contexto específico",
     "category": "scaling",
     "priority": "high",
     "estimatedHours": 4,
@@ -145,11 +227,9 @@ Formato obrigatório:
   }
 ]
 
-Categorias válidas: "optimization", "best-practice", "scaling", "analysis"
-Prioridades válidas: "high", "medium", "low"
-estimatedHours: número de 1 a 40
-
-Foque em tarefas que aumentem vendas e escala de produtos em ${channel}.`;
+Categorias: "optimization" | "best-practice" | "scaling" | "analysis"
+Prioridades: "high" | "medium" | "low"
+estimatedHours: 1 a 40`;
   }
 
   /**
@@ -354,7 +434,7 @@ Foque em tarefas que aumentem vendas e escala de produtos em ${channel}.`;
     const response = await callAgent({
       systemPrompt: getAgentPrompt(agentId),
       userMessage: taskDescription,
-      provider: 'openai',
+      provider: process.env.OPENAI_API_KEY ? 'openai' : 'anthropic',
       maxTokens: 1000,
     });
 
