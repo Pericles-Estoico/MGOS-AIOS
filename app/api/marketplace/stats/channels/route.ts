@@ -44,12 +44,10 @@ export async function GET() {
       .eq('status', 'active')
       .order('created_at', { ascending: false });
 
-    if (channelsError?.code === 'PGRST116') {
-      // Table doesn't exist yet
+    if (channelsError) {
+      // Tabela não existe ou outro erro — retorna vazio sem falhar
       return NextResponse.json({ channels: [] });
     }
-
-    if (channelsError) throw channelsError;
 
     // Transform to ChannelStatus format
     const channelStatus: ChannelStatus[] = (channels || []).map(channel => ({

@@ -21,8 +21,8 @@ export async function GET() {
       .from('marketplace_channels')
       .select('*');
 
-    if (channelsError?.code === 'PGRST116') {
-      // Table doesn't exist yet
+    if (channelsError) {
+      // Tabela não existe ou outro erro — retorna zeros sem falhar
       return NextResponse.json({
         totalChannels: 0,
         activeChannels: 0,
@@ -32,8 +32,6 @@ export async function GET() {
         averageCompletionTime: 0,
       });
     }
-
-    if (channelsError) throw channelsError;
 
     // Calculate stats from channels
     const totalChannels = channels?.length || 0;
