@@ -92,10 +92,11 @@ export class AgentOrchestrator {
         console.log(`\n🔄 Ativando ${agentName} (${agentChannel})...`);
 
         const agentPrompt = getAgentPrompt(agent);
+        const provider = process.env.OPENAI_API_KEY ? 'openai' : 'anthropic';
         const response = await callAgent({
           systemPrompt: agentPrompt,
           userMessage: this.buildTaskGenerationPrompt(agentName, agentChannel),
-          provider: 'openai',
+          provider,
           maxTokens: 2000,
         });
 
